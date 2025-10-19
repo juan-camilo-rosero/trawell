@@ -9,9 +9,9 @@ import { useRouter } from "next/navigation";
 import { continueWithGoogle } from "@/lib/auth_functions";
 
 // Tipos
-interface AuthError {
+/*interface AuthError {
   message: string;
-}
+}*/
 
 // Constantes
 const ERROR_MESSAGES: Record<string, string> = {
