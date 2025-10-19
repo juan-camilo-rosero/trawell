@@ -129,7 +129,7 @@ function Page() {
                   </p>
                   <p className="font-semibold text-muted-900 mb-4 text-lg">{email}</p>
                   <p className="text-sm text-muted-500">
-                    Por favor revisa tu bandeja de entrada y haz clic en el enlace de verificación para activar tu cuenta. <span className="text-muted-900 font-semibold">Posiblemente llegue a spam jajan't :(</span>
+                    Por favor revisa tu bandeja de entrada y haz clic en el enlace de verificación para activar tu cuenta. <span className="text-muted-900 font-semibold">Posiblemente llegue a spam jajan&apos;t :(</span>
                   </p>
                 </div>
               </div>
