@@ -6,7 +6,11 @@ import { FcGoogle } from "react-icons/fc";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { continueWithGoogle, signInWithEmail, resendVerificationEmail } from "@/lib/auth_functions";
+import {
+  continueWithGoogle,
+  signInWithEmail,
+  resendVerificationEmail,
+} from "@/lib/auth_functions";
 
 // Constantes
 const ERROR_MESSAGES: Record<string, string> = {
@@ -23,7 +27,8 @@ const ERROR_MESSAGES: Record<string, string> = {
   "auth/invalid-credential": "Credenciales inválidas",
   "auth/too-many-requests": "Demasiados intentos. Intenta más tarde",
   "auth/missing-credentials": "Email y contraseña son requeridos",
-  "auth/email-not-verified": "Por favor verifica tu email antes de iniciar sesión",
+  "auth/email-not-verified":
+    "Por favor verifica tu email antes de iniciar sesión",
   default: "Error al iniciar sesión",
 };
 
@@ -34,7 +39,8 @@ function Page() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isResendingEmail, setIsResendingEmail] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
-  const [showUnverifiedMessage, setShowUnverifiedMessage] = useState<boolean>(false);
+  const [showUnverifiedMessage, setShowUnverifiedMessage] =
+    useState<boolean>(false);
   const [resendSuccess, setResendSuccess] = useState<boolean>(false);
 
   const getErrorMessage = (error: unknown): string => {
@@ -77,15 +83,15 @@ function Page() {
       await signInWithEmail(email, password);
       router.push("/dashboard");
     } catch (error: unknown) {
-      // Verificar si el error es por email no verificado
-      if (error?.code === 'auth/email-not-verified') {
+      const authError = error as { code?: string };
+      if (authError.code === "auth/email-not-verified") {
         setShowUnverifiedMessage(true);
         setError("Tu email aún no ha sido verificado");
       } else {
         const errorMessage = getErrorMessage(error);
         setError(errorMessage);
       }
-      
+
       setIsLoading(false);
     }
   };
@@ -166,7 +172,8 @@ function Page() {
                 Debes verificar tu email antes de iniciar sesión
               </p>
               <p className="text-xs text-muted-500 mb-3 text-center">
-                Revisa tu bandeja de entrada y haz clic en el enlace de verificación
+                Revisa tu bandeja de entrada y haz clic en el enlace de
+                verificación
               </p>
               {resendSuccess ? (
                 <p className="text-sm text-muted-900 text-center font-semibold">
@@ -178,7 +185,9 @@ function Page() {
                   onClick={handleResendVerification}
                   disabled={isResendingEmail}
                 >
-                  {isResendingEmail ? "Reenviando..." : "Reenviar email de verificación"}
+                  {isResendingEmail
+                    ? "Reenviando..."
+                    : "Reenviar email de verificación"}
                 </Button>
               )}
             </div>
@@ -203,9 +212,7 @@ function Page() {
           </div>
 
           {error && !showUnverifiedMessage && (
-            <p className="text-primary text-sm mt-4 text-center">
-              {error}
-            </p>
+            <p className="text-primary text-sm mt-4 text-center">{error}</p>
           )}
 
           <Link
