@@ -118,11 +118,8 @@ function Header() {
                     </button>
                   </div>
 
-                  {/* Espaciador */}
-                  <div className="flex-1" />
-
                   {/* Botones en la parte inferior */}
-                  <div className="custom-ph pb-12 flex flex-col gap-3">
+                  <div className="custom-ph pt-12 flex flex-col gap-3">
                     <MenuButtons onClose={closeMenu} />
                   </div>
                 </div>
