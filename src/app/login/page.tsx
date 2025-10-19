@@ -76,7 +76,7 @@ function Page() {
     try {
       await signInWithEmail(email, password);
       router.push("/dashboard");
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Verificar si el error es por email no verificado
       if (error?.code === 'auth/email-not-verified') {
         setShowUnverifiedMessage(true);
