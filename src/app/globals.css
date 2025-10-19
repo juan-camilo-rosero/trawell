@@ -28,8 +28,12 @@
   @apply bg-secondary-100 border-[1px] border-muted-900 text-muted-900 font-semibold py-2 px-8 rounded-lg transition hover:bg-secondary-200;
 }
 
+.third-btn{
+  @apply bg-secondary-200 text-muted-900 font-semibold py-2 px-8 rounded-lg transition hover:bg-secondary-300;
+}
+
 /* --- Landing --- */
 
 .custom-ph{
-  @apply px-4 md:px-8 lg:px-16;
+  @apply px-8 md:px-12 lg:px-16;
 }

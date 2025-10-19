@@ -18,10 +18,11 @@ const config: Config = {
         secondary: {
           100: '#FAFAFA',
           200: '#F4F4F4',
-          300: '#EDE0CE',
+          300: '#EDEDED',
         },
   			muted: {
   				100: '#FAFAFA',
+  				200: '#B2B2B2',
   				300: '#B2B2B2',
   				500: '#8E8E8E',
   				900: '#1B1B1B',
