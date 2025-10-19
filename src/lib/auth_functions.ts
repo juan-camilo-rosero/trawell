@@ -12,7 +12,7 @@ export const continueWithGoogle = async (): Promise<User> => {
   
   try {
     const result: UserCredential = await signInWithPopup(auth, provider);
-    const credential = GoogleAuthProvider.credentialFromResult(result);
+    // const credential = GoogleAuthProvider.credentialFromResult(result);
     // const token = credential?.accessToken;
     const user = result.user;
     
