@@ -11,12 +11,14 @@ const config: Config = {
   	extend: {
   		colors: {
         primary: {
-          DEFAULT: '#FF6900',
-          200: "#F3E7D6"
+          DEFAULT: '#FF5F64',
+          200: "#F3E7D6",
+          600: "#FE474C"
         },
         secondary: {
-          100: '#FAF4E8',
-          200: '#F3E7D6',
+          100: '#FAFAFA',
+          200: '#F4F4F4',
+          300: '#EDE0CE',
         },
   			muted: {
   				100: '#FAFAFA',
@@ -25,11 +27,6 @@ const config: Config = {
   				900: '#1B1B1B',
   			},
   		},
-  		borderRadius: {
-  			lg: 'var(--radius)',
-  			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)'
-  		}
   	}
   },
   plugins: [require("tailwindcss-animate")],
