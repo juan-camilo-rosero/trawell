@@ -8,6 +8,7 @@ const firebaseStorageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
 const firebaseSenderId = process.env.NEXT_PUBLIC_FIREBASE_SENDER_ID;
 const firebaseAppId = process.env.NEXT_PUBLIC_FIREBASE_APP_ID;
 
+
 const firebaseConfig = {
   apiKey: firebaseApiKey,
   authDomain: firebaseAuthDomain,
