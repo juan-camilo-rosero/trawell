@@ -52,13 +52,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 {breadcrumbs.map((crumb, index) => (
                   <div key={crumb.path} className="flex items-center">
                     {index > 0 && (
-                      <BreadcrumbSeparator className="hidden md:block" />
+                      <BreadcrumbSeparator className="hidden md:block mr-3" />
                     )}
                     <BreadcrumbItem className={index === 0 ? "hidden md:block" : ""}>
                       {crumb.isLast ? (
-                        <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                        <BreadcrumbPage className="text-lg">{crumb.label}</BreadcrumbPage>
                       ) : (
-                        <BreadcrumbLink href={crumb.path}>
+                        <BreadcrumbLink href={crumb.path} className="text-lg">
                           {crumb.label}
                         </BreadcrumbLink>
                       )}

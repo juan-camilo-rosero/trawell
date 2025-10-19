@@ -19,13 +19,12 @@ export function NavProjects({
 }) {
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Projects</SidebarGroupLabel>
       <SidebarMenu>
         {projects.map((item) => (
           <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton asChild tooltip={item.name}>
+            <SidebarMenuButton asChild tooltip={item.name} className="text-xl lg:text-base !py-6 lg:!py-5">
               <a href={item.url}>
-                <item.icon />
+                <item.icon/>
                 <span>{item.name}</span>
               </a>
             </SidebarMenuButton>
