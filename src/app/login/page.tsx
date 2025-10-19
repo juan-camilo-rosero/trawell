@@ -6,12 +6,7 @@ import { FcGoogle } from "react-icons/fc";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { continueWithGoogle } from "@/lib/auth_functions";
-
-// Tipos
-/*interface AuthError {
-  message: string;
-}*/
+import { continueWithGoogle, signInWithEmail, resendVerificationEmail } from "@/lib/auth_functions";
 
 // Constantes
 const ERROR_MESSAGES: Record<string, string> = {
@@ -21,7 +16,15 @@ const ERROR_MESSAGES: Record<string, string> = {
   "auth/network-request-failed": "Error de conexión. Verifica tu internet",
   "auth/internal-error": "Error interno. Intenta nuevamente",
   "auth/unauthorized-domain": "Dominio no autorizado",
-  default: "Error al iniciar sesión con Google",
+  "auth/invalid-email": "Email inválido",
+  "auth/user-disabled": "Esta cuenta ha sido deshabilitada",
+  "auth/user-not-found": "No existe una cuenta con este email",
+  "auth/wrong-password": "Contraseña incorrecta",
+  "auth/invalid-credential": "Credenciales inválidas",
+  "auth/too-many-requests": "Demasiados intentos. Intenta más tarde",
+  "auth/missing-credentials": "Email y contraseña son requeridos",
+  "auth/email-not-verified": "Por favor verifica tu email antes de iniciar sesión",
+  default: "Error al iniciar sesión",
 };
 
 function Page() {
@@ -29,7 +32,10 @@ function Page() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isResendingEmail, setIsResendingEmail] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const [showUnverifiedMessage, setShowUnverifiedMessage] = useState<boolean>(false);
+  const [resendSuccess, setResendSuccess] = useState<boolean>(false);
 
   const getErrorMessage = (error: unknown): string => {
     if (error instanceof Error) {
@@ -44,6 +50,7 @@ function Page() {
   const handleGoogleSignIn = async (): Promise<void> => {
     setIsLoading(true);
     setError("");
+    setShowUnverifiedMessage(false);
 
     try {
       await continueWithGoogle();
@@ -56,8 +63,53 @@ function Page() {
   };
 
   const handleEmailSignIn = async (): Promise<void> => {
-    // Implementar lógica de inicio de sesión con email
-    console.log("Email sign in", { email, password });
+    if (!email.trim() || !password.trim()) {
+      setError("Por favor completa todos los campos");
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+    setShowUnverifiedMessage(false);
+    setResendSuccess(false);
+
+    try {
+      await signInWithEmail(email, password);
+      router.push("/dashboard");
+    } catch (error: any) {
+      // Verificar si el error es por email no verificado
+      if (error?.code === 'auth/email-not-verified') {
+        setShowUnverifiedMessage(true);
+        setError("Tu email aún no ha sido verificado");
+      } else {
+        const errorMessage = getErrorMessage(error);
+        setError(errorMessage);
+      }
+      
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendVerification = async (): Promise<void> => {
+    setIsResendingEmail(true);
+    setResendSuccess(false);
+    setError("");
+
+    try {
+      await resendVerificationEmail();
+      setResendSuccess(true);
+    } catch (error) {
+      const errorMessage = getErrorMessage(error);
+      setError(errorMessage);
+    } finally {
+      setIsResendingEmail(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+    if (e.key === "Enter" && !isLoading) {
+      handleEmailSignIn();
+    }
   };
 
   return (
@@ -67,7 +119,7 @@ function Page() {
       </div>
       <div className="bg-secondary-200 md:bg-secondary-100 min-h-screen flex">
         <div className="w-full hidden lg:flex bg-secondary-200"></div>
-        <div className="w-screen custom-ph flex items-center justify-center flex-col pt-16 lg:pt-0 min-h-screen md:max-w-xl md:mx-auto lg:w-1/2 bg-secondary-100">
+        <div className="w-screen custom-ph flex items-center justify-center flex-col pt-16 min-h-screen md:max-w-xl md:mx-auto lg:w-1/2 bg-secondary-100 lg:py-8">
           <div className="w-full">
             <Link href="/" className="flex justify-center">
               <img
@@ -85,10 +137,11 @@ function Page() {
           </div>
           <div className="w-full flex flex-col gap-6 mt-12 lg:mt-4">
             <CustomInput
-              type="text"
+              type="email"
               placeholder="Email"
               value={email}
               setValue={setEmail}
+              onKeyPress={handleKeyPress}
             />
             <div>
               <CustomInput
@@ -96,6 +149,7 @@ function Page() {
                 placeholder="Contraseña"
                 value={password}
                 setValue={setPassword}
+                onKeyPress={handleKeyPress}
               />
               <div className="text-muted-500 font-medium text-right mt-4 underline md:text-base lg:text-sm">
                 <Link href="/reset-password" className="w-auto">
@@ -104,13 +158,39 @@ function Page() {
               </div>
             </div>
           </div>
+
+          {/* Mensaje de email no verificado */}
+          {showUnverifiedMessage && (
+            <div className="w-full mt-6 bg-secondary-100 border border-secondary-300 rounded-lg p-4">
+              <p className="text-sm text-primary mb-3 text-center font-semibold">
+                Debes verificar tu email antes de iniciar sesión
+              </p>
+              <p className="text-xs text-muted-500 mb-3 text-center">
+                Revisa tu bandeja de entrada y haz clic en el enlace de verificación
+              </p>
+              {resendSuccess ? (
+                <p className="text-sm text-muted-900 text-center font-semibold">
+                  Email reenviado correctamente
+                </p>
+              ) : (
+                <Button
+                  className="primary-btn w-full"
+                  onClick={handleResendVerification}
+                  disabled={isResendingEmail}
+                >
+                  {isResendingEmail ? "Reenviando..." : "Reenviar email de verificación"}
+                </Button>
+              )}
+            </div>
+          )}
+
           <div className="w-full flex flex-col gap-4 mt-12 lg:mt-8">
             <Button
               className="primary-btn text-xl !h-auto !py-3 md:text-base"
               onClick={handleEmailSignIn}
               disabled={isLoading}
             >
-              Iniciar sesión
+              {isLoading ? "Iniciando sesión..." : "Iniciar sesión"}
             </Button>
             <Button
               className="third-btn text-xl !h-auto !py-3 md:text-base gap-4 flex items-center justify-center"
@@ -118,18 +198,18 @@ function Page() {
               disabled={isLoading}
             >
               <FcGoogle size={24} />
-              {isLoading ? "Iniciando sesión..." : "Continuar con Google"}
+              Continuar con Google
             </Button>
           </div>
 
-          {error && (
+          {error && !showUnverifiedMessage && (
             <p className="text-primary text-sm mt-4 text-center">
               {error}
             </p>
           )}
 
           <Link
-            href="/signup"
+            href="/sign-up"
             className="underline text-muted-500 mt-12 md:mt-8"
           >
             ¿No tienes una cuenta?
