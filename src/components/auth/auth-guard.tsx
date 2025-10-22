@@ -2,23 +2,20 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { onAuthStateChanged, type User } from 'firebase/auth'
+import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from '@/lib/firebase.config'
 
 interface AuthGuardProps {
   children: React.ReactNode
-  fallback?: React.ReactNode
 }
 
-export function AuthGuard({ children, fallback }: AuthGuardProps) {
+export function AuthGuard({ children }: AuthGuardProps) {
   const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
-  const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
-        setUser(currentUser)
         setIsAuthenticated(true)
       } else {
         setIsAuthenticated(false)
@@ -29,26 +26,38 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
     return () => unsubscribe()
   }, [router])
 
-  // Mientras verifica la autenticación
+  // Mientras verifica la autenticación - muestra skeleton
   if (isAuthenticated === null) {
-    return fallback || <AuthGuardLoader />
+    return <AuthGuardSkeleton />
   }
 
-  // Si no está autenticado (antes de redirigir)
+  // Si no está autenticado - muestra skeleton mientras redirige
   if (!isAuthenticated) {
-    return fallback || <AuthGuardLoader />
+    return <AuthGuardSkeleton />
   }
 
-  // Usuario autenticado
+  // Usuario autenticado - muestra el contenido
   return <>{children}</>
 }
 
-function AuthGuardLoader() {
+function AuthGuardSkeleton() {
   return (
-    <div className="flex h-screen w-full items-center justify-center">
-      <div className="flex flex-col items-center gap-2">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-secondary-200 border-t-primary" />
-        <p className="text-muted-foreground">Verificando autenticación...</p>
+    <div className="space-y-6">
+      {/* Title Skeleton */}
+      <div className="h-8 w-48 rounded-lg bg-gray-200 animate-pulse" />
+
+      {/* Cards Skeleton */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="h-32 rounded-lg bg-gray-200 animate-pulse" />
+        <div className="h-32 rounded-lg bg-gray-200 animate-pulse" />
+        <div className="h-32 rounded-lg bg-gray-200 animate-pulse" />
+      </div>
+
+      {/* Content Skeleton */}
+      <div className="space-y-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-20 rounded-lg bg-gray-200 animate-pulse" />
+        ))}
       </div>
     </div>
   )

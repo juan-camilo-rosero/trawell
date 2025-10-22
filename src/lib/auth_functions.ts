@@ -160,3 +160,14 @@ export const resendVerificationEmail = async (): Promise<void> => {
     throw new Error('Error al reenviar email de verificación');
   }
 };
+
+export const signOut = async (): Promise<void> => {
+  try {
+    await auth.signOut();
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    }
+    throw new Error('Error desconocido al cerrar sesión');
+  }
+};

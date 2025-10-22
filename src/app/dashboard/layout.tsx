@@ -45,41 +45,41 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   })
 
   return (
-    <AuthGuard>
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-            <div className="flex items-center gap-2 px-4">
-              <SidebarTrigger className="-ml-1" />
-              <Separator orientation="vertical" className="mr-2 h-4" />
-              <Breadcrumb>
-                <BreadcrumbList>
-                  {breadcrumbs.map((crumb, index) => (
-                    <div key={crumb.path} className="flex items-center">
-                      {index > 0 && (
-                        <BreadcrumbSeparator className="hidden md:block mr-3" />
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+          <div className="flex items-center gap-2 px-4">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Breadcrumb>
+              <BreadcrumbList>
+                {breadcrumbs.map((crumb, index) => (
+                  <div key={crumb.path} className="flex items-center">
+                    {index > 0 && (
+                      <BreadcrumbSeparator className="hidden md:block mr-3" />
+                    )}
+                    <BreadcrumbItem className={index === 0 ? "hidden md:block" : ""}>
+                      {crumb.isLast ? (
+                        <BreadcrumbPage className="text-lg">{crumb.label}</BreadcrumbPage>
+                      ) : (
+                        <BreadcrumbLink href={crumb.path} className="text-lg">
+                          {crumb.label}
+                        </BreadcrumbLink>
                       )}
-                      <BreadcrumbItem className={index === 0 ? "hidden md:block" : ""}>
-                        {crumb.isLast ? (
-                          <BreadcrumbPage className="text-lg">{crumb.label}</BreadcrumbPage>
-                        ) : (
-                          <BreadcrumbLink href={crumb.path} className="text-lg">
-                            {crumb.label}
-                          </BreadcrumbLink>
-                        )}
-                      </BreadcrumbItem>
-                    </div>
-                  ))}
-                </BreadcrumbList>
-              </Breadcrumb>
-            </div>
-          </header>
-          <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-            {children}
+                    </BreadcrumbItem>
+                  </div>
+                ))}
+              </BreadcrumbList>
+            </Breadcrumb>
           </div>
-        </SidebarInset>
-      </SidebarProvider>
-    </AuthGuard>
+        </header>
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+          <AuthGuard>
+            {children}
+          </AuthGuard>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }
