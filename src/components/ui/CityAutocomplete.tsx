@@ -161,7 +161,7 @@ function CityAutocomplete({
         value={value}
         onChange={handleInputChange}
         placeholder={placeholder}
-        className={`w-full ${paddingLeft} ${paddingRight} py-3 border border-muted-300 rounded focus:outline-none focus:border-muted-500 focus:border-transparent`}
+        className={`w-full ${paddingLeft} ${paddingRight} py-3 border border-muted-300 rounded focus:outline-none focus:border-muted-500`}
         autoComplete="off"
       />
 
