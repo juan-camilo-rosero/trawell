@@ -15,6 +15,10 @@
   }
 }
 
+*::selection{
+  @apply bg-secondary-200 text-primary;
+}
+
 
 /* ------------ Custom styles ------------ */
 
