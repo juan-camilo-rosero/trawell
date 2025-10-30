@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
-import { ILocation } from './types';
+import { ILocation } from '../types';
 
 export interface IUser extends Document {
   firebaseUid: string;
