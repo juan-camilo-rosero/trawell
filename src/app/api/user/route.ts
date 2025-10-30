@@ -11,7 +11,16 @@ interface CreateUserBody {
   originCity?: ILocation;
 }
 
-function validateCreateUserBody(body: any): {
+interface UpdateUserBody {
+  firebaseUid: string;
+  updates: {
+    email?: string;
+    name?: string;
+    originCity?: ILocation | null;
+  };
+}
+
+function validateCreateUserBody(body: Record<string, unknown>): {
   valid: boolean;
   errors: string[];
 } {
@@ -41,20 +50,24 @@ function validateCreateUserBody(body: any): {
     if (typeof body.originCity !== "object") {
       errors.push("originCity must be an object");
     } else {
-      if (!body.originCity.name || typeof body.originCity.name !== "string") {
+      const originCity = body.originCity as Record<string, unknown>;
+      
+      if (!originCity.name || typeof originCity.name !== "string") {
         errors.push("originCity.name is required and must be a string");
       }
 
       if (
-        !body.originCity.coordinates ||
-        typeof body.originCity.coordinates !== "object"
+        !originCity.coordinates ||
+        typeof originCity.coordinates !== "object"
       ) {
         errors.push("originCity.coordinates is required and must be an object");
       } else {
+        const coordinates = originCity.coordinates as Record<string, unknown>;
+        
         if (
-          typeof body.originCity.coordinates.lat !== "number" ||
-          body.originCity.coordinates.lat < -90 ||
-          body.originCity.coordinates.lat > 90
+          typeof coordinates.lat !== "number" ||
+          coordinates.lat < -90 ||
+          coordinates.lat > 90
         ) {
           errors.push(
             "originCity.coordinates.lat must be a number between -90 and 90"
@@ -62,9 +75,9 @@ function validateCreateUserBody(body: any): {
         }
 
         if (
-          typeof body.originCity.coordinates.lng !== "number" ||
-          body.originCity.coordinates.lng < -180 ||
-          body.originCity.coordinates.lng > 180
+          typeof coordinates.lng !== "number" ||
+          coordinates.lng < -180 ||
+          coordinates.lng > 180
         ) {
           errors.push(
             "originCity.coordinates.lng must be a number between -180 and 180"
@@ -73,9 +86,9 @@ function validateCreateUserBody(body: any): {
       }
 
       if (
-        body.originCity.placeId !== undefined &&
-        body.originCity.placeId !== null &&
-        typeof body.originCity.placeId !== "string"
+        originCity.placeId !== undefined &&
+        originCity.placeId !== null &&
+        typeof originCity.placeId !== "string"
       ) {
         errors.push("originCity.placeId must be a string if provided");
       }
@@ -108,7 +121,7 @@ function errorResponse(
   );
 }
 
-function successResponse(data: any, status: number = 200) {
+function successResponse(data: Record<string, unknown>, status: number = 200) {
   return NextResponse.json(
     {
       success: true,
@@ -128,7 +141,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "50");
     const page = parseInt(searchParams.get("page") || "1");
 
-    const query: any = {};
+    const query: Record<string, string> = {};
     if (firebaseUid) query.firebaseUid = firebaseUid;
     if (email) query.email = email.toLowerCase();
 
@@ -161,46 +174,51 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
 
-    const body: CreateUserBody = await request.json();
+    const body = await request.json() as Record<string, unknown>;
 
     const validation = validateCreateUserBody(body);
     if (!validation.valid) {
       return errorResponse("Validation failed", 400, validation.errors);
     }
 
+    // Después de la validación, sabemos que body tiene la estructura correcta
+    const typedBody = body as unknown as CreateUserBody;
+
     const existingUser = await User.findOne({
       $or: [
-        { firebaseUid: body.firebaseUid },
-        { email: body.email.toLowerCase() },
+        { firebaseUid: typedBody.firebaseUid },
+        { email: typedBody.email.toLowerCase() },
       ],
     });
 
     if (existingUser) {
-      if (existingUser.firebaseUid === body.firebaseUid) {
+      if (existingUser.firebaseUid === typedBody.firebaseUid) {
         return errorResponse("User with this firebaseUid already exists", 409);
       }
-      if (existingUser.email === body.email.toLowerCase()) {
+      if (existingUser.email === typedBody.email.toLowerCase()) {
         return errorResponse("User with this email already exists", 409);
       }
     }
 
-    const userData: any = {
-      firebaseUid: body.firebaseUid,
-      email: body.email.toLowerCase(),
-      name: body.name.trim(),
+    const userData: Record<string, unknown> = {
+      firebaseUid: typedBody.firebaseUid,
+      email: typedBody.email.toLowerCase(),
+      name: typedBody.name.trim(),
     };
 
-    if (body.originCity) {
-      userData.originCity = body.originCity;
+    if (typedBody.originCity) {
+      userData.originCity = typedBody.originCity;
     }
 
     const user = await User.create(userData);
 
-    const { __v, ...userObject } = user.toObject();
+    const userObject = user.toObject();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { __v, ...userWithoutVersion } = userObject;
 
     return successResponse(
       {
-        user: userObject,
+        user: userWithoutVersion,
         message: "User created successfully",
       },
       201
@@ -227,7 +245,7 @@ export async function PATCH(request: NextRequest) {
   try {
     await connectDB();
 
-    const body = await request.json();
+    const body = (await request.json()) as UpdateUserBody;
     const { firebaseUid, updates } = body;
 
     if (!firebaseUid || typeof firebaseUid !== "string") {
@@ -238,7 +256,7 @@ export async function PATCH(request: NextRequest) {
       return errorResponse("updates object is required in request body");
     }
 
-    if (updates.firebaseUid) {
+    if ("firebaseUid" in updates) {
       return errorResponse("Cannot update firebaseUid");
     }
 
@@ -272,7 +290,7 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (updates.email) updateData.email = updates.email.toLowerCase();
     if (updates.name) updateData.name = updates.name.trim();
     if (updates.originCity !== undefined)
