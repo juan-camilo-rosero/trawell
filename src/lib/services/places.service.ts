@@ -277,21 +277,30 @@ export class PlacesService {
   /**
    * Transforma un lugar de Google al formato de nuestra app
    */
+  /**
+   * Transforma un lugar de Google al formato de nuestra app
+   */
   private transformGooglePlace(
     place: GooglePlace,
-    forcedCategory: TouristSiteCategory // ADD THIS PARAMETER
+    forcedCategory: TouristSiteCategory
   ): TouristSiteResponse | null {
     console.log(
       `[transformGooglePlace] Transforming place:`,
       place.displayName?.text
     );
 
+    // Validación sin place.name
     if (!place.location || !place.displayName?.text) {
       console.log(`[transformGooglePlace] Missing required fields, skipping`);
       return null;
     }
 
-    // Use forced category instead of trying to determine it
+    // Generar un placeId único basado en coordenadas si no hay place.name
+    const placeId =
+      place.name ||
+      `place_${place.location.latitude}_${place.location.longitude}`;
+
+    console.log(`[transformGooglePlace] Using placeId: ${placeId}`);
     console.log(
       `[transformGooglePlace] Using forced category: ${forcedCategory}`
     );
@@ -317,11 +326,11 @@ export class PlacesService {
       }));
 
     return {
-      placeId: place.name,
+      placeId: placeId,
       name: place.displayName.text,
       address: place.formattedAddress || "Dirección no disponible",
       coordinates,
-      category: forcedCategory, // USE FORCED CATEGORY
+      category: forcedCategory,
       types: place.types || [],
       rating: place.rating,
       userRatingsTotal: place.userRatingCount,
