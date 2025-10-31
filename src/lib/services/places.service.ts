@@ -10,8 +10,7 @@ import {
 } from "@/models/types";
 import {
   PLACES_CONFIG,
-  kmToMeters,
-  determineCategory,
+  kmToMeters
 } from "../config/places.config";
 
 interface GooglePlacePhoto {
