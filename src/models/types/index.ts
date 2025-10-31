@@ -78,7 +78,46 @@ export interface GetTouristSitesResponse {
   message?: string;
 }
 
-export type RestaurantCategory = 'all' | 'fine_dining' | 'casual' | 'fast_food' | 'cafe' | 'bar';
+export type RestaurantCategory = 
+  | 'all'
+  | 'fine_dining'
+  | 'casual'
+  | 'fast_food'
+  | 'cafe'
+  | 'bar'
+  // Cocinas regionales/internacionales
+  | 'american'
+  | 'asian'
+  | 'chinese'
+  | 'french'
+  | 'greek'
+  | 'indian'
+  | 'indonesian'
+  | 'italian'
+  | 'japanese'
+  | 'korean'
+  | 'lebanese'
+  | 'mediterranean'
+  | 'mexican'
+  | 'middle_eastern'
+  | 'spanish'
+  | 'thai'
+  | 'turkish'
+  // Tipos específicos
+  | 'pizza'
+  | 'seafood'
+  | 'steak_house'
+  | 'sushi'
+  | 'ramen'
+  | 'hamburger'
+  | 'bakery'
+  | 'ice_cream'
+  | 'sandwich'
+  | 'breakfast'
+  | 'brunch'
+  // Dietas especiales
+  | 'vegan'
+  | 'vegetarian';
 
 export interface GetRestaurantsRequest {
   cityName: string;
