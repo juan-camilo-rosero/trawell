@@ -286,7 +286,7 @@ export class PlacesService {
       place.displayName?.text
     );
 
-    if (!place.location || !place.displayName?.text || !place.name) {
+    if (!place.location || !place.displayName?.text) {
       console.log(`[transformGooglePlace] Missing required fields, skipping`);
       return null;
     }
