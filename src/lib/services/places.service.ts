@@ -68,7 +68,6 @@ export class PlacesService {
     request: GetTouristSitesRequest
   ): Promise<TouristSiteResponse[]> {
     const {
-      cityName,
       coordinates,
       categories = ['museum', 'park', 'monument', 'historical'],
       limit = PLACES_CONFIG.DEFAULT_LIMIT_PER_CATEGORY,
