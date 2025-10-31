@@ -5,19 +5,10 @@ import { placesService } from '@/lib/services/places.service';
 import { GetTouristSitesResponse, TouristSiteCategory } from '@/models/types';
 import { PLACES_CONFIG } from '@/lib/config/places.config';
 
-/**
- * GET /api/external/places/tourist-sites
- * 
- * Query parameters:
- * - cityName (required): Nombre de la ciudad
- * - lat (required): Latitud de la ciudad
- * - lng (required): Longitud de la ciudad
- * - placeId (optional): Place ID de la ciudad
- * - categories (optional): Categorías separadas por coma (museum,park,monument,historical)
- * - limit (optional): Límite de resultados por categoría (default: 10, max: 20)
- * - minRating (optional): Rating mínimo (default: 3.5)
- * - radiusKm (optional): Radio de búsqueda en km (default: 15)
- */
+// Configuración de ruta dinámica para Next.js
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs'; // O 'edge' si prefieres edge runtime
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
