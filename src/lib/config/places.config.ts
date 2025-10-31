@@ -37,22 +37,21 @@ export const PLACES_CONFIG = {
   } as Record<TouristSiteCategory, string[]>,
   
   // Campos que queremos de la API de Places
-  // IMPORTANTE: En Places API (New) se usa 'name' en lugar de 'id'
+  // IMPORTANTE: 'name' NO va en el FieldMask, se devuelve automáticamente
   PLACE_FIELDS: [
-    'name',  // Cambiado de 'id' a 'name'
-    'displayName',
-    'formattedAddress',
-    'location',
-    'rating',
-    'userRatingCount',
-    'priceLevel',
-    'types',
-    'businessStatus',
-    'currentOpeningHours',
-    'photos',
-    'internationalPhoneNumber',
-    'websiteUri',
-    'editorialSummary',
+    'places.displayName',
+    'places.formattedAddress',
+    'places.location',
+    'places.rating',
+    'places.userRatingCount',
+    'places.priceLevel',
+    'places.types',
+    'places.businessStatus',
+    'places.currentOpeningHours',
+    'places.photos',
+    'places.internationalPhoneNumber',
+    'places.websiteUri',
+    'places.editorialSummary',
   ],
   
   // Duraciones estimadas por defecto (en minutos)
