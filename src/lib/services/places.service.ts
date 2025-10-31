@@ -26,7 +26,7 @@ interface GooglePlaceOpeningHours {
 }
 
 interface GooglePlace {
-  name: string;  // Cambiado de 'id' a 'name' - este es el identificador en Places API (New)
+  name: string;
   displayName?: { text: string };
   formattedAddress?: string;
   location?: {
@@ -61,6 +61,8 @@ export class PlacesService {
     if (!this.apiKey) {
       throw new Error('Google Maps API key is not configured');
     }
+    
+    console.log('[PlacesService] Initialized with API key:', this.apiKey.substring(0, 10) + '...');
   }
 
   /**
@@ -70,6 +72,7 @@ export class PlacesService {
     request: GetTouristSitesRequest
   ): Promise<TouristSiteResponse[]> {
     const {
+      cityName,
       coordinates,
       categories = ['museum', 'park', 'monument', 'historical'],
       limit = PLACES_CONFIG.DEFAULT_LIMIT_PER_CATEGORY,
@@ -77,11 +80,22 @@ export class PlacesService {
       radiusKm = PLACES_CONFIG.DEFAULT_RADIUS_KM,
     } = request;
 
+    console.log('[searchTouristSites] Starting search with params:', {
+      cityName,
+      coordinates,
+      categories,
+      limit,
+      minRating,
+      radiusKm,
+    });
+
     const allSites: TouristSiteResponse[] = [];
     const seenPlaceIds = new Set<string>();
 
     // Buscar por cada categoría
     for (const category of categories) {
+      console.log(`[searchTouristSites] Searching category: ${category}`);
+      
       const sitesForCategory = await this.searchByCategory(
         category,
         coordinates,
@@ -90,7 +104,9 @@ export class PlacesService {
         minRating
       );
 
-      // Filtrar duplicados (un lugar puede aparecer en múltiples categorías)
+      console.log(`[searchTouristSites] Found ${sitesForCategory.length} sites for category ${category}`);
+
+      // Filtrar duplicados
       for (const site of sitesForCategory) {
         if (!seenPlaceIds.has(site.placeId)) {
           seenPlaceIds.add(site.placeId);
@@ -98,6 +114,8 @@ export class PlacesService {
         }
       }
     }
+
+    console.log(`[searchTouristSites] Total unique sites found: ${allSites.length}`);
 
     // Ordenar por rating descendente
     return allSites.sort((a, b) => (b.rating || 0) - (a.rating || 0));
@@ -116,9 +134,13 @@ export class PlacesService {
     const types = PLACES_CONFIG.CATEGORY_TYPES[category];
     const sites: TouristSiteResponse[] = [];
 
+    console.log(`[searchByCategory] Category ${category}, types to search:`, types);
+
     // Buscar por cada tipo asociado a la categoría
     for (const type of types) {
       try {
+        console.log(`[searchByCategory] Searching for type: ${type}`);
+        
         const results = await this.nearbySearch(
           coordinates,
           radiusKm,
@@ -126,19 +148,29 @@ export class PlacesService {
           Math.min(limit, PLACES_CONFIG.MAX_RESULTS)
         );
 
+        console.log(`[searchByCategory] Type ${type} returned ${results.length} results`);
+
         const filteredResults = results
-          .filter(site => !site.rating || site.rating >= minRating)
+          .filter(site => {
+            const passesRating = !site.rating || site.rating >= minRating;
+            if (!passesRating) {
+              console.log(`[searchByCategory] Filtered out ${site.name} - rating ${site.rating} < ${minRating}`);
+            }
+            return passesRating;
+          })
           .map(site => ({ ...site, category }));
+
+        console.log(`[searchByCategory] After rating filter: ${filteredResults.length} results`);
 
         sites.push(...filteredResults);
 
         // Si ya tenemos suficientes resultados, no buscar más
         if (sites.length >= limit) {
+          console.log(`[searchByCategory] Reached limit of ${limit}, stopping search`);
           break;
         }
       } catch (error) {
-        console.error(`Error searching for type ${type}:`, error);
-        // Continuar con el siguiente tipo
+        console.error(`[searchByCategory] Error searching for type ${type}:`, error);
       }
     }
 
@@ -171,6 +203,10 @@ export class PlacesService {
       rankPreference: 'POPULARITY',
     };
 
+    console.log(`[nearbySearch] Request URL: ${url}`);
+    console.log(`[nearbySearch] Request body:`, JSON.stringify(requestBody, null, 2));
+    console.log(`[nearbySearch] FieldMask:`, PLACES_CONFIG.PLACE_FIELDS.join(','));
+
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -181,34 +217,51 @@ export class PlacesService {
       body: JSON.stringify(requestBody),
     });
 
+    console.log(`[nearbySearch] Response status: ${response.status}`);
+
     if (!response.ok) {
       const errorText = await response.text();
+      console.error(`[nearbySearch] Error response:`, errorText);
       throw new Error(`Places API error: ${response.status} - ${errorText}`);
     }
 
     const data: GooglePlacesSearchResponse = await response.json();
+    console.log(`[nearbySearch] Response data:`, JSON.stringify(data, null, 2));
 
     if (!data.places || data.places.length === 0) {
+      console.log(`[nearbySearch] No places found in response`);
       return [];
     }
 
-    return data.places
+    console.log(`[nearbySearch] Found ${data.places.length} places`);
+
+    const transformedSites = data.places
       .map(place => this.transformGooglePlace(place))
       .filter((site): site is TouristSiteResponse => site !== null);
+
+    console.log(`[nearbySearch] After transformation: ${transformedSites.length} valid sites`);
+
+    return transformedSites;
   }
 
   /**
    * Transforma un lugar de Google al formato de nuestra app
    */
   private transformGooglePlace(place: GooglePlace): TouristSiteResponse | null {
+    console.log(`[transformGooglePlace] Transforming place:`, place.displayName?.text);
+
     if (!place.location || !place.displayName?.text || !place.name) {
+      console.log(`[transformGooglePlace] Missing required fields, skipping`);
       return null;
     }
 
     const category = determineCategory(place.types || []);
     if (!category) {
+      console.log(`[transformGooglePlace] Could not determine category for types:`, place.types);
       return null;
     }
+
+    console.log(`[transformGooglePlace] Assigned category: ${category}`);
 
     const coordinates: ICoordinates = {
       lat: place.location.latitude,
@@ -229,7 +282,7 @@ export class PlacesService {
     }));
 
     return {
-      placeId: place.name,  // En Places API (New), 'name' es el identificador (formato: places/ChIJ...)
+      placeId: place.name,
       name: place.displayName.text,
       address: place.formattedAddress || 'Dirección no disponible',
       coordinates,
