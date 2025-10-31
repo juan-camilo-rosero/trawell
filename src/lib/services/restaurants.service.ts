@@ -77,17 +77,22 @@ export class RestaurantsService {
     const {
       cityName,
       coordinates,
-      categories = ["all"],
+      categories,
       limit = PLACES_CONFIG.DEFAULT_LIMIT_PER_CATEGORY,
       minRating = PLACES_CONFIG.DEFAULT_MIN_RATING,
       radiusKm = PLACES_CONFIG.DEFAULT_RADIUS_KM,
       priceLevel,
     } = request;
 
+    // FIX: Asegurar que categories siempre sea un array de RestaurantCategory
+    const finalCategories: RestaurantCategory[] = categories && Array.isArray(categories) && categories.length > 0 
+      ? categories 
+      : ["all" as RestaurantCategory];
+
     console.log("[searchRestaurants] Starting search with params:", {
       cityName,
       coordinates,
-      categories,
+      categories: finalCategories,
       limit,
       minRating,
       radiusKm,
@@ -98,7 +103,7 @@ export class RestaurantsService {
     const seenPlaceIds = new Set<string>();
 
     // Buscar por cada categoría
-    for (const category of categories) {
+    for (const category of finalCategories) {
       console.log(`[searchRestaurants] Searching category: ${category}`);
 
       const restaurantsForCategory = await this.searchByCategory(
@@ -143,6 +148,13 @@ export class RestaurantsService {
     priceLevel?: number[]
   ): Promise<RestaurantResponse[]> {
     const types = PLACES_CONFIG.RESTAURANT_CATEGORY_TYPES[category];
+    
+    // FIX: Validar que types existe y es un array
+    if (!types || !Array.isArray(types) || types.length === 0) {
+      console.error(`[searchByCategory] Invalid category: ${category}`);
+      return [];
+    }
+
     const restaurants: RestaurantResponse[] = [];
 
     console.log(
@@ -238,7 +250,7 @@ export class RestaurantsService {
         },
       },
       rankPreference: "POPULARITY",
-      languageCode: "es", // Solicitar resultados en español
+      languageCode: "es",
     };
 
     console.log(`[nearbySearch] Request URL: ${url}`);
