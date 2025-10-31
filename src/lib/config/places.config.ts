@@ -1,3 +1,5 @@
+// src/lib/config/places.config.ts
+
 import { TouristSiteCategory } from '@/models/types';
 
 export const PLACES_CONFIG = {
@@ -35,8 +37,9 @@ export const PLACES_CONFIG = {
   } as Record<TouristSiteCategory, string[]>,
   
   // Campos que queremos de la API de Places
+  // IMPORTANTE: En Places API (New) se usa 'name' en lugar de 'id'
   PLACE_FIELDS: [
-    'id',
+    'name',  // Cambiado de 'id' a 'name'
     'displayName',
     'formattedAddress',
     'location',

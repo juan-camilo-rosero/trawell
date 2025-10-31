@@ -1,3 +1,5 @@
+// src/lib/services/places.service.ts
+
 import { 
   GetTouristSitesRequest, 
   TouristSiteResponse, 
@@ -10,7 +12,7 @@ import {
   PLACES_CONFIG, 
   kmToMeters, 
   determineCategory 
-} from '@/lib/config/places.config';
+} from '../config/places.config';
 
 interface GooglePlacePhoto {
   name: string;
@@ -24,7 +26,7 @@ interface GooglePlaceOpeningHours {
 }
 
 interface GooglePlace {
-  id: string;
+  name: string;  // Cambiado de 'id' a 'name' - este es el identificador en Places API (New)
   displayName?: { text: string };
   formattedAddress?: string;
   location?: {
@@ -199,7 +201,7 @@ export class PlacesService {
    * Transforma un lugar de Google al formato de nuestra app
    */
   private transformGooglePlace(place: GooglePlace): TouristSiteResponse | null {
-    if (!place.location || !place.displayName?.text) {
+    if (!place.location || !place.displayName?.text || !place.name) {
       return null;
     }
 
@@ -227,7 +229,7 @@ export class PlacesService {
     }));
 
     return {
-      placeId: place.id,
+      placeId: place.name,  // En Places API (New), 'name' es el identificador (formato: places/ChIJ...)
       name: place.displayName.text,
       address: place.formattedAddress || 'Dirección no disponible',
       coordinates,
