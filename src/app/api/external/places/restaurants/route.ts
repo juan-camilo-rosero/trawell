@@ -44,11 +44,6 @@ const VALID_CATEGORIES: RestaurantCategory[] = [
   'bakery',
   'ice_cream',
   'sandwich',
-  'breakfast',
-  'brunch',
-  // Dietas especiales
-  'vegan',
-  'vegetarian',
 ];
 
 /**

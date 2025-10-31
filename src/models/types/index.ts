@@ -112,12 +112,7 @@ export type RestaurantCategory =
   | 'hamburger'
   | 'bakery'
   | 'ice_cream'
-  | 'sandwich'
-  | 'breakfast'
-  | 'brunch'
-  // Dietas especiales
-  | 'vegan'
-  | 'vegetarian';
+  | 'sandwich';
 
 export interface GetRestaurantsRequest {
   cityName: string;

@@ -33,7 +33,6 @@ export const PLACES_CONFIG = {
   RESTAURANT_CATEGORY_TYPES: {
     // Tipos generales
     all: ["restaurant"],
-    fine_dining: ["restaurant"], // GCP no tiene un tipo 'fine_dining'
     casual: ["restaurant", "cafe"],
     fast_food: ["fast_food_restaurant"],
     cafe: ["cafe", "coffee_shop"],
@@ -68,14 +67,6 @@ export const PLACES_CONFIG = {
     bakery: ["bakery"],
     ice_cream: ["ice_cream_shop"], // El tipo en GCP es 'ice_cream_shop'
     sandwich: ["sandwich_shop"], // El tipo en GCP es 'sandwich_shop'
-
-    // Ocasión / Comida
-    breakfast: ["restaurant", "cafe"], // No hay tipo específico, usamos genéricos
-    brunch: ["restaurant", "cafe"], // No hay tipo específico, usamos genéricos
-
-    // Dietas especiales
-    vegan: ["restaurant"], // No hay tipo 'vegan', se usa 'restaurant'
-    vegetarian: ["restaurant"], // No hay tipo 'vegetarian', se usa 'restaurant'
   } as Record<RestaurantCategory, string[]>,
 
   // Campos que queremos de la API de Places
