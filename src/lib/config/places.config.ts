@@ -1,6 +1,5 @@
 // src/lib/config/places.config.ts
-
-import { TouristSiteCategory } from '@/models/types';
+import { TouristSiteCategory, RestaurantCategory } from '@/models/types';
 
 export const PLACES_CONFIG = {
   // Google Places API endpoints
@@ -37,6 +36,16 @@ export const PLACES_CONFIG = {
       'tourist_attraction',
     ],
   } as Record<TouristSiteCategory, string[]>,
+  
+  // Mapeo de categorías de restaurantes
+  RESTAURANT_CATEGORY_TYPES: {
+    all: ['restaurant'],
+    fine_dining: ['restaurant'],
+    casual: ['restaurant', 'cafe'],
+    fast_food: ['fast_food_restaurant'],
+    cafe: ['cafe', 'coffee_shop'],
+    bar: ['bar', 'night_club'],
+  } as Record<RestaurantCategory, string[]>,
   
   // Campos que queremos de la API de Places
   PLACE_FIELDS: [
@@ -78,7 +87,7 @@ export const determineCategory = (types: string[]): TouristSiteCategory | null =
     console.log('[determineCategory] No types provided, returning null');
     return null;
   }
-
+  
   const typesLower = types.map(t => t.toLowerCase());
   console.log('[determineCategory] Types lowercased:', typesLower);
   

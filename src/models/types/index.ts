@@ -77,3 +77,48 @@ export interface GetTouristSitesResponse {
   error?: string;
   message?: string;
 }
+
+export type RestaurantCategory = 'all' | 'fine_dining' | 'casual' | 'fast_food' | 'cafe' | 'bar';
+
+export interface GetRestaurantsRequest {
+  cityName: string;
+  coordinates: ICoordinates;
+  placeId?: string;
+  categories?: RestaurantCategory[];
+  limit?: number;
+  minRating?: number;
+  radiusKm?: number;
+  priceLevel?: number[]; // Array de niveles de precio permitidos [0,1,2,3,4]
+}
+
+export interface RestaurantResponse {
+  placeId: string;
+  name: string;
+  address: string;
+  coordinates: ICoordinates;
+  category: RestaurantCategory;
+  types: string[];
+  rating?: number;
+  userRatingsTotal?: number;
+  priceLevel?: number; // 0-4 (0 = gratis, 1 = económico, 4 = muy caro)
+  openingHours?: IOpeningHours;
+  photos?: IPhoto[];
+  businessStatus?: string;
+  formattedAddress?: string;
+  internationalPhoneNumber?: string;
+  website?: string;
+  editorialSummary?: string;
+  cuisine?: string[]; // Tipos de cocina extraídos de types
+}
+
+export interface GetRestaurantsResponse {
+  success: boolean;
+  data?: {
+    city: string;
+    coordinates: ICoordinates;
+    totalResults: number;
+    restaurants: RestaurantResponse[];
+  };
+  error?: string;
+  message?: string;
+}

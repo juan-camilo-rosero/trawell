@@ -1,14 +1,17 @@
-// src/lib/services/places.service.ts
+// src/lib/services/restaurants.service.ts
 
 import {
-  GetTouristSitesRequest,
-  TouristSiteResponse,
-  TouristSiteCategory,
+  GetRestaurantsRequest,
+  RestaurantResponse,
+  RestaurantCategory,
   ICoordinates,
   IPhoto,
   IOpeningHours,
 } from "@/models/types";
-import { PLACES_CONFIG, kmToMeters } from "../config/places.config";
+import {
+  PLACES_CONFIG,
+  kmToMeters
+} from "../config/places.config";
 
 interface GooglePlacePhoto {
   name: string;
@@ -46,7 +49,7 @@ interface GooglePlacesSearchResponse {
   nextPageToken?: string;
 }
 
-export class PlacesService {
+export class RestaurantsService {
   private apiKey: string;
   private baseUrl: string;
 
@@ -60,83 +63,87 @@ export class PlacesService {
     }
 
     console.log(
-      "[PlacesService] Initialized with API key:",
+      "[RestaurantsService] Initialized with API key:",
       this.apiKey.substring(0, 10) + "..."
     );
   }
 
   /**
-   * Busca sitios turísticos en una ciudad
+   * Busca restaurantes en una ciudad
    */
-  async searchTouristSites(
-    request: GetTouristSitesRequest
-  ): Promise<TouristSiteResponse[]> {
+  async searchRestaurants(
+    request: GetRestaurantsRequest
+  ): Promise<RestaurantResponse[]> {
     const {
       cityName,
       coordinates,
-      categories = ["museum", "park", "monument", "historical"],
+      categories = ["all"],
       limit = PLACES_CONFIG.DEFAULT_LIMIT_PER_CATEGORY,
       minRating = PLACES_CONFIG.DEFAULT_MIN_RATING,
       radiusKm = PLACES_CONFIG.DEFAULT_RADIUS_KM,
+      priceLevel,
     } = request;
 
-    console.log("[searchTouristSites] Starting search with params:", {
+    console.log("[searchRestaurants] Starting search with params:", {
       cityName,
       coordinates,
       categories,
       limit,
       minRating,
       radiusKm,
+      priceLevel,
     });
 
-    const allSites: TouristSiteResponse[] = [];
+    const allRestaurants: RestaurantResponse[] = [];
     const seenPlaceIds = new Set<string>();
 
     // Buscar por cada categoría
     for (const category of categories) {
-      console.log(`[searchTouristSites] Searching category: ${category}`);
+      console.log(`[searchRestaurants] Searching category: ${category}`);
 
-      const sitesForCategory = await this.searchByCategory(
+      const restaurantsForCategory = await this.searchByCategory(
         category,
         coordinates,
         radiusKm,
         limit,
-        minRating
+        minRating,
+        priceLevel
       );
 
       console.log(
-        `[searchTouristSites] Found ${sitesForCategory.length} sites for category ${category}`
+        `[searchRestaurants] Found ${restaurantsForCategory.length} restaurants for category ${category}`
       );
 
       // Filtrar duplicados
-      for (const site of sitesForCategory) {
-        if (!seenPlaceIds.has(site.placeId)) {
-          seenPlaceIds.add(site.placeId);
-          allSites.push(site);
+      for (const restaurant of restaurantsForCategory) {
+        if (!seenPlaceIds.has(restaurant.placeId)) {
+          seenPlaceIds.add(restaurant.placeId);
+          allRestaurants.push(restaurant);
         }
       }
     }
 
     console.log(
-      `[searchTouristSites] Total unique sites found: ${allSites.length}`
+      `[searchRestaurants] Total unique restaurants found: ${allRestaurants.length}`
     );
 
     // Ordenar por rating descendente
-    return allSites.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    return allRestaurants.sort((a, b) => (b.rating || 0) - (a.rating || 0));
   }
 
   /**
-   * Busca sitios de una categoría específica
+   * Busca restaurantes de una categoría específica
    */
   private async searchByCategory(
-    category: TouristSiteCategory,
+    category: RestaurantCategory,
     coordinates: ICoordinates,
     radiusKm: number,
     limit: number,
-    minRating: number
-  ): Promise<TouristSiteResponse[]> {
-    const types = PLACES_CONFIG.CATEGORY_TYPES[category];
-    const sites: TouristSiteResponse[] = [];
+    minRating: number,
+    priceLevel?: number[]
+  ): Promise<RestaurantResponse[]> {
+    const types = PLACES_CONFIG.RESTAURANT_CATEGORY_TYPES[category];
+    const restaurants: RestaurantResponse[] = [];
 
     console.log(
       `[searchByCategory] Category ${category}, types to search:`,
@@ -153,31 +160,43 @@ export class PlacesService {
           radiusKm,
           type,
           Math.min(limit, PLACES_CONFIG.MAX_RESULTS),
-          category // PASS CATEGORY HERE
+          category
         );
 
         console.log(
           `[searchByCategory] Type ${type} returned ${results.length} results`
         );
 
-        const filteredResults = results.filter((site) => {
-          const passesRating = !site.rating || site.rating >= minRating;
+        const filteredResults = results.filter((restaurant) => {
+          const passesRating = !restaurant.rating || restaurant.rating >= minRating;
+          const passesPriceLevel = 
+            !priceLevel || 
+            !restaurant.priceLevel || 
+            priceLevel.includes(restaurant.priceLevel);
+          
           if (!passesRating) {
             console.log(
-              `[searchByCategory] Filtered out ${site.name} - rating ${site.rating} < ${minRating}`
+              `[searchByCategory] Filtered out ${restaurant.name} - rating ${restaurant.rating} < ${minRating}`
             );
           }
-          return passesRating;
+          
+          if (!passesPriceLevel) {
+            console.log(
+              `[searchByCategory] Filtered out ${restaurant.name} - priceLevel ${restaurant.priceLevel} not in ${priceLevel}`
+            );
+          }
+          
+          return passesRating && passesPriceLevel;
         });
 
         console.log(
-          `[searchByCategory] After rating filter: ${filteredResults.length} results`
+          `[searchByCategory] After filters: ${filteredResults.length} results`
         );
 
-        sites.push(...filteredResults);
+        restaurants.push(...filteredResults);
 
         // Si ya tenemos suficientes resultados, no buscar más
-        if (sites.length >= limit) {
+        if (restaurants.length >= limit) {
           console.log(
             `[searchByCategory] Reached limit of ${limit}, stopping search`
           );
@@ -191,7 +210,7 @@ export class PlacesService {
       }
     }
 
-    return sites.slice(0, limit);
+    return restaurants.slice(0, limit);
   }
 
   /**
@@ -202,8 +221,8 @@ export class PlacesService {
     radiusKm: number,
     includedType: string,
     maxResults: number,
-    forcedCategory: TouristSiteCategory // ADD THIS PARAMETER
-  ): Promise<TouristSiteResponse[]> {
+    forcedCategory: RestaurantCategory
+  ): Promise<RestaurantResponse[]> {
     const url = `${this.baseUrl}/places:searchNearby`;
 
     const requestBody = {
@@ -219,17 +238,13 @@ export class PlacesService {
         },
       },
       rankPreference: "POPULARITY",
-      languageCode: "es",
+      languageCode: "es", // Solicitar resultados en español
     };
 
     console.log(`[nearbySearch] Request URL: ${url}`);
     console.log(
       `[nearbySearch] Request body:`,
       JSON.stringify(requestBody, null, 2)
-    );
-    console.log(
-      `[nearbySearch] FieldMask:`,
-      PLACES_CONFIG.PLACE_FIELDS.join(",")
     );
 
     const response = await fetch(url, {
@@ -251,7 +266,6 @@ export class PlacesService {
     }
 
     const data: GooglePlacesSearchResponse = await response.json();
-    console.log(`[nearbySearch] Response data:`, JSON.stringify(data, null, 2));
 
     if (!data.places || data.places.length === 0) {
       console.log(`[nearbySearch] No places found in response`);
@@ -260,47 +274,37 @@ export class PlacesService {
 
     console.log(`[nearbySearch] Found ${data.places.length} places`);
 
-    const transformedSites = data.places
-      .map((place) => this.transformGooglePlace(place, forcedCategory)) // PASS CATEGORY HERE
-      .filter((site): site is TouristSiteResponse => site !== null);
+    const transformedRestaurants = data.places
+      .map((place) => this.transformGooglePlace(place, forcedCategory))
+      .filter((restaurant): restaurant is RestaurantResponse => restaurant !== null);
 
     console.log(
-      `[nearbySearch] After transformation: ${transformedSites.length} valid sites`
+      `[nearbySearch] After transformation: ${transformedRestaurants.length} valid restaurants`
     );
 
-    return transformedSites;
+    return transformedRestaurants;
   }
 
   /**
    * Transforma un lugar de Google al formato de nuestra app
    */
-  /**
-   * Transforma un lugar de Google al formato de nuestra app
-   */
   private transformGooglePlace(
     place: GooglePlace,
-    forcedCategory: TouristSiteCategory
-  ): TouristSiteResponse | null {
+    forcedCategory: RestaurantCategory
+  ): RestaurantResponse | null {
     console.log(
       `[transformGooglePlace] Transforming place:`,
       place.displayName?.text
     );
 
-    // Validación sin place.name
     if (!place.location || !place.displayName?.text) {
       console.log(`[transformGooglePlace] Missing required fields, skipping`);
       return null;
     }
 
-    // Generar un placeId único basado en coordenadas si no hay place.name
     const placeId =
       place.name ||
       `place_${place.location.latitude}_${place.location.longitude}`;
-
-    console.log(`[transformGooglePlace] Using placeId: ${placeId}`);
-    console.log(
-      `[transformGooglePlace] Using forced category: ${forcedCategory}`
-    );
 
     const coordinates: ICoordinates = {
       lat: place.location.latitude,
@@ -322,6 +326,9 @@ export class PlacesService {
         width: photo.widthPx,
       }));
 
+    // Extraer tipos de cocina de los types
+    const cuisine = this.extractCuisineTypes(place.types || []);
+
     return {
       placeId: placeId,
       name: place.displayName.text,
@@ -339,7 +346,41 @@ export class PlacesService {
       internationalPhoneNumber: place.internationalPhoneNumber,
       website: place.websiteUri,
       editorialSummary: place.editorialSummary?.text,
+      cuisine,
     };
+  }
+
+  /**
+   * Extrae tipos de cocina de los types de Google
+   */
+  private extractCuisineTypes(types: string[]): string[] {
+    const cuisineTypes = [
+      'american_restaurant',
+      'chinese_restaurant',
+      'french_restaurant',
+      'greek_restaurant',
+      'indian_restaurant',
+      'indonesian_restaurant',
+      'italian_restaurant',
+      'japanese_restaurant',
+      'korean_restaurant',
+      'lebanese_restaurant',
+      'mediterranean_restaurant',
+      'mexican_restaurant',
+      'middle_eastern_restaurant',
+      'pizza_restaurant',
+      'ramen_restaurant',
+      'seafood_restaurant',
+      'spanish_restaurant',
+      'steak_house',
+      'sushi_restaurant',
+      'thai_restaurant',
+      'turkish_restaurant',
+      'vegan_restaurant',
+      'vegetarian_restaurant',
+    ];
+
+    return types.filter(type => cuisineTypes.includes(type));
   }
 
   /**
@@ -368,4 +409,4 @@ export class PlacesService {
 }
 
 // Export singleton
-export const placesService = new PlacesService();
+export const restaurantsService = new RestaurantsService();
