@@ -12,7 +12,8 @@ export const PLACES_CONFIG = {
   DEFAULT_MIN_RATING: 3.5,
   MAX_RESULTS: 20, // Máximo por categoría
   
-  // Mapeo de categorías a tipos de Google Places
+  // Mapeo de categorías a tipos de Google Places (New)
+  // Lista oficial: https://developers.google.com/maps/documentation/places/web-service/place-types
   CATEGORY_TYPES: {
     museum: [
       'museum',
@@ -21,17 +22,19 @@ export const PLACES_CONFIG = {
     park: [
       'park',
       'national_park',
-      'tourist_attraction',
+      'amusement_park',
+      'zoo',
     ],
     monument: [
       'tourist_attraction',
-      'landmark',
-      'point_of_interest',
+      'cultural_center',
+      'performing_arts_theater',
     ],
     historical: [
       'church',
-      'place_of_worship',
-      'historical_landmark',
+      'hindu_temple',
+      'mosque',
+      'synagogue',
       'tourist_attraction',
     ],
   } as Record<TouristSiteCategory, string[]>,
@@ -77,19 +80,24 @@ export const determineCategory = (types: string[]): TouristSiteCategory | null =
   if (typesLower.some(t => t.includes('museum') || t.includes('art_gallery'))) {
     return 'museum';
   }
-  if (typesLower.some(t => t.includes('park'))) {
+  if (typesLower.some(t => 
+    t.includes('park') || 
+    t.includes('zoo') || 
+    t.includes('amusement_park')
+  )) {
     return 'park';
   }
   if (typesLower.some(t => 
     t.includes('church') || 
-    t.includes('place_of_worship') || 
-    t.includes('historical')
+    t.includes('temple') || 
+    t.includes('mosque') || 
+    t.includes('synagogue')
   )) {
     return 'historical';
   }
   if (typesLower.some(t => 
-    t.includes('monument') || 
-    t.includes('landmark') || 
+    t.includes('cultural_center') || 
+    t.includes('performing_arts') || 
     t.includes('tourist_attraction')
   )) {
     return 'monument';
