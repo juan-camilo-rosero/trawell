@@ -13,7 +13,6 @@ export const PLACES_CONFIG = {
   MAX_RESULTS: 20, // Máximo por categoría
   
   // Mapeo de categorías a tipos de Google Places (New)
-  // Lista oficial: https://developers.google.com/maps/documentation/places/web-service/place-types
   CATEGORY_TYPES: {
     museum: [
       'museum',
@@ -40,7 +39,6 @@ export const PLACES_CONFIG = {
   } as Record<TouristSiteCategory, string[]>,
   
   // Campos que queremos de la API de Places
-  // IMPORTANTE: 'name' NO va en el FieldMask, se devuelve automáticamente
   PLACE_FIELDS: [
     'places.displayName',
     'places.formattedAddress',
@@ -74,34 +72,51 @@ export const kmToMeters = (km: number): number => km * 1000;
 
 // Helper para determinar la categoría basado en los types de Google
 export const determineCategory = (types: string[]): TouristSiteCategory | null => {
+  console.log('[determineCategory] Input types:', types);
+  
+  if (!types || types.length === 0) {
+    console.log('[determineCategory] No types provided, returning null');
+    return null;
+  }
+
   const typesLower = types.map(t => t.toLowerCase());
+  console.log('[determineCategory] Types lowercased:', typesLower);
   
   // Orden de prioridad para evitar ambigüedades
-  if (typesLower.some(t => t.includes('museum') || t.includes('art_gallery'))) {
+  if (typesLower.some(t => t === 'museum' || t === 'art_gallery')) {
+    console.log('[determineCategory] Matched: museum');
     return 'museum';
   }
+  
   if (typesLower.some(t => 
-    t.includes('park') || 
-    t.includes('zoo') || 
-    t.includes('amusement_park')
+    t === 'park' || 
+    t === 'national_park' || 
+    t === 'amusement_park' || 
+    t === 'zoo'
   )) {
+    console.log('[determineCategory] Matched: park');
     return 'park';
   }
+  
   if (typesLower.some(t => 
-    t.includes('church') || 
-    t.includes('temple') || 
-    t.includes('mosque') || 
-    t.includes('synagogue')
+    t === 'church' || 
+    t === 'hindu_temple' || 
+    t === 'mosque' || 
+    t === 'synagogue'
   )) {
+    console.log('[determineCategory] Matched: historical');
     return 'historical';
   }
+  
   if (typesLower.some(t => 
-    t.includes('cultural_center') || 
-    t.includes('performing_arts') || 
-    t.includes('tourist_attraction')
+    t === 'cultural_center' || 
+    t === 'performing_arts_theater' || 
+    t === 'tourist_attraction'
   )) {
+    console.log('[determineCategory] Matched: monument');
     return 'monument';
   }
   
+  console.log('[determineCategory] No match found, returning null');
   return null;
 };
