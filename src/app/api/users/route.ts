@@ -51,7 +51,7 @@ function validateCreateUserBody(body: Record<string, unknown>): {
       errors.push("originCity must be an object");
     } else {
       const originCity = body.originCity as Record<string, unknown>;
-      
+
       if (!originCity.name || typeof originCity.name !== "string") {
         errors.push("originCity.name is required and must be a string");
       }
@@ -63,7 +63,7 @@ function validateCreateUserBody(body: Record<string, unknown>): {
         errors.push("originCity.coordinates is required and must be an object");
       } else {
         const coordinates = originCity.coordinates as Record<string, unknown>;
-        
+
         if (
           typeof coordinates.lat !== "number" ||
           coordinates.lat < -90 ||
@@ -174,7 +174,7 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
 
-    const body = await request.json() as Record<string, unknown>;
+    const body = (await request.json()) as Record<string, unknown>;
 
     const validation = validateCreateUserBody(body);
     if (!validation.valid) {
