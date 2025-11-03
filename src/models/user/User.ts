@@ -6,6 +6,7 @@ export interface IUser extends Document {
   email: string;
   name: string;
   originCity?: ILocation;
+  hasCompletedOnboarding: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -51,6 +52,11 @@ const UserSchema = new Schema<IUser>(
     originCity: {
       type: LocationSchema,
       required: false,
+    },
+    hasCompletedOnboarding: {
+      type: Boolean,
+      required: true,
+      default: false,
     },
   },
   {

@@ -33,8 +33,6 @@ export interface IPhoto {
 // Item type discriminator
 export type ItemType = 'flight' | 'accommodation' | 'food' | 'tourist_site';
 
-// --- Nuevos tipos añadidos ---
-
 export type TouristSiteCategory = 'museum' | 'park' | 'monument' | 'historical';
 
 export interface GetTouristSitesRequest {

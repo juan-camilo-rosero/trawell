@@ -9,6 +9,7 @@ interface CreateUserBody {
   email: string;
   name: string;
   originCity?: ILocation;
+  hasCompletedOnboarding?: boolean;
 }
 
 interface UpdateUserBody {
@@ -17,6 +18,7 @@ interface UpdateUserBody {
     email?: string;
     name?: string;
     originCity?: ILocation | null;
+    hasCompletedOnboarding?: boolean;
   };
 }
 
@@ -93,6 +95,13 @@ function validateCreateUserBody(body: Record<string, unknown>): {
         errors.push("originCity.placeId must be a string if provided");
       }
     }
+  }
+
+  if (
+    body.hasCompletedOnboarding !== undefined &&
+    typeof body.hasCompletedOnboarding !== "boolean"
+  ) {
+    errors.push("hasCompletedOnboarding must be a boolean if provided");
   }
 
   return {
@@ -181,7 +190,6 @@ export async function POST(request: NextRequest) {
       return errorResponse("Validation failed", 400, validation.errors);
     }
 
-    // Después de la validación, sabemos que body tiene la estructura correcta
     const typedBody = body as unknown as CreateUserBody;
 
     const existingUser = await User.findOne({
@@ -208,6 +216,10 @@ export async function POST(request: NextRequest) {
 
     if (typedBody.originCity) {
       userData.originCity = typedBody.originCity;
+    }
+
+    if (typedBody.hasCompletedOnboarding !== undefined) {
+      userData.hasCompletedOnboarding = typedBody.hasCompletedOnboarding;
     }
 
     const user = await User.create(userData);
@@ -274,6 +286,13 @@ export async function PATCH(request: NextRequest) {
       return errorResponse("name must be a non-empty string");
     }
 
+    if (
+      updates.hasCompletedOnboarding !== undefined &&
+      typeof updates.hasCompletedOnboarding !== "boolean"
+    ) {
+      return errorResponse("hasCompletedOnboarding must be a boolean");
+    }
+
     if (updates.originCity) {
       const validation = validateCreateUserBody({
         firebaseUid: "dummy",
@@ -295,6 +314,8 @@ export async function PATCH(request: NextRequest) {
     if (updates.name) updateData.name = updates.name.trim();
     if (updates.originCity !== undefined)
       updateData.originCity = updates.originCity;
+    if (updates.hasCompletedOnboarding !== undefined)
+      updateData.hasCompletedOnboarding = updates.hasCompletedOnboarding;
 
     const user = await User.findOneAndUpdate(
       { firebaseUid },
