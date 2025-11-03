@@ -62,8 +62,7 @@ function CityAutocomplete({
       country,
       coordinates
     }
-
-    console.log('Ciudad seleccionada:', cityData)
+    
     onChange(displayValue, cityData)
   }
 

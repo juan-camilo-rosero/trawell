@@ -1,3 +1,5 @@
+'use client'
+
 interface ProgressBarProps {
   currentStep: number
   totalSteps: number

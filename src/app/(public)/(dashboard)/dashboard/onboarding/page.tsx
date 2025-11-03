@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ProgressBar } from "@/components/onboarding/ProgressBar";
-import { OnboardingSlide } from "@/components/onboarding/OnboardingSlide";
 import { OnboardingForm } from "@/components/onboarding/OnboardingForm";
 import { DesktopCarousel } from "@/components/onboarding/DesktopCarousel";
 
