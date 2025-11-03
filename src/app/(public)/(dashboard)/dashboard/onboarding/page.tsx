@@ -49,7 +49,7 @@ const ONBOARDING_SLIDES: OnboardingSlideData[] = [
 
 const TOTAL_STEPS = 4;
 
-function page() {
+function Page() {
   // Estado
   const [currentStep, setCurrentStep] = useState(0);
   const [name, setName] = useState("");
@@ -237,4 +237,4 @@ function page() {
   );
 }
 
-export default page;
+export default Page;
