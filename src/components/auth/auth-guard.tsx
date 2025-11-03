@@ -1,7 +1,6 @@
 'use client'
-
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from '@/lib/firebase.config'
 
@@ -11,32 +10,56 @@ interface AuthGuardProps {
 
 export function AuthGuard({ children }: AuthGuardProps) {
   const router = useRouter()
+  const pathname = usePathname()
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+  const [isCheckingOnboarding, setIsCheckingOnboarding] = useState(true)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         setIsAuthenticated(true)
+        
+        if (pathname !== '/dashboard/onboarding') {
+          try {
+            const response = await fetch(
+              `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/onboarding?firebaseUid=${currentUser.uid}`
+            )
+            
+            if (response.ok) {
+              const data = await response.json()
+              
+              if (data.success && !data.data.hasCompletedOnboarding) {
+                router.push('/dashboard/onboarding')
+              }
+            } else {
+              console.error('Error checking onboarding status:', response.status)
+            }
+          } catch (error) {
+            console.error('Error checking onboarding:', error)
+          } finally {
+            setIsCheckingOnboarding(false)
+          }
+        } else {
+          setIsCheckingOnboarding(false)
+        }
       } else {
         setIsAuthenticated(false)
+        setIsCheckingOnboarding(false)
         router.push('/sign-up')
       }
     })
 
     return () => unsubscribe()
-  }, [router])
+  }, [router, pathname])
 
-  // Mientras verifica la autenticación - muestra skeleton
-  if (isAuthenticated === null) {
+  if (isAuthenticated === null || isCheckingOnboarding) {
     return <AuthGuardSkeleton />
   }
 
-  // Si no está autenticado - muestra skeleton mientras redirige
   if (!isAuthenticated) {
     return <AuthGuardSkeleton />
   }
 
-  // Usuario autenticado - muestra el contenido
   return <>{children}</>
 }
 
@@ -45,14 +68,14 @@ function AuthGuardSkeleton() {
     <div className="space-y-6">
       {/* Title Skeleton */}
       <div className="h-8 w-48 rounded-lg bg-gray-200 animate-pulse" />
-
+      
       {/* Cards Skeleton */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <div className="h-32 rounded-lg bg-gray-200 animate-pulse" />
         <div className="h-32 rounded-lg bg-gray-200 animate-pulse" />
         <div className="h-32 rounded-lg bg-gray-200 animate-pulse" />
       </div>
-
+      
       {/* Content Skeleton */}
       <div className="space-y-3">
         {[1, 2, 3].map((i) => (

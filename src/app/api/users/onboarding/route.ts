@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-
 import connectDB from "@/lib/db/db";
 import User from "@/models/user/User";
 import { ILocation } from "@/models/types/index";
@@ -32,7 +31,6 @@ function validateOnboardingBody(body: Record<string, unknown>): {
     errors.push("originCity is required and must be an object");
   } else {
     const originCity = body.originCity as Record<string, unknown>;
-
     if (!originCity.name || typeof originCity.name !== "string") {
       errors.push("originCity.name is required and must be a string");
     }
@@ -41,7 +39,6 @@ function validateOnboardingBody(body: Record<string, unknown>): {
       errors.push("originCity.coordinates is required and must be an object");
     } else {
       const coordinates = originCity.coordinates as Record<string, unknown>;
-
       if (
         typeof coordinates.lat !== "number" ||
         coordinates.lat < -90 ||
@@ -51,7 +48,6 @@ function validateOnboardingBody(body: Record<string, unknown>): {
           "originCity.coordinates.lat must be a number between -90 and 90"
         );
       }
-
       if (
         typeof coordinates.lng !== "number" ||
         coordinates.lng < -180 ||
@@ -103,19 +99,47 @@ function successResponse(data: Record<string, unknown>, status: number = 200) {
   );
 }
 
+// Nuevo método GET para verificar estado del onboarding
+export async function GET(request: NextRequest) {
+  try {
+    await connectDB();
+
+    const { searchParams } = new URL(request.url);
+    const firebaseUid = searchParams.get("firebaseUid");
+
+    if (!firebaseUid) {
+      return errorResponse("firebaseUid query parameter is required", 400);
+    }
+
+    const user = await User.findOne({ firebaseUid }).select(
+      "hasCompletedOnboarding firebaseUid"
+    );
+
+    if (!user) {
+      return errorResponse("User not found", 404);
+    }
+
+    return successResponse({
+      hasCompletedOnboarding: user.hasCompletedOnboarding || false,
+    });
+  } catch (error) {
+    console.error("GET /api/users/onboarding error:", error);
+    return errorResponse("Failed to check onboarding status", 500);
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
 
     const body = (await request.json()) as Record<string, unknown>;
-
     const validation = validateOnboardingBody(body);
+
     if (!validation.valid) {
       return errorResponse("Validation failed", 400, validation.errors);
     }
 
     const typedBody = body as unknown as CompleteOnboardingBody;
-
     const user = await User.findOne({ firebaseUid: typedBody.firebaseUid });
 
     if (!user) {
