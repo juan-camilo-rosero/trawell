@@ -118,13 +118,8 @@ function Page() {
     if (apiError) setApiError("");
   };
 
-  const handleContinue = async () => {
-    // Para mobile - navegación entre slides
-    if (currentStep < 3) {
-      setCurrentStep((prev) => prev + 1);
-      return;
-    }
-
+  // Función para enviar el onboarding a la API
+  const submitOnboarding = async () => {
     // Validar formulario
     if (!validateForm()) {
       return;
@@ -182,6 +177,23 @@ function Page() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Handler para mobile (con navegación de slides)
+  const handleContinue = async () => {
+    // Para mobile - navegación entre slides
+    if (currentStep < 3) {
+      setCurrentStep((prev) => prev + 1);
+      return;
+    }
+
+    // En el último slide, enviar el onboarding
+    await submitOnboarding();
+  };
+
+  // Handler para desktop (sin navegación de slides)
+  const handleDesktopSubmit = async () => {
+    await submitOnboarding();
   };
 
   // Calcular si el form es válido
@@ -262,7 +274,7 @@ function Page() {
       {/* Desktop View - FORM A LA IZQUIERDA, CARRUSEL A LA DERECHA */}
       <div className="hidden md:grid md:grid-cols-2 w-full h-full">
         {/* Left Side - Form (50% del ancho disponible) */}
-        <div className=" flex items-center justify-center overflow-hidden h-full">
+        <div className="bg-secondary-100 flex items-center justify-center overflow-hidden h-full">
           <div className="w-full max-w-lg px-8 lg:px-12">
             <OnboardingForm
               name={name}
@@ -270,7 +282,7 @@ function Page() {
               cityData={cityData}
               onNameChange={handleNameChange}
               onCityChange={handleCityChange}
-              onSubmit={handleContinue}
+              onSubmit={handleDesktopSubmit}
               errors={errors}
               isValid={isFormValid}
               isLoading={isLoading}
@@ -281,7 +293,7 @@ function Page() {
         </div>
 
         {/* Right Side - Carousel (50% del ancho disponible) */}
-        <div className=" overflow-hidden h-full">
+        <div className="bg-secondary-100 overflow-hidden h-full">
           <DesktopCarousel slides={ONBOARDING_SLIDES} />
         </div>
       </div>

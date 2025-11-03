@@ -33,6 +33,7 @@ interface OnboardingFormProps {
 export function OnboardingForm({
   name,
   city,
+  cityData,
   onNameChange,
   onCityChange,
   onSubmit,
