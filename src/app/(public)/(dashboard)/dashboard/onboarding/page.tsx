@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { auth } from "@/lib/firebase.config"; // Ajusta la ruta según tu configuración
 import { Button } from "@/components/ui/button";
 import { ProgressBar } from "@/components/onboarding/ProgressBar";
 import { OnboardingForm } from "@/components/onboarding/OnboardingForm";
@@ -14,6 +16,7 @@ interface CityData {
     lat: number;
     lng: number;
   };
+  placeId?: string;
 }
 
 interface OnboardingSlideData {
@@ -44,17 +47,28 @@ const ONBOARDING_SLIDES: OnboardingSlideData[] = [
     subtitle:
       "Desde tu forma de viajar hasta tus preferencias al comer, nos adaptamos a lo que estás buscando",
   },
+  {
+    image:
+      "https://img2.clipart-library.com/27/snoopy-woodstock-clip-art/snoopy-woodstock-clip-art-19.gif",
+    title: "¡Comencemos!",
+    subtitle:
+      "Cuéntanos un poco sobre ti para personalizar tu experiencia desde el primer momento",
+  },
 ];
 
 const TOTAL_STEPS = 4;
 
 function Page() {
+  const router = useRouter();
+  
   // Estado
   const [currentStep, setCurrentStep] = useState(0);
   const [name, setName] = useState("");
   const [city, setCity] = useState("");
   const [cityData, setCityData] = useState<CityData | undefined>(undefined);
   const [errors, setErrors] = useState({ name: "", city: "" });
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
 
   // Validaciones
   const validateName = (): boolean => {
@@ -86,33 +100,87 @@ function Page() {
 
   // Handlers
   const handleCityChange = (value: string, data?: CityData) => {
+    console.log("handleCityChange llamado:", { value, data });
     setCity(value);
     setCityData(data);
     if (errors.city && data) {
       setErrors((prev) => ({ ...prev, city: "" }));
     }
+    if (apiError) setApiError("");
   };
 
   const handleNameChange = (value: string) => {
+    console.log("handleNameChange llamado:", value);
     setName(value);
     if (errors.name && value.trim()) {
       setErrors((prev) => ({ ...prev, name: "" }));
     }
+    if (apiError) setApiError("");
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
+    // Para mobile - navegación entre slides
     if (currentStep < 3) {
       setCurrentStep((prev) => prev + 1);
       return;
     }
 
-    if (validateForm()) {
-      console.log("Datos del usuario:", {
-        nombre: name,
-        ciudad: cityData?.name,
-        país: cityData?.country,
-        coordenadas: cityData?.coordinates,
+    // Validar formulario
+    if (!validateForm()) {
+      return;
+    }
+
+    // Obtener Firebase UID
+    const user = auth.currentUser;
+    if (!user) {
+      setApiError("No se pudo obtener la información del usuario. Por favor, inicia sesión nuevamente.");
+      return;
+    }
+
+    setIsLoading(true);
+    setApiError("");
+
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+      
+      const response = await fetch(`${baseUrl}/api/users/onboarding`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          firebaseUid: user.uid,
+          name: name.trim(),
+          originCity: {
+            name: cityData!.name,
+            coordinates: {
+              lat: cityData!.coordinates.lat,
+              lng: cityData!.coordinates.lng,
+            },
+            ...(cityData!.placeId && { placeId: cityData!.placeId }),
+          },
+        }),
       });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Error al completar el onboarding");
+      }
+
+      console.log("Onboarding completado:", data);
+      
+      // Redirigir al dashboard
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Error en onboarding:", error);
+      setApiError(
+        error instanceof Error
+          ? error.message
+          : "Ocurrió un error al completar el onboarding. Por favor, intenta nuevamente."
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -167,7 +235,7 @@ function Page() {
           <>
             <div className="flex-[2] flex items-center justify-center">
               <img
-                src={ONBOARDING_SLIDES[1].image}
+                src={ONBOARDING_SLIDES[3].image}
                 alt="Formulario"
                 className="w-auto max-h-[30vh]"
               />
@@ -183,21 +251,17 @@ function Page() {
                 onSubmit={handleContinue}
                 errors={errors}
                 isValid={isFormValid}
-                showTitle={true}
+                isLoading={isLoading}
+                apiError={apiError}
               />
             </div>
           </>
         )}
       </div>
 
-      {/* Desktop View - FIX ALTURA Y COLOR */}
+      {/* Desktop View - FORM A LA IZQUIERDA, CARRUSEL A LA DERECHA */}
       <div className="hidden md:grid md:grid-cols-2 w-full h-full">
-        {/* Left Side - Carousel (50% del ancho disponible) */}
-        <div className=" overflow-hidden h-full">
-          <DesktopCarousel slides={ONBOARDING_SLIDES} />
-        </div>
-
-        {/* Right Side - Form (50% del ancho disponible) */}
+        {/* Left Side - Form (50% del ancho disponible) */}
         <div className=" flex items-center justify-center overflow-hidden h-full">
           <div className="w-full max-w-lg px-8 lg:px-12">
             <OnboardingForm
@@ -209,9 +273,16 @@ function Page() {
               onSubmit={handleContinue}
               errors={errors}
               isValid={isFormValid}
+              isLoading={isLoading}
+              apiError={apiError}
               showTitle={true}
             />
           </div>
+        </div>
+
+        {/* Right Side - Carousel (50% del ancho disponible) */}
+        <div className=" overflow-hidden h-full">
+          <DesktopCarousel slides={ONBOARDING_SLIDES} />
         </div>
       </div>
     </div>

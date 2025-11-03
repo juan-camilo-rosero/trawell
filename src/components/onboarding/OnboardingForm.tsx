@@ -10,6 +10,7 @@ interface CityData {
     lat: number
     lng: number
   }
+  placeId?: string
 }
 
 interface OnboardingFormProps {
@@ -24,6 +25,8 @@ interface OnboardingFormProps {
     city: string
   }
   isValid: boolean
+  isLoading?: boolean
+  apiError?: string
   showTitle?: boolean
 }
 
@@ -36,32 +39,30 @@ export function OnboardingForm({
   onSubmit,
   errors,
   isValid,
+  isLoading = false,
+  apiError = "",
   showTitle = false,
 }: OnboardingFormProps) {
-  const handleSubmit = () => {
-    console.log({
-      nombre: name,
-      ciudad: {
-        nombre: cityData?.name,
-        pais: cityData?.country,
-        coordenadas: cityData?.coordinates
-      }
-    })
-    onSubmit()
-  }
-
   return (
     <div className="w-full flex flex-col space-y-6">
       {showTitle && (
         <div className="w-full">
-          <h2 className="text-center text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
-            ¡Empecemos!
+          <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
+            ¡Bienvenido!
           </h2>
-          <p className="text-base lg:text-lg text-muted-500 text-center">
+          <p className="text-base lg:text-lg text-gray-600">
             Cuéntanos un poco sobre ti para personalizar tu experiencia
           </p>
         </div>
       )}
+      <h3 className="text-xl font-semibold text-muted-900 w-full text-center">Ingresa tus datos</h3>
+      
+      {apiError && (
+        <div className="w-full p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-600 text-sm">{apiError}</p>
+        </div>
+      )}
+
       <div className="w-full flex flex-col space-y-8 pb-4">
         <div className="w-full">
           <TextInput
@@ -90,11 +91,11 @@ export function OnboardingForm({
         </div>
       </div>
       <Button
-        onClick={handleSubmit}
+        onClick={onSubmit}
         className="primary-btn w-full"
-        disabled={!isValid}
+        disabled={!isValid || isLoading}
       >
-        Continuar
+        {isLoading ? "Completando..." : "Continuar"}
       </Button>
     </div>
   )
