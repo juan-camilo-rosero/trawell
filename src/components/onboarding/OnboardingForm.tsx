@@ -1,5 +1,4 @@
 'use client'
-
 import { Button } from '@/components/ui/button'
 import { TextInput } from '@/components/ui/TextInput'
 import CityAutocomplete from '@/components/ui/CityAutocomplete'
@@ -16,6 +15,7 @@ interface CityData {
 interface OnboardingFormProps {
   name: string
   city: string
+  cityData?: CityData
   onNameChange: (value: string) => void
   onCityChange: (value: string, cityData?: CityData) => void
   onSubmit: () => void
@@ -30,6 +30,7 @@ interface OnboardingFormProps {
 export function OnboardingForm({
   name,
   city,
+  cityData,
   onNameChange,
   onCityChange,
   onSubmit,
@@ -37,22 +38,31 @@ export function OnboardingForm({
   isValid,
   showTitle = false,
 }: OnboardingFormProps) {
+  const handleSubmit = () => {
+    console.log({
+      nombre: name,
+      ciudad: {
+        nombre: cityData?.name,
+        pais: cityData?.country,
+        coordenadas: cityData?.coordinates
+      }
+    })
+    onSubmit()
+  }
+
   return (
     <div className="w-full flex flex-col space-y-6">
       {showTitle && (
         <div className="w-full">
-          <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
-            ¡Bienvenido!
+          <h2 className="text-center text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
+            ¡Empecemos!
           </h2>
-          <p className="text-base lg:text-lg text-gray-600">
+          <p className="text-base lg:text-lg text-muted-500 text-center">
             Cuéntanos un poco sobre ti para personalizar tu experiencia
           </p>
         </div>
       )}
-
-      <h3 className="text-xl font-semibold text-gray-900">Ingresa tus datos</h3>
-
-      <div className="w-full flex flex-col space-y-5">
+      <div className="w-full flex flex-col space-y-8 pb-4">
         <div className="w-full">
           <TextInput
             value={name}
@@ -65,7 +75,6 @@ export function OnboardingForm({
             <p className="text-red-500 text-sm mt-2">{errors.name}</p>
           )}
         </div>
-
         <div className="w-full">
           <CityAutocomplete
             value={city}
@@ -80,9 +89,8 @@ export function OnboardingForm({
           )}
         </div>
       </div>
-
       <Button
-        onClick={onSubmit}
+        onClick={handleSubmit}
         className="primary-btn w-full"
         disabled={!isValid}
       >

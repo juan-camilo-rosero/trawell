@@ -9,7 +9,6 @@ import {
   CarouselApi,
 } from '@/components/ui/carousel'
 import Autoplay from 'embla-carousel-autoplay'
-import { OnboardingSlide } from './OnboardingSlide'
 
 interface SlideData {
   image: string
@@ -19,6 +18,21 @@ interface SlideData {
 
 interface DesktopCarouselProps {
   slides: SlideData[]
+}
+
+// OnboardingSlide component inline
+function OnboardingSlide({ image, title, subtitle }: SlideData) {
+  return (
+    <div className="flex flex-col items-center justify-center h-full px-8 text-center py-16">
+      <img
+        src={image}
+        alt={title}
+        className="w-auto max-h-[30vh] mb-6 object-contain"
+      />
+      <h2 className="text-2xl font-semibold text-gray-900 mb-3">{title}</h2>
+      <p className="text-base text-gray-600 max-w-lg">{subtitle}</p>
+    </div>
+  )
 }
 
 export function DesktopCarousel({ slides }: DesktopCarouselProps) {
@@ -42,61 +56,60 @@ export function DesktopCarousel({ slides }: DesktopCarouselProps) {
   }
 
   return (
-    <div className="relative h-full w-full">
+    <div className="relative h-full w-full flex items-center justify-center">
       <Carousel
         setApi={setCarouselApi}
-        opts={{
-          loop: true,
-          align: 'center',
-        }}
+        className="h-full w-full"
         plugins={[
           Autoplay({
-            delay: 7000,
+            delay: 5000,
+            stopOnInteraction: true,
           }),
         ]}
-        className="h-full w-full"
       >
-        <CarouselContent className="h-screen">
+        <CarouselContent className="h-full ml-0">
           {slides.map((slide, index) => (
-            <CarouselItem key={index} className="h-full">
-              <OnboardingSlide {...slide} />
+            <CarouselItem key={index} className="h-full pl-0">
+              <div className="h-full w-full flex items-center justify-center">
+                <OnboardingSlide {...slide} />
+              </div>
             </CarouselItem>
           ))}
         </CarouselContent>
-      </Carousel>
 
-      {/* Carousel Controls */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 z-10">
-        <button
-          onClick={handlePrevious}
-          className="w-10 h-10 rounded-full bg-white/80 hover:bg-white flex items-center justify-center transition-colors shadow-md"
-          aria-label="Anterior"
-        >
-          <IoChevronBack className="text-gray-900" size={20} />
-        </button>
+        {/* Carousel Controls */}
+        <div className="absolute bottom-16 left-0 right-0 flex items-center justify-center gap-3 px-8 z-10">
+          <button
+            onClick={handlePrevious}
+            className="p-1.5 rounded-full bg-white/70 hover:bg-white/90 shadow-sm transition-colors"
+            aria-label="Slide anterior"
+          >
+            <IoChevronBack className="w-4 h-4 text-gray-600" />
+          </button>
 
-        {/* Dots */}
-        <div className="flex gap-2">
-          {slides.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => carouselApi?.scrollTo(index)}
-              className={`w-2 h-2 rounded-full transition-all ${
-                currentSlide === index ? 'bg-primary w-8' : 'bg-gray-400'
-              }`}
-              aria-label={`Ir a slide ${index + 1}`}
-            />
-          ))}
+          {/* Dots */}
+          <div className="flex gap-2">
+            {slides.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => carouselApi?.scrollTo(index)}
+                className={`h-1.5 rounded-full transition-all ${
+                  currentSlide === index ? 'bg-primary w-6' : 'bg-gray-300 w-1.5'
+                }`}
+                aria-label={`Ir a slide ${index + 1}`}
+              />
+            ))}
+          </div>
+
+          <button
+            onClick={handleNext}
+            className="p-1.5 rounded-full bg-white/70 hover:bg-white/90 shadow-sm transition-colors"
+            aria-label="Siguiente slide"
+          >
+            <IoChevronForward className="w-4 h-4 text-gray-600" />
+          </button>
         </div>
-
-        <button
-          onClick={handleNext}
-          className="w-10 h-10 rounded-full bg-white/80 hover:bg-white flex items-center justify-center transition-colors shadow-md"
-          aria-label="Siguiente"
-        >
-          <IoChevronForward className="text-gray-900" size={20} />
-        </button>
-      </div>
+      </Carousel>
     </div>
   )
 }

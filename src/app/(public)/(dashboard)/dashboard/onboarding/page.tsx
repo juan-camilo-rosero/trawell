@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ProgressBar } from "@/components/onboarding/ProgressBar";
 import { OnboardingForm } from "@/components/onboarding/OnboardingForm";
@@ -25,22 +25,21 @@ interface OnboardingSlideData {
 // Constantes
 const ONBOARDING_SLIDES: OnboardingSlideData[] = [
   {
-    image:
-      "https://i.pinimg.com/736x/7d/36/e9/7d36e9bb721995c60bfd2b40e2e99aad.jpg",
+    image: "https://upload.wikimedia.org/wikipedia/en/5/53/Snoopy_Peanuts.png",
     title: "Planea tu próximo viaje en segundos",
     subtitle:
       "Creamos al instante un itinerario completo para que solo debas preocuparte por disfrutar",
   },
   {
     image:
-      "https://i.pinimg.com/736x/7d/36/e9/7d36e9bb721995c60bfd2b40e2e99aad.jpg",
+      "https://logoeps.com/wp-content/uploads/2013/05/snoopy-character-vector.png",
     title: "Pensamos cada detalle de tu experiencia",
     subtitle:
       "Buscamos entre cientos de miles de alojamientos, restaurantes, sitios de interés y vuelos para darte lo mejor",
   },
   {
     image:
-      "https://i.pinimg.com/736x/7d/36/e9/7d36e9bb721995c60bfd2b40e2e99aad.jpg",
+      "https://images.fineartamerica.com/images/artworkimages/medium/3/snoopy-love-jennifer-s-payne-transparent.png",
     title: "Nos adaptamos a tu propio estilo",
     subtitle:
       "Desde tu forma de viajar hasta tus preferencias al comer, nos adaptamos a lo que estás buscando",
@@ -87,7 +86,6 @@ function Page() {
 
   // Handlers
   const handleCityChange = (value: string, data?: CityData) => {
-    console.log("handleCityChange llamado:", { value, data });
     setCity(value);
     setCityData(data);
     if (errors.city && data) {
@@ -96,7 +94,6 @@ function Page() {
   };
 
   const handleNameChange = (value: string) => {
-    console.log("handleNameChange llamado:", value);
     setName(value);
     if (errors.name && value.trim()) {
       setErrors((prev) => ({ ...prev, name: "" }));
@@ -128,55 +125,36 @@ function Page() {
     cityData.name !== undefined &&
     cityData.coordinates !== undefined;
 
-  // Debug exhaustivo
-
-  useEffect(() => {
-    console.log("=== DEBUG ESTADO ===");
-    console.log("name:", name);
-    console.log("name.trim().length:", name.trim().length);
-    console.log("city:", city);
-    console.log("city.trim().length:", city.trim().length);
-    console.log("cityData:", cityData);
-    console.log("cityData !== undefined:", cityData !== undefined);
-    console.log("cityData !== null:", cityData !== null);
-    if (cityData) {
-      console.log("cityData.name:", cityData.name);
-      console.log("cityData.coordinates:", cityData.coordinates);
-    }
-    console.log("isFormValid:", isFormValid);
-    console.log("==================");
-  }, [name, city, cityData, isFormValid]);
-
   return (
-    <>
+    <div className="w-full h-full overflow-hidden">
       {/* Mobile View */}
-      <div className="md:hidden min-h-screen flex flex-col">
+      <div className="md:hidden h-full flex flex-col justify-between">
         <ProgressBar currentStep={currentStep} totalSteps={TOTAL_STEPS} />
 
         {/* Slides 1-3 */}
         {currentStep < 3 && (
           <>
-            <div className="flex-[2] bg-secondary-200 flex items-center justify-center">
+            <div className="flex items-center justify-center">
               <img
                 src={ONBOARDING_SLIDES[currentStep].image}
                 alt={ONBOARDING_SLIDES[currentStep].title}
-                className="w-full h-full object-cover"
+                className="w-auto max-h-[30vh] max-w-full"
               />
             </div>
 
-            <div className="min-h-[33vh] bg-secondary-100 custom-ph flex flex-col justify-between py-6">
+            <div className="min-h-[33vh] rounded-t-lg custom-ph flex flex-col justify-between py-6">
               <div className="flex-1 flex flex-col justify-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                <h2 className="text-3xl font-semibold text-gray-900 mb-5 text-center">
                   {ONBOARDING_SLIDES[currentStep].title}
                 </h2>
-                <p className="text-base text-gray-600">
+                <p className="text-lg text-gray-600 text-center mb-8">
                   {ONBOARDING_SLIDES[currentStep].subtitle}
                 </p>
               </div>
 
               <Button
                 onClick={handleContinue}
-                className="primary-btn w-full mt-6"
+                className="primary-btn text-xl w-full mt-6 !py-6"
               >
                 Continuar
               </Button>
@@ -187,42 +165,45 @@ function Page() {
         {/* Slide 4: Form */}
         {currentStep === 3 && (
           <>
-            <div className="flex-[2] bg-secondary-200 flex items-center justify-center">
+            <div className="flex-[2] flex items-center justify-center">
               <img
-                src={ONBOARDING_SLIDES[0].image}
+                src={ONBOARDING_SLIDES[1].image}
                 alt="Formulario"
-                className="w-full h-full object-cover"
+                className="w-auto max-h-[30vh]"
               />
             </div>
 
-            <div className="min-h-[40vh] bg-secondary-100 custom-ph flex flex-col justify-between py-6">
+            <div className="min-h-[40vh] custom-ph flex flex-col justify-between py-6">
               <OnboardingForm
                 name={name}
                 city={city}
+                cityData={cityData}
                 onNameChange={handleNameChange}
                 onCityChange={handleCityChange}
                 onSubmit={handleContinue}
                 errors={errors}
                 isValid={isFormValid}
+                showTitle={true}
               />
             </div>
           </>
         )}
       </div>
 
-      {/* Desktop View */}
-      <div className="hidden md:flex min-h-screen w-full">
-        {/* Left Side - Carousel */}
-        <div className="w-1/2 bg-secondary-200 flex-shrink-0">
+      {/* Desktop View - FIX ALTURA Y COLOR */}
+      <div className="hidden md:grid md:grid-cols-2 w-full h-full">
+        {/* Left Side - Carousel (50% del ancho disponible) */}
+        <div className=" overflow-hidden h-full">
           <DesktopCarousel slides={ONBOARDING_SLIDES} />
         </div>
 
-        {/* Right Side - Form */}
-        <div className="w-1/2 bg-secondary-100 flex items-center justify-center flex-shrink-0">
+        {/* Right Side - Form (50% del ancho disponible) */}
+        <div className=" flex items-center justify-center overflow-hidden h-full">
           <div className="w-full max-w-lg px-8 lg:px-12">
             <OnboardingForm
               name={name}
               city={city}
+              cityData={cityData}
               onNameChange={handleNameChange}
               onCityChange={handleCityChange}
               onSubmit={handleContinue}
@@ -233,7 +214,7 @@ function Page() {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
