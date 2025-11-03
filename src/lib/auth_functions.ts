@@ -10,13 +10,19 @@ import {
   type UserCredential,
 } from "firebase/auth";
 
-// Tipos
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://trawell-yuxn.vercel.app';
+
 export interface AuthResult {
   user: User;
   needsVerification: boolean;
 }
 
-// Errores personalizados
+interface CreateUserPayload {
+  firebaseUid: string;
+  email: string;
+  name: string;
+}
+
 export class AuthError extends Error {
   constructor(
     message: string,
@@ -27,7 +33,6 @@ export class AuthError extends Error {
   }
 }
 
-// Validaciones
 const validateEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
@@ -40,13 +45,48 @@ const validatePassword = (password: string): { isValid: boolean; message?: strin
   return { isValid: true };
 };
 
+const createUserInDatabase = async (payload: CreateUserPayload): Promise<void> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/users`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      if (response.status === 409) {
+        console.log('Usuario ya existente');
+        return;
+      }
+      throw new Error(data.error || 'Error al crear usuario en la base de datos');
+    }
+
+    console.log('Usuario creado en la base de datos:', data);
+  } catch (error) {
+    console.error('Error al crear usuario en la base de datos:', error);
+  }
+};
+
 // Funciones de autenticación
 export const continueWithGoogle = async (): Promise<User> => {
   const provider = new GoogleAuthProvider();
  
   try {
     const result: UserCredential = await signInWithPopup(auth, provider);
-    return result.user;
+    const user = result.user;
+
+    // Crear usuario en la base de datos
+    await createUserInDatabase({
+      firebaseUid: user.uid,
+      email: user.email || '',
+      name: user.displayName || user.email?.split('@')[0] || 'Usuario',
+    });
+
+    return user;
   } catch (error) {
     if (error instanceof Error) {
       throw new Error(error.message);
@@ -80,6 +120,13 @@ export const signUpWithEmail = async (
       password
     );
     const user = result.user;
+
+    // Crear usuario en la base de datos
+    await createUserInDatabase({
+      firebaseUid: user.uid,
+      email: user.email || '',
+      name: user.email?.split('@')[0] || 'Usuario',
+    });
 
     // Enviar verificación de email automáticamente
     await sendEmailVerification(user);
