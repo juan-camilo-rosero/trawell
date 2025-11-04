@@ -1,8 +1,9 @@
+// @/components/auth/auth-guard.tsx
 'use client'
+
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { onAuthStateChanged } from 'firebase/auth'
-import { auth } from '@/lib/firebase.config'
+import { useUser } from '@/contexts/UserContext'
 
 interface AuthGuardProps {
   children: React.ReactNode
@@ -11,52 +12,43 @@ interface AuthGuardProps {
 export function AuthGuard({ children }: AuthGuardProps) {
   const router = useRouter()
   const pathname = usePathname()
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+  const { firebaseUser, userData, isLoading } = useUser()
   const [isCheckingOnboarding, setIsCheckingOnboarding] = useState(true)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        setIsAuthenticated(true)
-        
-        if (pathname !== '/dashboard/onboarding') {
-          try {
-            const response = await fetch(
-              `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/onboarding?firebaseUid=${currentUser.uid}`
-            )
-            
-            if (response.ok) {
-              const data = await response.json()
-              
-              if (data.success && !data.data.hasCompletedOnboarding) {
-                router.push('/dashboard/onboarding')
-              }
-            } else {
-              console.error('Error checking onboarding status:', response.status)
-            }
-          } catch (error) {
-            console.error('Error checking onboarding:', error)
-          } finally {
-            setIsCheckingOnboarding(false)
-          }
-        } else {
-          setIsCheckingOnboarding(false)
-        }
-      } else {
-        setIsAuthenticated(false)
-        setIsCheckingOnboarding(false)
-        router.push('/sign-up')
+    // Esperar a que termine de cargar
+    if (isLoading) {
+      return
+    }
+
+    // Si no hay usuario autenticado, redirigir a sign-up
+    if (!firebaseUser) {
+      setIsCheckingOnboarding(false)
+      router.push('/sign-up')
+      return
+    }
+
+    // Si ya tenemos datos del usuario
+    if (userData) {
+      // Si no está en la página de onboarding y no ha completado el onboarding
+      if (pathname !== '/dashboard/onboarding' && !userData.hasCompletedOnboarding) {
+        router.push('/dashboard/onboarding')
       }
-    })
+      setIsCheckingOnboarding(false)
+    } else {
+      // Si no hay datos del usuario pero está autenticado, algo salió mal
+      console.error('Usuario autenticado pero sin datos en la BD')
+      setIsCheckingOnboarding(false)
+    }
+  }, [firebaseUser, userData, isLoading, pathname, router])
 
-    return () => unsubscribe()
-  }, [router, pathname])
-
-  if (isAuthenticated === null || isCheckingOnboarding) {
+  // Mostrar skeleton mientras se cargan los datos
+  if (isLoading || isCheckingOnboarding) {
     return <AuthGuardSkeleton />
   }
 
-  if (!isAuthenticated) {
+  // Mostrar skeleton si no hay usuario
+  if (!firebaseUser) {
     return <AuthGuardSkeleton />
   }
 
