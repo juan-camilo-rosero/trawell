@@ -19,13 +19,8 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 
-// This is sample data.
+// Data para la navegación
 const data = {
-  user: {
-    name: "Juan Camilo",
-    email: "juroseros@unal.edu.co",
-    avatar: "/avatars/shadcn.jpg",
-  },
   projects: [
     {
       name: "Inicio",
@@ -60,7 +55,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
