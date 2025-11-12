@@ -1,9 +1,11 @@
+// page.tsx
 'use client'
+import NewTripForm from "@/components/dashboard/NewTripForm"
 
 function page() {
   return (
-    <div>
-        <h1>Nuevo viaje</h1>
+    <div className="w-full h-full">
+      <NewTripForm />
     </div>
   )
 }
