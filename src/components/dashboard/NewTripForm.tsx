@@ -79,8 +79,7 @@ function NewTripForm() {
     <div className="w-full h-full grid grid-cols-1 lg:grid-cols-5 gap-6">
       {/* Formulario */}
       <div className="lg:col-span-2">
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg flex flex-col space-y-8">
-          <h2 className="text-2xl font-semibold text-muted-900 mb-6">Nuevo viaje</h2>
+        <form onSubmit={handleSubmit} className="bg-white rounded-lg flex flex-col space-y-8 pt-4">
           
           {/* Input de origen */}
           <div className="mb-4">
@@ -113,16 +112,16 @@ function NewTripForm() {
               onChange={setStartDate}
               label="Fecha de inicio"
               icon={<FiCalendar size={20} />}
-              placeholder="¿Cuándo viajas?"
+              placeholder="inicio"
               showClearButton={true}
               maxDate={endDate}
             />
             <DateInput
               value={endDate}
               onChange={setEndDate}
-              label="Fecha de fin"
+              label="Fecha de final"
               icon={<FiCalendar size={20} />}
-              placeholder="¿Cuándo vuelves?"
+              placeholder="final"
               showClearButton={true}
               minDate={startDate}
             />
@@ -226,7 +225,7 @@ function NewTripForm() {
             type="submit"
             className="w-full py-3 primary-btn mt-8"
           >
-            Guardar (consola)
+            Imprimir en consola
           </button>
         </form>
       </div>
