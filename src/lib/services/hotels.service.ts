@@ -12,17 +12,6 @@ import {
   BoardType, // Asegúrate de que BoardType esté importado desde '@/models/types'
 } from '@/models/types';
 
-// Definir un tipo auxiliar para la estructura de los datos del hotel en la lista
-interface HotelListData {
-  hotelId: string;
-  geoCode?: {
-    latitude: number;
-    longitude: number;
-  };
-  chainCode?: string;
-  // Añadir otras propiedades si se usan
-}
-
 class HotelsService {
   /**
    * Busca hoteles con disponibilidad y precios en tiempo real
