@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { auth } from "@/lib/firebase.config"; // Ajusta la ruta según tu configuración
+import { auth } from "@/lib/firebase.config";
+import { useUser } from "@/contexts/UserContext";
 import { Button } from "@/components/ui/button";
 import { ProgressBar } from "@/components/onboarding/ProgressBar";
 import { OnboardingForm } from "@/components/onboarding/OnboardingForm";
@@ -60,6 +61,7 @@ const TOTAL_STEPS = 4;
 
 function Page() {
   const router = useRouter();
+  const { refreshUserData } = useUser();
   
   // Estado
   const [currentStep, setCurrentStep] = useState(0);
@@ -163,10 +165,14 @@ function Page() {
         throw new Error(data.error || "Error al completar el onboarding");
       }
 
-      console.log("Onboarding completado:", data);
+      console.log("Onboarding completado exitosamente:", data);
+      
+      // CRÍTICO: Refrescar los datos del usuario para que AuthGuard vea hasCompletedOnboarding: true
+      await refreshUserData();
       
       // Redirigir al dashboard
       router.push("/dashboard");
+      
     } catch (error) {
       console.error("Error en onboarding:", error);
       setApiError(

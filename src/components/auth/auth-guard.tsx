@@ -1,6 +1,5 @@
 // @/components/auth/auth-guard.tsx
 'use client'
-
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useUser } from '@/contexts/UserContext'
@@ -30,10 +29,22 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
     // Si ya tenemos datos del usuario
     if (userData) {
-      // Si no está en la página de onboarding y no ha completado el onboarding
+      // Si estamos en la página de onboarding y SÍ ha completado el onboarding
+      // redirigir al dashboard
+      if (pathname === '/dashboard/onboarding' && userData.hasCompletedOnboarding) {
+        router.push('/dashboard')
+        setIsCheckingOnboarding(false)
+        return
+      }
+      
+      // Si NO está en la página de onboarding y NO ha completado el onboarding
+      // redirigir al onboarding
       if (pathname !== '/dashboard/onboarding' && !userData.hasCompletedOnboarding) {
         router.push('/dashboard/onboarding')
+        setIsCheckingOnboarding(false)
+        return
       }
+      
       setIsCheckingOnboarding(false)
     } else {
       // Si no hay datos del usuario pero está autenticado, algo salió mal

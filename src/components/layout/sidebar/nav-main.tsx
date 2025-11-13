@@ -40,7 +40,7 @@ export function NavProjects({
                 tooltip={item.name} 
                 className={cn(
                   "text-xl lg:text-base !py-6 lg:!py-5",
-                  active && "bg-primary text-secondary-100 hover:text-secondary-100 font-semibold"
+                  active && "bg-primary hover:bg-primary-600 transition-all text-secondary-100 hover:text-secondary-100 font-semibold"
                 )}
               >
                 <a href={item.url}>
