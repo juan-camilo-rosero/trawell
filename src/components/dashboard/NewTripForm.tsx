@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from 'react';
+import { useUser } from '@/contexts/UserContext';
 import CityAutocomplete from '@/components/ui/CityAutocomplete';
 import { DateInput } from '@/components/ui/DateInput';
 import PassengerCounter from '@/components/dashboard/PassengerCounter';
@@ -26,6 +27,8 @@ interface ValidationErrors {
 }
 
 function NewTripForm() {
+  const { userData } = useUser();
+  
   const [origin, setOrigin] = useState<string>('');
   const [originData, setOriginData] = useState<CityData | undefined>();
   const [destination, setDestination] = useState<string>('');
@@ -40,6 +43,19 @@ function NewTripForm() {
   const [errors, setErrors] = useState<ValidationErrors>({});
 
   const formRef = useRef<HTMLFormElement>(null);
+
+  // Autocompletar ciudad de origen desde UserContext
+  useEffect(() => {
+    if (userData?.originCity && !origin) {
+      const cityDisplay = userData.originCity.name;
+      setOrigin(cityDisplay);
+      setOriginData({
+        name: userData.originCity.name,
+        country: '', // El UserContext no tiene country, pero podemos dejarlo vacío
+        coordinates: userData.originCity.coordinates
+      });
+    }
+  }, [userData, origin]);
 
   useEffect(() => {
     if (Object.keys(errors).length > 0 && formRef.current) {
@@ -161,7 +177,7 @@ function NewTripForm() {
 
   return (
     <div className="w-full h-full grid grid-cols-1 lg:grid-cols-5 gap-6">
-      <div className="lg:col-span-2 lg:h-[calc(100vh-8rem)] lg:overflow-y-auto lg:pr-2">
+      <div className="lg:col-span-2 lg:h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pr-2">
         <form onSubmit={handleSubmit} className="bg-white rounded-lg flex flex-col space-y-8 pt-4 pb-0 lg:px-6" ref={formRef}>
           
           <div className="mb-0">
@@ -298,7 +314,7 @@ function NewTripForm() {
             type="submit"
             className="w-full py-3 primary-btn mt-8"
           >
-            Imprimir en consola
+            Crear itinerario
           </button>
         </form>
       </div>

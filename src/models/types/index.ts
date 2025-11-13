@@ -154,3 +154,112 @@ export interface GetRestaurantsResponse {
   error?: string;
   message?: string;
 }
+
+export type HotelCategory = 
+  | 'all'
+  | 'luxury'
+  | 'boutique'
+  | 'resort'
+  | 'business'
+  | 'budget'
+  | 'hostel'
+  | 'apartment';
+
+export type BoardType = 
+  | 'ROOM_ONLY'
+  | 'BREAKFAST'
+  | 'HALF_BOARD'
+  | 'FULL_BOARD'
+  | 'ALL_INCLUSIVE';
+
+export interface GetHotelsRequest {
+  cityName: string;
+  coordinates: ICoordinates;
+  checkInDate: string; // YYYY-MM-DD
+  checkOutDate: string; // YYYY-MM-DD
+  adults: number;
+  children?: number;
+  rooms?: number;
+  limit?: number;
+  minRating?: number;
+  radiusKm?: number;
+  priceRange?: {
+    min?: number;
+    max?: number;
+  };
+  currency?: string;
+  boardType?: BoardType;
+  chainCodes?: string[]; // Códigos de cadenas hoteleras (ej: ['MC', 'HI'])
+}
+
+export interface RoomDetails {
+  type?: string;
+  typeEstimated?: {
+    category?: string;
+    beds?: number;
+    bedType?: string;
+  };
+  description?: {
+    text?: string;
+    lang?: string;
+  };
+}
+
+export interface PriceDetails {
+  currency: string;
+  total: number;
+  base?: number;
+  pricePerNight: number;
+  taxes?: number;
+  fees?: number;
+}
+
+export interface CancellationPolicy {
+  deadline?: string;
+  amount?: string;
+  type?: string; // 'FULL_STAY' | 'GUARANTEE' | 'DEPOSIT'
+  description?: string;
+}
+
+export interface HotelAmenities {
+  wifi?: boolean;
+  parking?: boolean;
+  pool?: boolean;
+  restaurant?: boolean;
+  gym?: boolean;
+  spa?: boolean;
+  airConditioning?: boolean;
+  roomService?: boolean;
+}
+
+export interface HotelResponse {
+  hotelId: string;
+  name: string;
+  chainCode?: string;
+  address?: string;
+  coordinates: ICoordinates;
+  price: PriceDetails;
+  roomDetails?: RoomDetails;
+  amenities?: HotelAmenities;
+  photos?: IPhoto[];
+  cancellationPolicy?: CancellationPolicy;
+  checkInDate: string;
+  checkOutDate: string;
+  boardType?: BoardType;
+  available: boolean;
+  offerId?: string; // Para booking posterior
+}
+
+export interface GetHotelsResponse {
+  success: boolean;
+  data?: {
+    city: string;
+    coordinates: ICoordinates;
+    checkInDate: string;
+    checkOutDate: string;
+    totalResults: number;
+    hotels: HotelResponse[];
+  };
+  error?: string;
+  message?: string;
+}
