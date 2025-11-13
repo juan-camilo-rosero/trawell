@@ -1,5 +1,4 @@
 'use client'
-
 import * as React from 'react'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -22,11 +21,11 @@ interface DateInputProps {
 function formatDate(date: Date | undefined): string {
   if (!date) return ''
   
-  return date.toLocaleDateString('es-ES', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  })
+  const day = date.getDate().toString().padStart(2, '0')
+  const month = (date.getMonth() + 1).toString().padStart(2, '0')
+  const year = date.getFullYear()
+  
+  return `${day}/${month}/${year}`
 }
 
 const DateInput = React.forwardRef<HTMLDivElement, DateInputProps>(
@@ -51,23 +50,23 @@ const DateInput = React.forwardRef<HTMLDivElement, DateInputProps>(
     
     const paddingLeft = hasIcon ? 'pl-10' : 'pl-4'
     const paddingRight = hasClearButton ? 'pr-10' : 'pr-4'
-
+    
     const handleClear = (e: React.MouseEvent) => {
       e.stopPropagation()
       onChange(undefined)
     }
-
+    
     const handleSelect = (date: Date | undefined) => {
       onChange(date)
       setOpen(false)
     }
-
+    
     React.useEffect(() => {
       if (value) {
         setMonth(value)
       }
     }, [value])
-
+    
     return (
       <div ref={ref} className={cn("relative w-full", className)}>
         {label && (
@@ -83,7 +82,7 @@ const DateInput = React.forwardRef<HTMLDivElement, DateInputProps>(
             {icon}
           </div>
         )}
-
+        
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild disabled={disabled}>
             <button
@@ -120,7 +119,7 @@ const DateInput = React.forwardRef<HTMLDivElement, DateInputProps>(
             />
           </PopoverContent>
         </Popover>
-
+        
         {hasClearButton && (
           <button
             type="button"

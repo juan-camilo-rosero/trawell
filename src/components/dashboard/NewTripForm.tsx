@@ -88,8 +88,8 @@ function NewTripForm() {
   return (
     <div className="w-full h-full grid grid-cols-1 lg:grid-cols-5 gap-6">
       {/* Formulario */}
-      <div className="lg:col-span-2 lg:h-[calc(100vh-8rem)] lg:overflow-y-auto">
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg flex flex-col space-y-8 pt-4 pb-6">
+      <div className="lg:col-span-2 lg:h-[calc(100vh-8rem)] lg:overflow-y-auto lg:pr-2">
+        <form onSubmit={handleSubmit} className="bg-white rounded-lg flex flex-col space-y-8 pt-4 pb-6 lg:px-6">
           
           {/* Input de origen */}
           <div className="mb-4">
