@@ -20,7 +20,7 @@ class AmadeusService {
     if (this.token) {
       const now = Date.now();
       const tokenAge = (now - this.token.timestamp) / 1000;
-      
+
       if (tokenAge < (this.token.expires_in - AMADEUS_CONFIG.TOKEN_EXPIRY_BUFFER)) {
         return this.token.access_token;
       }
@@ -28,7 +28,7 @@ class AmadeusService {
 
     // Obtener nuevo token
     const url = `${AMADEUS_CONFIG.BASE_URL}${AMADEUS_CONFIG.TOKEN_ENDPOINT}`;
-    
+
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -48,12 +48,22 @@ class AmadeusService {
       );
     }
 
-    const data = await response.json();
+    // Se asume que 'data' cumple con la estructura necesaria para un token
+    const data: unknown = await response.json();
+
+    // Comprobación de tipos básicos para evitar 'any' en la asignación
+    if (typeof data !== 'object' || data === null || !('access_token' in data) || !('expires_in' in data) || !('token_type' in data)) {
+        throw new Error('Invalid token response structure from Amadeus');
+    }
     
+    // Se asume que los tipos son correctos si la respuesta es exitosa
+    const tokenData = data as AmadeusToken & { access_token: string, expires_in: number, token_type: string };
+
+
     this.token = {
-      access_token: data.access_token,
-      expires_in: data.expires_in,
-      token_type: data.token_type,
+      access_token: tokenData.access_token,
+      expires_in: tokenData.expires_in,
+      token_type: tokenData.token_type,
       timestamp: Date.now(),
     };
 
@@ -63,12 +73,13 @@ class AmadeusService {
   /**
    * Realiza una petición GET autenticada a Amadeus
    */
-  async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
+  async get<T>(endpoint: string, params?: Record<string, string | number | boolean | undefined>): Promise<T> {
     const token = await this.getAccessToken();
-    
+
     const url = new URL(`${AMADEUS_CONFIG.BASE_URL}${endpoint}`);
-    
+
     if (params) {
+      // Se utiliza Record<string, string | number | boolean | undefined> para 'params'
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           url.searchParams.append(key, String(value));
@@ -91,7 +102,7 @@ class AmadeusService {
       );
     }
 
-    const data = await response.json();
+    const data: unknown = await response.json();
     return data as T;
   }
 

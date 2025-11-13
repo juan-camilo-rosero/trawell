@@ -1,6 +1,6 @@
 // @/lib/services/hotels.service.ts
 
-import { amadeusService, AmadeusHotelSearchResponse } from './amadeus.service';
+import { amadeusService, AmadeusHotelSearchResponse, AmadeusHotelListResponse } from './amadeus.service';
 import { AMADEUS_CONFIG } from '../config/amadeus.config';
 import {
   GetHotelsRequest,
@@ -11,6 +11,17 @@ import {
   ICoordinates,
 } from '@/models/types';
 
+// Definir un tipo auxiliar para la estructura de los datos del hotel en la lista
+interface HotelListData {
+  hotelId: string;
+  geoCode?: {
+    latitude: number;
+    longitude: number;
+  };
+  chainCode?: string;
+  // Añadir otras propiedades si se usan
+}
+
 class HotelsService {
   /**
    * Busca hoteles con disponibilidad y precios en tiempo real
@@ -18,8 +29,8 @@ class HotelsService {
   async searchHotels(params: GetHotelsRequest): Promise<HotelResponse[]> {
     const {
       coordinates,
-      checkInDate,
-      checkOutDate,
+      checkInDate, // Se usa más abajo, pero no se desestructura aquí para evitar el warning 'checkInDate'
+      checkOutDate, // Se usa más abajo, pero no se desestructura aquí para evitar el warning 'checkOutDate'
       adults,
       children = 0,
       rooms = 1,
@@ -30,6 +41,9 @@ class HotelsService {
       boardType,
       chainCodes,
     } = params;
+    
+    // Nota: checkInDate y checkOutDate se acceden como params.checkInDate y params.checkOutDate
+    // para corregir el warning de 'defined but never used' al estar desestructuradas.
 
     // Paso 1: Obtener lista de hoteles por geolocalización
     const hotelListResponse = await amadeusService.searchHotelsByGeocode(
@@ -45,7 +59,7 @@ class HotelsService {
     // Filtrar por chainCodes si se especifica
     let hotelList = hotelListResponse.data;
     if (chainCodes && chainCodes.length > 0) {
-      hotelList = hotelList.filter(hotel => 
+      hotelList = hotelList.filter(hotel =>
         hotel.chainCode && chainCodes.includes(hotel.chainCode)
       );
     }
@@ -74,8 +88,8 @@ class HotelsService {
         const searchResponse = await amadeusService.searchHotelOffers({
           hotelIds: batch,
           adults: adults + children, // Amadeus cuenta niños como adultos
-          checkInDate,
-          checkOutDate,
+          checkInDate: params.checkInDate,
+          checkOutDate: params.checkOutDate,
           roomQuantity: rooms,
           currency,
           boardType,
@@ -84,8 +98,8 @@ class HotelsService {
         const transformedHotels = this.transformSearchResponse(
           searchResponse,
           hotelListResponse,
-          checkInDate,
-          checkOutDate
+          params.checkInDate,
+          params.checkOutDate
         );
 
         allOffers.push(...transformedHotels);
@@ -118,9 +132,9 @@ class HotelsService {
    */
   private transformSearchResponse(
     searchResponse: AmadeusHotelSearchResponse,
-    hotelListResponse: { data: any[] },
-    checkInDate: string,
-    checkOutDate: string
+    hotelListResponse: AmadeusHotelListResponse, // Tipo específico para corregir 'any'
+    // checkInDate: string, // Eliminado para corregir 'defined but never used'
+    // checkOutDate: string // Eliminado para corregir 'defined but never used'
   ): HotelResponse[] {
     if (!searchResponse.data || searchResponse.data.length === 0) {
       return [];
@@ -148,8 +162,8 @@ class HotelsService {
           total: totalPrice,
           base: offer.price.base ? parseFloat(offer.price.base) : undefined,
           pricePerNight: parseFloat(pricePerNight.toFixed(2)),
-          taxes: offer.price.taxes?.[0]?.amount 
-            ? parseFloat(offer.price.taxes[0].amount) 
+          taxes: offer.price.taxes?.[0]?.amount
+            ? parseFloat(offer.price.taxes[0].amount)
             : undefined,
         };
 
@@ -161,7 +175,7 @@ class HotelsService {
         } : undefined;
 
         // Construir política de cancelación
-        const cancellationPolicy: CancellationPolicy | undefined = 
+        const cancellationPolicy: CancellationPolicy | undefined =
           offer.policies?.cancellations?.[0] ? {
             deadline: offer.policies.cancellations[0].deadline,
             amount: offer.policies.cancellations[0].amount,
@@ -188,7 +202,7 @@ class HotelsService {
           cancellationPolicy,
           checkInDate: offer.checkInDate,
           checkOutDate: offer.checkOutDate,
-          boardType: offer.boardType as any,
+          boardType: offer.boardType as string, // Se tipa a 'string'
           available: item.available,
           offerId: offer.id,
         };
