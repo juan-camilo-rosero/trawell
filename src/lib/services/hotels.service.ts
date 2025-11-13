@@ -9,6 +9,7 @@ import {
   RoomDetails,
   CancellationPolicy,
   ICoordinates,
+  BoardType, // Asegúrate de que BoardType esté importado desde '@/models/types'
 } from '@/models/types';
 
 // Definir un tipo auxiliar para la estructura de los datos del hotel en la lista
@@ -29,8 +30,6 @@ class HotelsService {
   async searchHotels(params: GetHotelsRequest): Promise<HotelResponse[]> {
     const {
       coordinates,
-      checkInDate, // Se usa más abajo, pero no se desestructura aquí para evitar el warning 'checkInDate'
-      checkOutDate, // Se usa más abajo, pero no se desestructura aquí para evitar el warning 'checkOutDate'
       adults,
       children = 0,
       rooms = 1,
@@ -95,11 +94,10 @@ class HotelsService {
           boardType,
         });
 
+        // 1. CORRECCIÓN DEL ERROR DE ARGUMENTOS (Se quitaron las fechas)
         const transformedHotels = this.transformSearchResponse(
           searchResponse,
-          hotelListResponse,
-          params.checkInDate,
-          params.checkOutDate
+          hotelListResponse
         );
 
         allOffers.push(...transformedHotels);
@@ -132,9 +130,8 @@ class HotelsService {
    */
   private transformSearchResponse(
     searchResponse: AmadeusHotelSearchResponse,
-    hotelListResponse: AmadeusHotelListResponse, // Tipo específico para corregir 'any'
-    // checkInDate: string, // Eliminado para corregir 'defined but never used'
-    // checkOutDate: string // Eliminado para corregir 'defined but never used'
+    hotelListResponse: AmadeusHotelListResponse,
+    // Se eliminaron checkInDate y checkOutDate de la firma
   ): HotelResponse[] {
     if (!searchResponse.data || searchResponse.data.length === 0) {
       return [];
@@ -202,7 +199,8 @@ class HotelsService {
           cancellationPolicy,
           checkInDate: offer.checkInDate,
           checkOutDate: offer.checkOutDate,
-          boardType: offer.boardType as string, // Se tipa a 'string'
+          // 2. CORRECCIÓN DEL ERROR DE ASIGNACIÓN (Asegurar compatibilidad con BoardType)
+          boardType: offer.boardType as BoardType,
           available: item.available,
           offerId: offer.id,
         };
