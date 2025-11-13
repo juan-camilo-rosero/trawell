@@ -1,5 +1,5 @@
 "use client";
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import CityAutocomplete from '@/components/ui/CityAutocomplete';
 import { DateInput } from '@/components/ui/DateInput';
 import PassengerCounter from '@/components/dashboard/PassengerCounter';
@@ -16,6 +16,15 @@ interface CityData {
   };
 }
 
+interface ValidationErrors {
+  origin?: string;
+  destination?: string;
+  dates?: string;
+  passengers?: string;
+  tripType?: string;
+  foodPreferences?: string;
+}
+
 function NewTripForm() {
   const [origin, setOrigin] = useState<string>('');
   const [originData, setOriginData] = useState<CityData | undefined>();
@@ -23,32 +32,43 @@ function NewTripForm() {
   const [destinationData, setDestinationData] = useState<CityData | undefined>();
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
-  
-  // Estados para pasajeros
-  const [adults, setAdults] = useState<number>(2);
+  const [adults, setAdults] = useState<number>(0);
   const [children, setChildren] = useState<number>(0);
   const [babies, setBabies] = useState<number>(0);
-
-  // Estado para tipo de viaje (por defecto: cultural)
   const [tripType, setTripType] = useState<TripType>('cultural');
-
-  // Estado para preferencias de comida (por defecto: todos)
   const [foodPreferences, setFoodPreferences] = useState<FoodType[]>(['all']);
+  const [errors, setErrors] = useState<ValidationErrors>({});
+
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (Object.keys(errors).length > 0 && formRef.current) {
+      formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [errors]);
 
   const handleOriginChange = (value: string, cityData?: CityData) => {
     setOrigin(value);
     setOriginData(cityData);
+    if (errors.origin) {
+      setErrors(prev => ({ ...prev, origin: undefined }));
+    }
   };
 
   const handleDestinationChange = (value: string, cityData?: CityData) => {
     setDestination(value);
     setDestinationData(cityData);
+    if (errors.destination) {
+      setErrors(prev => ({ ...prev, destination: undefined }));
+    }
   };
 
-  // Funciones para manejar incremento/decremento
   const increment = (setter: React.Dispatch<React.SetStateAction<number>>, current: number) => {
     if (current < 30) {
       setter(current + 1);
+      if (errors.passengers) {
+        setErrors(prev => ({ ...prev, passengers: undefined }));
+      }
     }
   };
 
@@ -58,8 +78,62 @@ function NewTripForm() {
     }
   };
 
+  const validateForm = (): ValidationErrors => {
+    const validationErrors: ValidationErrors = {};
+
+    if (adults === 0) {
+      validationErrors.passengers = 'Debe haber al menos un adulto';
+    }
+
+    if (!origin || !originData) {
+      validationErrors.origin = 'Selecciona una ciudad de origen';
+    }
+
+    if (!destination || !destinationData) {
+      validationErrors.destination = 'Selecciona una ciudad de destino';
+    }
+
+    if (origin && destination && originData && destinationData) {
+      if (origin.toLowerCase() === destination.toLowerCase()) {
+        validationErrors.destination = 'Debe ser diferente al origen';
+      }
+    }
+
+    if (!startDate || !endDate) {
+      validationErrors.dates = 'Selecciona ambas fechas';
+    } else if (startDate >= endDate) {
+      validationErrors.dates = 'La fecha de inicio debe ser anterior a la final';
+    } else {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (startDate < today) {
+        validationErrors.dates = 'La fecha de inicio no puede ser en el pasado';
+      }
+    }
+
+    if (!tripType) {
+      validationErrors.tripType = 'Selecciona un tipo de viaje';
+    }
+
+    if (!foodPreferences || foodPreferences.length === 0) {
+      validationErrors.foodPreferences = 'Selecciona al menos una preferencia';
+    }
+
+    return validationErrors;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const validationErrors = validateForm();
+    
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    setErrors({});
     
     const formData = {
       origin: {
@@ -87,12 +161,10 @@ function NewTripForm() {
 
   return (
     <div className="w-full h-full grid grid-cols-1 lg:grid-cols-5 gap-6">
-      {/* Formulario */}
       <div className="lg:col-span-2 lg:h-[calc(100vh-8rem)] lg:overflow-y-auto lg:pr-2">
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg flex flex-col space-y-8 pt-4 pb-6 lg:px-6">
+        <form onSubmit={handleSubmit} className="bg-white rounded-lg flex flex-col space-y-8 pt-4 pb-0 lg:px-6" ref={formRef}>
           
-          {/* Input de origen */}
-          <div className="mb-4">
+          <div className="mb-0">
             <CityAutocomplete
               value={origin}
               onChange={handleOriginChange}
@@ -101,9 +173,11 @@ function NewTripForm() {
               showMapIcon={true}
               showClearIcon={true}
             />
+            {errors.origin && (
+              <p className="text-red-500 text-xs mt-1">{errors.origin}</p>
+            )}
           </div>
 
-          {/* Input de destino */}
           <div className="mb-4">
             <CityAutocomplete
               value={destination}
@@ -113,34 +187,49 @@ function NewTripForm() {
               showMapIcon={true}
               showClearIcon={true}
             />
+            {errors.destination && (
+              <p className="text-red-500 text-xs mt-1">{errors.destination}</p>
+            )}
           </div>
 
-          {/* Inputs de fecha lado a lado */}
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            <DateInput
-              value={startDate}
-              onChange={setStartDate}
-              label="Fecha de inicio"
-              icon={<FiCalendar size={20} />}
-              placeholder="inicio"
-              showClearButton={true}
-              maxDate={endDate}
-            />
-            <DateInput
-              value={endDate}
-              onChange={setEndDate}
-              label="Fecha de final"
-              icon={<FiCalendar size={20} />}
-              placeholder="final"
-              showClearButton={true}
-              minDate={startDate}
-            />
+          <div className="mb-4">
+            <div className="grid grid-cols-2 gap-3">
+              <DateInput
+                value={startDate}
+                onChange={(date) => {
+                  setStartDate(date);
+                  if (errors.dates) {
+                    setErrors(prev => ({ ...prev, dates: undefined }));
+                  }
+                }}
+                label="Fecha de inicio"
+                icon={<FiCalendar size={20} />}
+                placeholder="inicio"
+                showClearButton={true}
+                maxDate={endDate}
+              />
+              <DateInput
+                value={endDate}
+                onChange={(date) => {
+                  setEndDate(date);
+                  if (errors.dates) {
+                    setErrors(prev => ({ ...prev, dates: undefined }));
+                  }
+                }}
+                label="Fecha de final"
+                icon={<FiCalendar size={20} />}
+                placeholder="final"
+                showClearButton={true}
+                minDate={startDate}
+              />
+            </div>
+            {errors.dates && (
+              <p className="text-red-500 text-xs mt-1">{errors.dates}</p>
+            )}
           </div>
 
-          {/* Línea separadora */}
           <div className="w-full h-px bg-muted-300 my-6"></div>
 
-          {/* Selector de pasajeros */}
           <div className="space-y-6">
             <PassengerCounter
               label="Adultos"
@@ -165,21 +254,46 @@ function NewTripForm() {
               onIncrement={() => increment(setBabies, babies)}
               onDecrement={() => decrement(setBabies, babies)}
             />
+            
+            {errors.passengers && (
+              <p className="text-red-500 text-xs mt-1">{errors.passengers}</p>
+            )}
           </div>
 
-          {/* Línea separadora */}
           <div className="w-full h-px bg-muted-300 my-6"></div>
 
-          {/* Selector de tipo de viaje */}
-          <TripTypeSelector value={tripType} onChange={setTripType} />
+          <div>
+            <TripTypeSelector 
+              value={tripType} 
+              onChange={(type) => {
+                setTripType(type);
+                if (errors.tripType) {
+                  setErrors(prev => ({ ...prev, tripType: undefined }));
+                }
+              }} 
+            />
+            {errors.tripType && (
+              <p className="text-red-500 text-xs mt-1">{errors.tripType}</p>
+            )}
+          </div>
 
-          {/* Línea separadora */}
           <div className="w-full h-px bg-muted-300 my-6"></div>
 
-          {/* Selector de preferencias de comida */}
-          <FoodPreferencesSelector value={foodPreferences} onChange={setFoodPreferences} />
+          <div>
+            <FoodPreferencesSelector 
+              value={foodPreferences} 
+              onChange={(prefs) => {
+                setFoodPreferences(prefs);
+                if (errors.foodPreferences) {
+                  setErrors(prev => ({ ...prev, foodPreferences: undefined }));
+                }
+              }} 
+            />
+            {errors.foodPreferences && (
+              <p className="text-red-500 text-xs mt-1">{errors.foodPreferences}</p>
+            )}
+          </div>
 
-          {/* Botón de submit temporal para testing */}
           <button
             type="submit"
             className="w-full py-3 primary-btn mt-8"
@@ -189,9 +303,17 @@ function NewTripForm() {
         </form>
       </div>
 
-      {/* Espacio para contenido adicional en desktop (3/5) */}
-      <div className="hidden lg:block lg:col-span-3 bg-secondary-100 rounded-lg">
-        {/* Aquí puedes agregar contenido adicional en el futuro */}
+      <div className="hidden lg:flex lg:col-span-3 bg-secondary-100 rounded-lg items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <img 
+            src="https://images.fineartamerica.com/images/artworkimages/medium/3/snoopy-pilot-airplane-elizabeth-j-campbell-transparent.png" 
+            alt="Snoopy Pilot"
+            className="w-64 h-64 object-contain"
+          />
+          <p className="text-muted-500 text-2xl mt-6">
+            Ingresa los datos de tu próximo viaje
+          </p>
+        </div>
       </div>
     </div>
   );
