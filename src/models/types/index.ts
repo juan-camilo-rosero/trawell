@@ -263,3 +263,104 @@ export interface GetHotelsResponse {
   error?: string;
   message?: string;
 }
+
+
+
+export type CabinClass = 'ECONOMY' | 'PREMIUM_ECONOMY' | 'BUSINESS' | 'FIRST';
+
+export interface IAirport {
+  iataCode: string;
+  name: string;
+  cityName: string;
+  countryCode: string;
+  coordinates: ICoordinates;
+}
+
+export interface GetFlightsRequest {
+  originCoordinates: ICoordinates;
+  destinationCoordinates: ICoordinates;
+  departureDate: string; // YYYY-MM-DD
+  returnDate: string; // YYYY-MM-DD
+  adults: number;
+  children?: number;
+  infants?: number;
+  cabinClass?: CabinClass;
+  maxStops?: number; // 0 = directo, 1 = 1 escala, etc.
+  limit?: number;
+  priceRange?: {
+    min?: number;
+    max?: number;
+  };
+  currency?: string;
+  radiusKm?: number; // Radio para buscar aeropuertos cercanos
+}
+
+export interface FlightSegment {
+  departure: {
+    iataCode: string;
+    terminal?: string;
+    at: string; // ISO 8601 datetime
+  };
+  arrival: {
+    iataCode: string;
+    terminal?: string;
+    at: string; // ISO 8601 datetime
+  };
+  carrierCode: string; // Código IATA de aerolínea (ej: "AA", "DL")
+  carrierName?: string;
+  flightNumber: string;
+  aircraft?: string;
+  duration: string; // ISO 8601 duration (ej: "PT2H30M")
+  numberOfStops: number;
+  operatingCarrier?: string;
+}
+
+export interface FlightItinerary {
+  duration: string; // Duración total del vuelo (ida o vuelta)
+  segments: FlightSegment[];
+}
+
+export interface FlightPriceDetails {
+  currency: string;
+  total: number;
+  base?: number;
+  fees?: number;
+  taxes?: number;
+  grandTotal: number;
+}
+
+export interface FlightResponse {
+  id: string; // ID único de la oferta
+  origin: IAirport;
+  destination: IAirport;
+  outbound: FlightItinerary; // Vuelo de ida
+  inbound: FlightItinerary; // Vuelo de vuelta
+  price: FlightPriceDetails;
+  cabinClass: CabinClass;
+  numberOfBookableSeats?: number;
+  validatingAirlineCodes: string[];
+  travelerPricings?: Array<{
+    travelerId: string;
+    fareOption: string;
+    travelerType: string;
+    price: {
+      currency: string;
+      total: string;
+      base?: string;
+    };
+  }>;
+}
+
+export interface GetFlightsResponse {
+  success: boolean;
+  data?: {
+    originAirport: IAirport;
+    destinationAirport: IAirport;
+    departureDate: string;
+    returnDate: string;
+    totalResults: number;
+    flights: FlightResponse[];
+  };
+  error?: string;
+  message?: string;
+}

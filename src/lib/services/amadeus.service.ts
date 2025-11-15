@@ -1,6 +1,6 @@
 // @/lib/services/amadeus.service.ts
 
-import { AMADEUS_CONFIG } from '../config/amadeus.config';
+import { AMADEUS_CONFIG } from "../config/amadeus.config";
 
 interface AmadeusToken {
   access_token: string;
@@ -21,7 +21,10 @@ class AmadeusService {
       const now = Date.now();
       const tokenAge = (now - this.token.timestamp) / 1000;
 
-      if (tokenAge < (this.token.expires_in - AMADEUS_CONFIG.TOKEN_EXPIRY_BUFFER)) {
+      if (
+        tokenAge <
+        this.token.expires_in - AMADEUS_CONFIG.TOKEN_EXPIRY_BUFFER
+      ) {
         return this.token.access_token;
       }
     }
@@ -30,12 +33,12 @@ class AmadeusService {
     const url = `${AMADEUS_CONFIG.BASE_URL}${AMADEUS_CONFIG.TOKEN_ENDPOINT}`;
 
     const response = await fetch(url, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        "Content-Type": "application/x-www-form-urlencoded",
       },
       body: new URLSearchParams({
-        grant_type: 'client_credentials',
+        grant_type: "client_credentials",
         client_id: AMADEUS_CONFIG.API_KEY,
         client_secret: AMADEUS_CONFIG.API_SECRET,
       }),
@@ -44,21 +47,29 @@ class AmadeusService {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(
-        `Amadeus authentication failed: ${response.status} - ${JSON.stringify(errorData)}`
+        `Amadeus authentication failed: ${response.status} - ${JSON.stringify(
+          errorData
+        )}`
       );
     }
 
-    // Se asume que 'data' cumple con la estructura necesaria para un token
     const data: unknown = await response.json();
 
-    // Comprobación de tipos básicos para evitar 'any' en la asignación
-    if (typeof data !== 'object' || data === null || !('access_token' in data) || !('expires_in' in data) || !('token_type' in data)) {
-        throw new Error('Invalid token response structure from Amadeus');
+    if (
+      typeof data !== "object" ||
+      data === null ||
+      !("access_token" in data) ||
+      !("expires_in" in data) ||
+      !("token_type" in data)
+    ) {
+      throw new Error("Invalid token response structure from Amadeus");
     }
-    
-    // Se asume que los tipos son correctos si la respuesta es exitosa
-    const tokenData = data as AmadeusToken & { access_token: string, expires_in: number, token_type: string };
 
+    const tokenData = data as AmadeusToken & {
+      access_token: string;
+      expires_in: number;
+      token_type: string;
+    };
 
     this.token = {
       access_token: tokenData.access_token,
@@ -73,13 +84,15 @@ class AmadeusService {
   /**
    * Realiza una petición GET autenticada a Amadeus
    */
-  async get<T>(endpoint: string, params?: Record<string, string | number | boolean | undefined>): Promise<T> {
+  async get<T>(
+    endpoint: string,
+    params?: Record<string, string | number | boolean | undefined>
+  ): Promise<T> {
     const token = await this.getAccessToken();
 
     const url = new URL(`${AMADEUS_CONFIG.BASE_URL}${endpoint}`);
 
     if (params) {
-      // Se utiliza Record<string, string | number | boolean | undefined> para 'params'
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           url.searchParams.append(key, String(value));
@@ -88,10 +101,10 @@ class AmadeusService {
     }
 
     const response = await fetch(url.toString(), {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
       },
     });
 
@@ -120,7 +133,7 @@ class AmadeusService {
         latitude,
         longitude,
         radius: radiusKm,
-        radiusUnit: 'KM',
+        radiusUnit: "KM",
       }
     );
   }
@@ -137,10 +150,19 @@ class AmadeusService {
     currency?: string;
     boardType?: string;
   }): Promise<AmadeusHotelSearchResponse> {
-    const { hotelIds, adults, checkInDate, checkOutDate, roomQuantity, currency, boardType } = params;
+    const {
+      hotelIds,
+      adults,
+      checkInDate,
+      checkOutDate,
+      roomQuantity,
+      currency,
+      boardType,
+    } = params;
 
-    // Amadeus acepta hasta 30 hotelIds separados por coma
-    const hotelIdsString = hotelIds.slice(0, AMADEUS_CONFIG.MAX_HOTEL_IDS_PER_REQUEST).join(',');
+    const hotelIdsString = hotelIds
+      .slice(0, AMADEUS_CONFIG.MAX_HOTEL_IDS_PER_REQUEST)
+      .join(",");
 
     return this.get<AmadeusHotelSearchResponse>(
       AMADEUS_CONFIG.HOTEL_SEARCH_ENDPOINT,
@@ -152,8 +174,80 @@ class AmadeusService {
         roomQuantity: roomQuantity || 1,
         currency: currency || AMADEUS_CONFIG.DEFAULT_CURRENCY,
         boardType,
-        bestRateOnly: true, // Solo la mejor tarifa por hotel
+        bestRateOnly: true,
       }
+    );
+  }
+
+  /**
+   * Busca el aeropuerto más cercano a unas coordenadas
+   */
+  async searchNearestAirport(
+    latitude: number,
+    longitude: number,
+    radiusKm: number = AMADEUS_CONFIG.DEFAULT_AIRPORT_RADIUS_KM
+  ): Promise<AmadeusAirportResponse> {
+    console.log(`🔎 Llamando a Amadeus Airport API con:`, {
+      latitude,
+      longitude,
+      radius: radiusKm,
+      endpoint: AMADEUS_CONFIG.AIRPORT_NEAREST_ENDPOINT,
+    });
+
+    try {
+      const response = await this.get<AmadeusAirportResponse>(
+        AMADEUS_CONFIG.AIRPORT_NEAREST_ENDPOINT,
+        {
+          latitude,
+          longitude,
+          radius: radiusKm,
+        }
+      );
+
+      console.log(
+        "📥 Respuesta de Amadeus:",
+        JSON.stringify(response, null, 2)
+      );
+      return response;
+    } catch (error) {
+      console.error("❌ Error en searchNearestAirport:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Busca ofertas de vuelos
+   */
+  async searchFlightOffers(params: {
+    originLocationCode: string;
+    destinationLocationCode: string;
+    departureDate: string;
+    returnDate: string;
+    adults: number;
+    children?: number;
+    infants?: number;
+    travelClass?: string;
+    nonStop?: boolean;
+    currencyCode?: string;
+    max?: number;
+  }): Promise<AmadeusFlightOffersResponse> {
+    const queryParams: Record<string, string | number | boolean | undefined> = {
+      originLocationCode: params.originLocationCode,
+      destinationLocationCode: params.destinationLocationCode,
+      departureDate: params.departureDate,
+      returnDate: params.returnDate,
+      adults: params.adults,
+      children: params.children,
+      infants: params.infants,
+      travelClass: params.travelClass,
+      nonStop: params.nonStop,
+      currencyCode: params.currencyCode || AMADEUS_CONFIG.DEFAULT_CURRENCY,
+      max: params.max || AMADEUS_CONFIG.DEFAULT_LIMIT,
+    };
+
+    return this.get<AmadeusFlightOffersResponse>(
+      AMADEUS_CONFIG.FLIGHT_OFFERS_ENDPOINT,
+      queryParams
     );
   }
 
@@ -165,7 +259,9 @@ class AmadeusService {
   }
 }
 
-// Tipos de respuesta de Amadeus
+// ============================================
+// TIPOS DE RESPUESTA DE AMADEUS - HOTELES
+// ============================================
 
 export interface AmadeusHotelListResponse {
   data: Array<{
@@ -260,6 +356,129 @@ export interface AmadeusHotelSearchResponse {
       boardType?: string;
     }>;
   }>;
+  meta?: {
+    count: number;
+  };
+}
+
+// ============================================
+// TIPOS DE RESPUESTA DE AMADEUS - AEROPUERTOS
+// ============================================
+
+export interface AmadeusAirportResponse {
+  data: Array<{
+    type: string;
+    subType: string;
+    name: string;
+    detailedName?: string;
+    iataCode: string;
+    address: {
+      cityName: string;
+      countryCode: string;
+      regionCode?: string;
+    };
+    geoCode: {
+      latitude: number;
+      longitude: number;
+    };
+    distance?: {
+      value: number;
+      unit: string;
+    };
+  }>;
+  meta?: {
+    count: number;
+  };
+}
+
+// ============================================
+// TIPOS DE RESPUESTA DE AMADEUS - VUELOS
+// ============================================
+
+export interface AmadeusFlightOffersResponse {
+  data: Array<{
+    type: string;
+    id: string;
+    source: string;
+    instantTicketingRequired: boolean;
+    nonHomogeneous: boolean;
+    oneWay: boolean;
+    lastTicketingDate?: string;
+    numberOfBookableSeats?: number;
+    itineraries: Array<{
+      duration: string;
+      segments: Array<{
+        departure: {
+          iataCode: string;
+          terminal?: string;
+          at: string;
+        };
+        arrival: {
+          iataCode: string;
+          terminal?: string;
+          at: string;
+        };
+        carrierCode: string;
+        number: string;
+        aircraft?: {
+          code: string;
+        };
+        operating?: {
+          carrierCode: string;
+        };
+        duration: string;
+        id: string;
+        numberOfStops: number;
+        blacklistedInEU?: boolean;
+      }>;
+    }>;
+    price: {
+      currency: string;
+      total: string;
+      base?: string;
+      fees?: Array<{
+        amount: string;
+        type: string;
+      }>;
+      grandTotal: string;
+    };
+    pricingOptions?: {
+      fareType: string[];
+      includedCheckedBagsOnly: boolean;
+    };
+    validatingAirlineCodes: string[];
+    travelerPricings?: Array<{
+      travelerId: string;
+      fareOption: string;
+      travelerType: string;
+      price: {
+        currency: string;
+        total: string;
+        base?: string;
+      };
+      fareDetailsBySegment?: Array<{
+        segmentId: string;
+        cabin: string;
+        fareBasis: string;
+        class: string;
+        includedCheckedBags?: {
+          quantity: number;
+        };
+      }>;
+    }>;
+  }>;
+  dictionaries?: {
+    locations?: Record<
+      string,
+      {
+        cityCode: string;
+        countryCode: string;
+      }
+    >;
+    aircraft?: Record<string, string>;
+    currencies?: Record<string, string>;
+    carriers?: Record<string, string>;
+  };
   meta?: {
     count: number;
   };
