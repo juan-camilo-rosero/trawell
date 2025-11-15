@@ -43,8 +43,7 @@ function NewTripForm() {
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const formRef = useRef<HTMLDivElement>(null);
-  const API_BASE_URL = '/api/external/places';
+  const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     if (userData?.originCity && !origin) {
@@ -155,7 +154,7 @@ function NewTripForm() {
   };
 
   const searchFlights = async () => {
-    const response = await fetch(`${API_BASE_URL}/flights`, {
+    const response = await fetch('https://trawell-yuxn.vercel.app/api/external/flights', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -183,7 +182,7 @@ function NewTripForm() {
   };
 
   const searchHotels = async () => {
-    const response = await fetch(`${API_BASE_URL}/hotels`, {
+    const response = await fetch('https://trawell-yuxn.vercel.app/api/external/places/hotels', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -208,7 +207,7 @@ function NewTripForm() {
   };
 
   const searchRestaurants = async () => {
-    const response = await fetch(`${API_BASE_URL}/restaurants`, {
+    const response = await fetch('https://trawell-yuxn.vercel.app/api/external/places/restaurants', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -230,7 +229,7 @@ function NewTripForm() {
   };
 
   const searchTouristSites = async () => {
-    const response = await fetch(`${API_BASE_URL}/tourist-sites`, {
+    const response = await fetch('https://trawell-yuxn.vercel.app/api/external/places/tourist-sites', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -326,7 +325,7 @@ function NewTripForm() {
   return (
     <div className="w-full h-full grid grid-cols-1 lg:grid-cols-5 gap-6">
       <div className="lg:col-span-2 lg:h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pr-2">
-        <div ref={formRef} className="bg-white rounded-lg flex flex-col space-y-8 pt-4 pb-0 lg:px-6">
+        <form onSubmit={handleSubmit} className="bg-white rounded-lg flex flex-col space-y-8 pt-4 pb-0 lg:px-6" ref={formRef}>
           
           <div className="mb-0">
             <CityAutocomplete
@@ -459,14 +458,13 @@ function NewTripForm() {
           </div>
 
           <button
-            type="button"
-            onClick={handleSubmit}
+            type="submit"
             disabled={isLoading}
             className="w-full py-3 primary-btn mt-8 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Generando itinerario...' : 'Crear itinerario'}
           </button>
-        </div>
+        </form>
       </div>
 
       <div className="hidden lg:flex lg:col-span-3 bg-secondary-100 rounded-lg items-center justify-center">
