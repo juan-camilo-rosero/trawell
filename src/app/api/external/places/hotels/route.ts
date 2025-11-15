@@ -16,7 +16,7 @@ function corsHeaders() {
 }
 
 // Handler para OPTIONS (preflight request)
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS() {
   return NextResponse.json({}, { 
     status: 200,
     headers: corsHeaders(),
