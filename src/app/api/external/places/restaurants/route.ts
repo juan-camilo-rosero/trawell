@@ -1,49 +1,73 @@
 // src/app/api/external/places/restaurants/route.ts
 
-import { NextRequest, NextResponse } from 'next/server';
-import { restaurantsService } from '@/lib/services/restaurants.service';
-import { GetRestaurantsResponse, RestaurantCategory, GetRestaurantsRequest } from '@/models/types';
-import { PLACES_CONFIG } from '@/lib/config/places.config';
+import { NextRequest, NextResponse } from "next/server";
+import { restaurantsService } from "@/lib/services/restaurants.service";
+import {
+  GetRestaurantsResponse,
+  RestaurantCategory,
+  GetRestaurantsRequest,
+} from "@/models/types";
+import { PLACES_CONFIG } from "@/lib/config/places.config";
 
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+// Función helper para manejar CORS
+function corsHeaders() {
+  return {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+  };
+}
+
+// Handler para OPTIONS (preflight request)
+export async function OPTIONS(request: NextRequest) {
+  return NextResponse.json(
+    {},
+    {
+      status: 200,
+      headers: corsHeaders(),
+    }
+  );
+}
 
 // Lista completa de categorías válidas
 const VALID_CATEGORIES: RestaurantCategory[] = [
-  'all',
-  'fine_dining',
-  'casual',
-  'fast_food',
-  'cafe',
-  'bar',
+  "all",
+  "fine_dining",
+  "casual",
+  "fast_food",
+  "cafe",
+  "bar",
   // Cocinas regionales/internacionales
-  'american',
-  'asian',
-  'chinese',
-  'french',
-  'greek',
-  'indian',
-  'indonesian',
-  'italian',
-  'japanese',
-  'korean',
-  'lebanese',
-  'mediterranean',
-  'mexican',
-  'middle_eastern',
-  'spanish',
-  'thai',
-  'turkish',
+  "american",
+  "asian",
+  "chinese",
+  "french",
+  "greek",
+  "indian",
+  "indonesian",
+  "italian",
+  "japanese",
+  "korean",
+  "lebanese",
+  "mediterranean",
+  "mexican",
+  "middle_eastern",
+  "spanish",
+  "thai",
+  "turkish",
   // Tipos específicos
-  'pizza',
-  'seafood',
-  'steak_house',
-  'sushi',
-  'ramen',
-  'hamburger',
-  'bakery',
-  'ice_cream',
-  'sandwich',
+  "pizza",
+  "seafood",
+  "steak_house",
+  "sushi",
+  "ramen",
+  "hamburger",
+  "bakery",
+  "ice_cream",
+  "sandwich",
 ];
 
 /**
@@ -55,7 +79,7 @@ function isValidCategory(category: string): category is RestaurantCategory {
 
 /**
  * POST /api/external/places/restaurants
- * 
+ *
  * Body parameters:
  * - cityName (required): Nombre de la ciudad
  * - coordinates (required): { lat: number, lng: number }
@@ -71,30 +95,45 @@ export async function POST(request: NextRequest) {
     const body: Partial<GetRestaurantsRequest> = await request.json();
 
     // Validar parámetros requeridos
-    const { cityName, coordinates, placeId, categories, limit, minRating, radiusKm, priceLevel } = body;
+    const {
+      cityName,
+      coordinates,
+      placeId,
+      categories,
+      limit,
+      minRating,
+      radiusKm,
+      priceLevel,
+    } = body;
 
     if (!cityName || !coordinates) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Missing required parameters',
-          message: 'cityName and coordinates are required',
+          error: "Missing required parameters",
+          message: "cityName and coordinates are required",
         } as GetRestaurantsResponse,
-        { status: 400 }
+        {
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
     // Validar coordenadas
     const { lat, lng } = coordinates;
 
-    if (typeof lat !== 'number' || typeof lng !== 'number') {
+    if (typeof lat !== "number" || typeof lng !== "number") {
       return NextResponse.json(
         {
           success: false,
-          error: 'Invalid coordinates',
-          message: 'coordinates.lat and coordinates.lng must be valid numbers',
+          error: "Invalid coordinates",
+          message: "coordinates.lat and coordinates.lng must be valid numbers",
         } as GetRestaurantsResponse,
-        { status: 400 }
+        {
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
@@ -102,25 +141,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Invalid coordinates',
-          message: 'Coordinates out of valid range',
+          error: "Invalid coordinates",
+          message: "Coordinates out of valid range",
         } as GetRestaurantsResponse,
-        { status: 400 }
+        {
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
     // Validar y filtrar categorías
-    let validatedCategories: RestaurantCategory[] = ['all'];
+    let validatedCategories: RestaurantCategory[] = ["all"];
 
     if (categories) {
       if (!Array.isArray(categories)) {
         return NextResponse.json(
           {
             success: false,
-            error: 'Invalid categories',
-            message: 'categories must be an array',
+            error: "Invalid categories",
+            message: "categories must be an array",
           } as GetRestaurantsResponse,
-          { status: 400 }
+          {
+            status: 400,
+            headers: corsHeaders(),
+          }
         );
       }
 
@@ -131,63 +176,86 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           {
             success: false,
-            error: 'Invalid categories',
-            message: `No valid categories provided. Valid categories are: ${VALID_CATEGORIES.join(', ')}`,
+            error: "Invalid categories",
+            message: `No valid categories provided. Valid categories are: ${VALID_CATEGORIES.join(
+              ", "
+            )}`,
           } as GetRestaurantsResponse,
-          { status: 400 }
+          {
+            status: 400,
+            headers: corsHeaders(),
+          }
         );
       }
-
       // Si hay categorías inválidas, informar al usuario
       if (filtered.length !== categories.length) {
-        const invalidCategories = categories.filter(cat => !isValidCategory(cat as string));
-        console.warn(`[API] Invalid categories ignored: ${invalidCategories.join(', ')}`);
+        const invalidCategories = categories.filter(
+          (cat) => !isValidCategory(cat as string)
+        );
+        console.warn(
+          `[API] Invalid categories ignored: ${invalidCategories.join(", ")}`
+        );
       }
 
       validatedCategories = filtered;
     }
 
     // Validar limit
-    const finalLimit = limit 
+    const finalLimit = limit
       ? Math.min(limit, PLACES_CONFIG.MAX_RESULTS)
       : PLACES_CONFIG.DEFAULT_LIMIT_PER_CATEGORY;
 
-    if (limit && (typeof limit !== 'number' || limit < 1)) {
+    if (limit && (typeof limit !== "number" || limit < 1)) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Invalid limit',
-          message: 'limit must be a positive number',
+          error: "Invalid limit",
+          message: "limit must be a positive number",
         } as GetRestaurantsResponse,
-        { status: 400 }
+        {
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
     // Validar minRating
     const finalMinRating = minRating ?? PLACES_CONFIG.DEFAULT_MIN_RATING;
 
-    if (minRating !== undefined && (typeof minRating !== 'number' || minRating < 0 || minRating > 5)) {
+    if (
+      minRating !== undefined &&
+      (typeof minRating !== "number" || minRating < 0 || minRating > 5)
+    ) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Invalid minRating',
-          message: 'minRating must be between 0 and 5',
+          error: "Invalid minRating",
+          message: "minRating must be between 0 and 5",
         } as GetRestaurantsResponse,
-        { status: 400 }
+        {
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
     // Validar radiusKm
     const finalRadiusKm = radiusKm ?? PLACES_CONFIG.DEFAULT_RADIUS_KM;
 
-    if (radiusKm !== undefined && (typeof radiusKm !== 'number' || radiusKm < 1 || radiusKm > 50)) {
+    if (
+      radiusKm !== undefined &&
+      (typeof radiusKm !== "number" || radiusKm < 1 || radiusKm > 50)
+    ) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Invalid radiusKm',
-          message: 'radiusKm must be between 1 and 50',
+          error: "Invalid radiusKm",
+          message: "radiusKm must be between 1 and 50",
         } as GetRestaurantsResponse,
-        { status: 400 }
+        {
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
@@ -197,21 +265,31 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           {
             success: false,
-            error: 'Invalid priceLevel',
-            message: 'priceLevel must be an array',
+            error: "Invalid priceLevel",
+            message: "priceLevel must be an array",
           } as GetRestaurantsResponse,
-          { status: 400 }
+          {
+            status: 400,
+            headers: corsHeaders(),
+          }
         );
       }
 
-      if (!priceLevel.every(level => typeof level === 'number' && level >= 0 && level <= 4)) {
+      if (
+        !priceLevel.every(
+          (level) => typeof level === "number" && level >= 0 && level <= 4
+        )
+      ) {
         return NextResponse.json(
           {
             success: false,
-            error: 'Invalid priceLevel',
-            message: 'priceLevel values must be between 0 and 4',
+            error: "Invalid priceLevel",
+            message: "priceLevel values must be between 0 and 4",
           } as GetRestaurantsResponse,
-          { status: 400 }
+          {
+            status: 400,
+            headers: corsHeaders(),
+          }
         );
       }
     }
@@ -239,25 +317,29 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    return NextResponse.json(response, { 
+    return NextResponse.json(response, {
       status: 200,
       headers: {
-        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200',
+        ...corsHeaders(),
+        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=7200",
       },
     });
-
   } catch (error) {
-    console.error('Error in restaurants API:', error);
+    console.error("Error in restaurants API:", error);
 
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
 
     return NextResponse.json(
       {
         success: false,
-        error: 'Internal server error',
+        error: "Internal server error",
         message: errorMessage,
       } as GetRestaurantsResponse,
-      { status: 500 }
+      {
+        status: 500,
+        headers: corsHeaders(),
+      }
     );
   }
 }

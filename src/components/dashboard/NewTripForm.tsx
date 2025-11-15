@@ -41,17 +41,18 @@ function NewTripForm() {
   const [tripType, setTripType] = useState<TripType>('cultural');
   const [foodPreferences, setFoodPreferences] = useState<FoodType[]>(['all']);
   const [errors, setErrors] = useState<ValidationErrors>({});
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const formRef = useRef<HTMLFormElement>(null);
+  const formRef = useRef<HTMLDivElement>(null);
+  const API_BASE_URL = '/api/external/places';
 
-  // Autocompletar ciudad de origen desde UserContext
   useEffect(() => {
     if (userData?.originCity && !origin) {
       const cityDisplay = userData.originCity.name;
       setOrigin(cityDisplay);
       setOriginData({
         name: userData.originCity.name,
-        country: '', // El UserContext no tiene country, pero podemos dejarlo vacío
+        country: '',
         coordinates: userData.originCity.coordinates
       });
     }
@@ -126,6 +127,13 @@ function NewTripForm() {
       if (startDate < today) {
         validationErrors.dates = 'La fecha de inicio no puede ser en el pasado';
       }
+
+      const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays > 14) {
+        validationErrors.dates = 'El viaje no puede superar 2 semanas de duración';
+      }
     }
 
     if (!tripType) {
@@ -139,7 +147,110 @@ function NewTripForm() {
     return validationErrors;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const formatDate = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const searchFlights = async () => {
+    const response = await fetch(`${API_BASE_URL}/flights`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        originCityName: originData!.name,
+        destinationCityName: destinationData!.name,
+        originCoordinates: originData!.coordinates,
+        destinationCoordinates: destinationData!.coordinates,
+        departureDate: formatDate(startDate!),
+        returnDate: formatDate(endDate!),
+        adults,
+        children: children > 0 ? children : undefined,
+        infants: babies > 0 ? babies : undefined,
+        cabinClass: 'ECONOMY',
+        limit: 10,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error en búsqueda de vuelos: ${response.statusText}`);
+    }
+
+    return response.json();
+  };
+
+  const searchHotels = async () => {
+    const response = await fetch(`${API_BASE_URL}/hotels`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        cityName: destinationData!.name,
+        coordinates: destinationData!.coordinates,
+        checkInDate: formatDate(startDate!),
+        checkOutDate: formatDate(endDate!),
+        adults,
+        children: children > 0 ? children : undefined,
+        rooms: 1,
+        limit: 10,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error en búsqueda de hoteles: ${response.statusText}`);
+    }
+
+    return response.json();
+  };
+
+  const searchRestaurants = async () => {
+    const response = await fetch(`${API_BASE_URL}/restaurants`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        cityName: destinationData!.name,
+        coordinates: destinationData!.coordinates,
+        categories: foodPreferences,
+        limit: 10,
+        minRating: 3.5,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error en búsqueda de restaurantes: ${response.statusText}`);
+    }
+
+    return response.json();
+  };
+
+  const searchTouristSites = async () => {
+    const response = await fetch(`${API_BASE_URL}/tourist-sites`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        cityName: destinationData!.name,
+        coordinates: destinationData!.coordinates,
+        limit: 10,
+        minRating: 3.5,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error en búsqueda de sitios turísticos: ${response.statusText}`);
+    }
+
+    return response.json();
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const validationErrors = validateForm();
@@ -150,35 +261,72 @@ function NewTripForm() {
     }
 
     setErrors({});
-    
-    const formData = {
-      origin: {
-        value: origin,
-        data: originData
-      },
-      destination: {
-        value: destination,
-        data: destinationData
-      },
-      dates: {
-        start: startDate,
-        end: endDate
-      },
-      passengers: {
-        adults,
-        children,
-        babies
-      },
-      tripType,
-      foodPreferences
-    };
-    console.log('Datos del formulario:', formData);
+    setIsLoading(true);
+
+    try {
+      console.log('🚀 Iniciando búsqueda de servicios...\n');
+
+      const [flightsResult, hotelsResult, restaurantsResult, touristSitesResult] = await Promise.all([
+        searchFlights(),
+        searchHotels(),
+        searchRestaurants(),
+        searchTouristSites(),
+      ]);
+
+      console.log('✈️ VUELOS:');
+      console.log('═══════════════════════════════════════');
+      if (flightsResult.success) {
+        console.log(`Total de vuelos encontrados: ${flightsResult.data.totalResults}`);
+        console.log('Vuelos:', flightsResult.data.flights);
+      } else {
+        console.log('Error:', flightsResult.error, flightsResult.message);
+      }
+      console.log('\n');
+
+      console.log('🏨 HOTELES:');
+      console.log('═══════════════════════════════════════');
+      if (hotelsResult.success) {
+        console.log(`Total de hoteles encontrados: ${hotelsResult.data.totalResults}`);
+        console.log('Hoteles:', hotelsResult.data.hotels);
+      } else {
+        console.log('Error:', hotelsResult.error, hotelsResult.message);
+      }
+      console.log('\n');
+
+      console.log('🍽️ RESTAURANTES:');
+      console.log('═══════════════════════════════════════');
+      if (restaurantsResult.success) {
+        console.log(`Total de restaurantes encontrados: ${restaurantsResult.data.totalResults}`);
+        console.log('Restaurantes:', restaurantsResult.data.restaurants);
+      } else {
+        console.log('Error:', restaurantsResult.error, restaurantsResult.message);
+      }
+      console.log('\n');
+
+      console.log('🏛️ SITIOS TURÍSTICOS:');
+      console.log('═══════════════════════════════════════');
+      if (touristSitesResult.success) {
+        console.log(`Total de sitios encontrados: ${touristSitesResult.data.totalResults}`);
+        console.log('Sitios:', touristSitesResult.data.sites);
+      } else {
+        console.log('Error:', touristSitesResult.error, touristSitesResult.message);
+      }
+      console.log('\n');
+
+      console.log('✅ Búsqueda completada exitosamente');
+
+    } catch (error) {
+      console.error('❌ Error al buscar servicios:', error);
+      setErrors({ destination: 'Error al buscar servicios. Por favor intenta nuevamente.' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="w-full h-full grid grid-cols-1 lg:grid-cols-5 gap-6">
       <div className="lg:col-span-2 lg:h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pr-2">
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg flex flex-col space-y-8 pt-4 pb-0 lg:px-6" ref={formRef}>
+        <div ref={formRef} className="bg-white rounded-lg flex flex-col space-y-8 pt-4 pb-0 lg:px-6">
           
           <div className="mb-0">
             <CityAutocomplete
@@ -311,12 +459,14 @@ function NewTripForm() {
           </div>
 
           <button
-            type="submit"
-            className="w-full py-3 primary-btn mt-8"
+            type="button"
+            onClick={handleSubmit}
+            disabled={isLoading}
+            className="w-full py-3 primary-btn mt-8 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Crear itinerario
+            {isLoading ? 'Generando itinerario...' : 'Crear itinerario'}
           </button>
-        </form>
+        </div>
       </div>
 
       <div className="hidden lg:flex lg:col-span-3 bg-secondary-100 rounded-lg items-center justify-center">
@@ -327,7 +477,7 @@ function NewTripForm() {
             className="w-64 h-64 object-contain"
           />
           <p className="text-muted-500 text-2xl mt-6">
-            Ingresa los datos de tu próximo viaje
+            {isLoading ? 'Buscando los mejores servicios para tu viaje...' : 'Ingresa los datos de tu próximo viaje'}
           </p>
         </div>
       </div>

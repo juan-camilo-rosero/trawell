@@ -8,6 +8,23 @@ import { AMADEUS_CONFIG } from '@/lib/config/amadeus.config';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
+// Función helper para manejar CORS
+function corsHeaders() {
+  return {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  };
+}
+
+// Handler para OPTIONS (preflight request)
+export async function OPTIONS(request: NextRequest) {
+  return NextResponse.json({}, { 
+    status: 200,
+    headers: corsHeaders(),
+  });
+}
+
 /**
  * POST /api/external/places/flights
  * 
@@ -62,7 +79,10 @@ export async function POST(request: NextRequest) {
           error: 'Missing required parameters',
           message: 'originCityName, destinationCityName, originCoordinates, destinationCoordinates, departureDate, returnDate, and adults are required',
         } as GetFlightsResponse,
-        { status: 400 }
+        { 
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
@@ -76,7 +96,10 @@ export async function POST(request: NextRequest) {
           error: 'Invalid originCoordinates',
           message: 'originCoordinates.lat and originCoordinates.lng must be valid numbers',
         } as GetFlightsResponse,
-        { status: 400 }
+        { 
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
@@ -87,7 +110,10 @@ export async function POST(request: NextRequest) {
           error: 'Invalid originCoordinates',
           message: 'Origin coordinates out of valid range',
         } as GetFlightsResponse,
-        { status: 400 }
+        { 
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
@@ -101,7 +127,10 @@ export async function POST(request: NextRequest) {
           error: 'Invalid destinationCoordinates',
           message: 'destinationCoordinates.lat and destinationCoordinates.lng must be valid numbers',
         } as GetFlightsResponse,
-        { status: 400 }
+        { 
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
@@ -112,7 +141,10 @@ export async function POST(request: NextRequest) {
           error: 'Invalid destinationCoordinates',
           message: 'Destination coordinates out of valid range',
         } as GetFlightsResponse,
-        { status: 400 }
+        { 
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
@@ -125,7 +157,10 @@ export async function POST(request: NextRequest) {
           error: 'Invalid date format',
           message: 'Dates must be in YYYY-MM-DD format',
         } as GetFlightsResponse,
-        { status: 400 }
+        { 
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
@@ -140,7 +175,10 @@ export async function POST(request: NextRequest) {
           error: 'Invalid dates',
           message: 'returnDate must be after departureDate',
         } as GetFlightsResponse,
-        { status: 400 }
+        { 
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
@@ -155,7 +193,10 @@ export async function POST(request: NextRequest) {
           error: 'Invalid date',
           message: 'departureDate cannot be in the past',
         } as GetFlightsResponse,
-        { status: 400 }
+        { 
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
@@ -167,7 +208,10 @@ export async function POST(request: NextRequest) {
           error: 'Invalid adults',
           message: 'adults must be a number between 1 and 9',
         } as GetFlightsResponse,
-        { status: 400 }
+        { 
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
@@ -179,7 +223,10 @@ export async function POST(request: NextRequest) {
           error: 'Invalid children',
           message: 'children must be a number between 0 and 9',
         } as GetFlightsResponse,
-        { status: 400 }
+        { 
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
@@ -191,7 +238,10 @@ export async function POST(request: NextRequest) {
           error: 'Invalid infants',
           message: 'infants must be a number between 0 and 9',
         } as GetFlightsResponse,
-        { status: 400 }
+        { 
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
@@ -203,7 +253,10 @@ export async function POST(request: NextRequest) {
           error: 'Invalid infants',
           message: 'Number of infants cannot exceed number of adults',
         } as GetFlightsResponse,
-        { status: 400 }
+        { 
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
@@ -216,7 +269,10 @@ export async function POST(request: NextRequest) {
           error: 'Invalid cabinClass',
           message: `cabinClass must be one of: ${validCabinClasses.join(', ')}`,
         } as GetFlightsResponse,
-        { status: 400 }
+        { 
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
@@ -228,7 +284,10 @@ export async function POST(request: NextRequest) {
           error: 'Invalid maxStops',
           message: 'maxStops must be a number between 0 and 3',
         } as GetFlightsResponse,
-        { status: 400 }
+        { 
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
@@ -244,7 +303,10 @@ export async function POST(request: NextRequest) {
           error: 'Invalid limit',
           message: 'limit must be a positive number',
         } as GetFlightsResponse,
-        { status: 400 }
+        { 
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
@@ -258,7 +320,10 @@ export async function POST(request: NextRequest) {
           error: 'Invalid radiusKm',
           message: 'radiusKm must be between 1 and 200',
         } as GetFlightsResponse,
-        { status: 400 }
+        { 
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
@@ -271,7 +336,10 @@ export async function POST(request: NextRequest) {
             error: 'Invalid priceRange',
             message: 'priceRange.min must be a non-negative number',
           } as GetFlightsResponse,
-          { status: 400 }
+          { 
+            status: 400,
+            headers: corsHeaders(),
+          }
         );
       }
 
@@ -282,7 +350,10 @@ export async function POST(request: NextRequest) {
             error: 'Invalid priceRange',
             message: 'priceRange.max must be a non-negative number',
           } as GetFlightsResponse,
-          { status: 400 }
+          { 
+            status: 400,
+            headers: corsHeaders(),
+          }
         );
       }
 
@@ -293,7 +364,10 @@ export async function POST(request: NextRequest) {
             error: 'Invalid priceRange',
             message: 'priceRange.min must be less than or equal to priceRange.max',
           } as GetFlightsResponse,
-          { status: 400 }
+          { 
+            status: 400,
+            headers: corsHeaders(),
+          }
         );
       }
     }
@@ -343,6 +417,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(response, { 
       status: 200,
       headers: {
+        ...corsHeaders(),
         'Cache-Control': 'public, s-maxage=1800, stale-while-revalidate=3600',
       },
     });
@@ -358,7 +433,10 @@ export async function POST(request: NextRequest) {
         error: 'Internal server error',
         message: errorMessage,
       } as GetFlightsResponse,
-      { status: 500 }
+      { 
+        status: 500,
+        headers: corsHeaders(),
+      }
     );
   }
 }

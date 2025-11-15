@@ -8,6 +8,23 @@ import { PLACES_CONFIG } from '@/lib/config/places.config';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
+// Función helper para manejar CORS
+function corsHeaders() {
+  return {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  };
+}
+
+// Handler para OPTIONS (preflight request)
+export async function OPTIONS(request: NextRequest) {
+  return NextResponse.json({}, { 
+    status: 200,
+    headers: corsHeaders(),
+  });
+}
+
 /**
  * POST /api/external/places/tourist-sites
  * 
@@ -34,7 +51,10 @@ export async function POST(request: NextRequest) {
           error: 'Missing required parameters',
           message: 'cityName and coordinates are required',
         } as GetTouristSitesResponse,
-        { status: 400 }
+        { 
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
@@ -48,7 +68,10 @@ export async function POST(request: NextRequest) {
           error: 'Invalid coordinates',
           message: 'coordinates.lat and coordinates.lng must be valid numbers',
         } as GetTouristSitesResponse,
-        { status: 400 }
+        { 
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
@@ -59,7 +82,10 @@ export async function POST(request: NextRequest) {
           error: 'Invalid coordinates',
           message: 'Coordinates out of valid range',
         } as GetTouristSitesResponse,
-        { status: 400 }
+        { 
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
@@ -72,7 +98,10 @@ export async function POST(request: NextRequest) {
           error: 'Invalid categories',
           message: 'categories must be an array',
         } as GetTouristSitesResponse,
-        { status: 400 }
+        { 
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
@@ -83,7 +112,10 @@ export async function POST(request: NextRequest) {
           error: 'Invalid categories',
           message: `Categories must be one of: ${validCategories.join(', ')}`,
         } as GetTouristSitesResponse,
-        { status: 400 }
+        { 
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
@@ -99,7 +131,10 @@ export async function POST(request: NextRequest) {
           error: 'Invalid limit',
           message: 'limit must be a positive number',
         } as GetTouristSitesResponse,
-        { status: 400 }
+        { 
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
@@ -113,7 +148,10 @@ export async function POST(request: NextRequest) {
           error: 'Invalid minRating',
           message: 'minRating must be between 0 and 5',
         } as GetTouristSitesResponse,
-        { status: 400 }
+        { 
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
@@ -127,7 +165,10 @@ export async function POST(request: NextRequest) {
           error: 'Invalid radiusKm',
           message: 'radiusKm must be between 1 and 50',
         } as GetTouristSitesResponse,
-        { status: 400 }
+        { 
+          status: 400,
+          headers: corsHeaders(),
+        }
       );
     }
 
@@ -156,6 +197,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(response, { 
       status: 200,
       headers: {
+        ...corsHeaders(),
         'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200',
       },
     });
@@ -171,7 +213,10 @@ export async function POST(request: NextRequest) {
         error: 'Internal server error',
         message: errorMessage,
       } as GetTouristSitesResponse,
-      { status: 500 }
+      { 
+        status: 500,
+        headers: corsHeaders(),
+      }
     );
   }
 }
