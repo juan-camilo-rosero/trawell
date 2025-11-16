@@ -1,11 +1,13 @@
+// @/components/dashboard/ItineraryView.tsx
+
 'use client'
 import React from 'react';
-import { useMockItinerary } from '@/contexts/MockItineraryContext';
+import { useItinerary } from '@/contexts/ItineraryContext';
 import FlightItem from './itinerary/FlightItem';
 import HotelItem from './itinerary/HotelItem';
 import RestaurantItem from './itinerary/RestaurantItem';
 import TouristSiteItem from './itinerary/TouristSiteItem';
-import type { ItineraryItem } from '@/contexts/MockItineraryContext';
+import type { IItineraryItem } from '@/models/itinerary/interfaces';
 
 interface ItineraryViewProps {
   destination: string;
@@ -19,10 +21,7 @@ interface ItineraryViewProps {
 }
 
 function ItineraryView({ destination, startDate, endDate, totalPassengers, coordinates }: ItineraryViewProps) {
-  const { mockItinerary, isLoading } = useMockItinerary();
-
-  const tite = "tite"
-  console.log(tite)
+  const { itinerary, isLoading, error } = useItinerary();
 
   const formatDateRange = (start: Date | undefined, end: Date | undefined): string => {
     if (!start || !end) return '';
@@ -41,9 +40,10 @@ function ItineraryView({ destination, startDate, endDate, totalPassengers, coord
     const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
     
-    const dayName = days[date.getDay()];
-    const day = date.getDate();
-    const month = months[date.getMonth()];
+    const dayDate = new Date(date);
+    const dayName = days[dayDate.getDay()];
+    const day = dayDate.getDate();
+    const month = months[dayDate.getMonth()];
     
     return `${dayName}, ${day} de ${month}`;
   };
@@ -53,7 +53,7 @@ function ItineraryView({ destination, startDate, endDate, totalPassengers, coord
     return `https://maps.google.com/maps?q=${coordinates.lat},${coordinates.lng}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
   };
 
-  const renderItem = (item: ItineraryItem, isLast: boolean) => {
+  const renderItem = (item: IItineraryItem, isLast: boolean) => {
     switch (item.type) {
       case 'flight':
         if (!item.flightDetails) return null;
@@ -111,7 +111,38 @@ function ItineraryView({ destination, startDate, endDate, totalPassengers, coord
   if (isLoading) {
     return (
       <div className="w-full h-full flex items-center justify-center">
-        <p className="text-muted-500">Cargando itinerario...</p>
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+          <p className="text-muted-500 text-lg">Generando tu itinerario perfecto...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-center max-w-md">
+          <div className="text-4xl">❌</div>
+          <p className="text-red-500 font-semibold">Error al generar el itinerario</p>
+          <p className="text-muted-600 text-sm">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!itinerary) {
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <img
+            src="https://images.fineartamerica.com/images/artworkimages/medium/3/snoopy-pilot-airplane-elizabeth-j-campbell-transparent.png"
+            alt="Snoopy Pilot"
+            className="w-48 h-48 object-contain opacity-50"
+          />
+          <p className="text-muted-500 text-lg">No hay itinerario disponible</p>
+          <p className="text-muted-400 text-sm">Completa el formulario para generar tu itinerario</p>
+        </div>
       </div>
     );
   }
@@ -119,12 +150,30 @@ function ItineraryView({ destination, startDate, endDate, totalPassengers, coord
   return (
     <div className="w-full h-full lg:h-[calc(100vh-6rem)] lg:overflow-y-auto flex flex-col gap-4">
       <div className="bg-white rounded-lg p-6 flex flex-col gap-4">
-        <h2 className="text-2xl font-semibold">Viaje a {destination}</h2>
+        <h2 className="text-2xl font-semibold">{itinerary.title}</h2>
         
         <div className="bg-secondary-100 rounded-lg px-4 py-3 flex items-center justify-between gap-4">
-          <span className="text-sm text-muted-600">{formatDateRange(startDate, endDate)}</span>
+          <span className="text-sm text-muted-600">
+            {formatDateRange(
+              itinerary.searchParams.departureDate, 
+              itinerary.searchParams.returnDate
+            )}
+          </span>
           <div className="w-px h-6 bg-muted-500 rounded-full"></div>
-          <span className="text-sm text-muted-600">{totalPassengers} {totalPassengers === 1 ? 'persona' : 'personas'}</span>
+          <span className="text-sm text-muted-600">
+            {itinerary.searchParams.travelers.adults + 
+             itinerary.searchParams.travelers.children + 
+             itinerary.searchParams.travelers.babies} personas
+          </span>
+        </div>
+
+        <div className="bg-primary-50 border border-primary-200 rounded-lg px-4 py-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-primary-700">Precio Total</span>
+            <span className="text-lg font-bold text-primary-700">
+              {itinerary.currency} {itinerary.totalPrice.toLocaleString()}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -141,10 +190,10 @@ function ItineraryView({ destination, startDate, endDate, totalPassengers, coord
         )}
       </div>
 
-      {mockItinerary && (
+      {itinerary.days && itinerary.days.length > 0 && (
         <div className="bg-white rounded-lg p-6 flex flex-col gap-4">
-          {mockItinerary.days.map((day, dayIndex) => (
-            <div key={day._id || dayIndex}>
+          {itinerary.days.map((day, dayIndex) => (
+            <div key={day._id?.toString() || `day-${dayIndex}`}>
               {dayIndex > 0 && <div className="mb-2" />}
               
               <div className="itinerary-day-separator mb-4">

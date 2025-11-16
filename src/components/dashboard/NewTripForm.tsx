@@ -1,7 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { useUser } from "@/contexts/UserContext";
-import { useMockItinerary } from "@/contexts/MockItineraryContext";
 import CityAutocomplete from "@/components/ui/CityAutocomplete";
 import { DateInput } from "@/components/ui/DateInput";
 import PassengerCounter from "@/components/dashboard/PassengerCounter";
@@ -13,6 +12,7 @@ import FoodPreferencesSelector, {
 } from "@/components/dashboard/FoodPreferencesSelector";
 import ItineraryView from "@/components/dashboard/ItineraryView";
 import { FiCalendar, FiArrowLeft } from "react-icons/fi";
+import { useItinerary } from "@/contexts/ItineraryContext";
 
 interface CityData {
   name: string;
@@ -34,7 +34,12 @@ interface ValidationErrors {
 
 function NewTripForm() {
   const { userData } = useUser();
-  const { mockItinerary, isLoading: mockLoading } = useMockItinerary();
+  const {
+    itinerary,
+    isLoading: itineraryLoading,
+    generateItinerary,
+    error: itineraryError,
+  } = useItinerary();
 
   const [origin, setOrigin] = useState<string>("");
   const [originData, setOriginData] = useState<CityData | undefined>();
@@ -80,40 +85,38 @@ function NewTripForm() {
   }, [userData, origin]);
 
   useEffect(() => {
-    if (!mockLoading && mockItinerary) {
+    if (!itineraryLoading && itinerary) {
       console.log("📋 ITINERARIO MOCK CARGADO");
       console.log("═══════════════════════════════════════\n");
 
       console.log("📌 INFORMACIÓN GENERAL:");
-      console.log(`Título: ${mockItinerary.title}`);
+      console.log(`Título: ${itinerary.title}`);
       console.log(
         `Precio Total: ${
-          mockItinerary.currency
-        } ${mockItinerary.totalPrice.toLocaleString()}`
+          itinerary.currency
+        } ${itinerary.totalPrice.toLocaleString()}`
       );
-      console.log(`Usuario: ${mockItinerary.userId}`);
-      console.log(`Público: ${mockItinerary.isPublic ? "Sí" : "No"}\n`);
+      console.log(`Usuario: ${itinerary.userId}`);
+      console.log(`Público: ${itinerary.isPublic ? "Sí" : "No"}\n`);
 
       console.log("🔍 PARÁMETROS DE BÚSQUEDA:");
-      console.log(`Origen: ${mockItinerary.searchParams.originCity.name}`);
+      console.log(`Origen: ${itinerary.searchParams.originCity.name}`);
+      console.log(`Destino: ${itinerary.searchParams.destinationCity.name}`);
       console.log(
-        `Destino: ${mockItinerary.searchParams.destinationCity.name}`
+        `Salida: ${itinerary.searchParams.departureDate.toLocaleDateString()}`
       );
       console.log(
-        `Salida: ${mockItinerary.searchParams.departureDate.toLocaleDateString()}`
+        `Regreso: ${itinerary.searchParams.returnDate.toLocaleDateString()}`
       );
       console.log(
-        `Regreso: ${mockItinerary.searchParams.returnDate.toLocaleDateString()}`
+        `Viajeros: ${itinerary.searchParams.travelers.adults} adultos, ${itinerary.searchParams.travelers.children} niños, ${itinerary.searchParams.travelers.babies} bebés`
       );
-      console.log(
-        `Viajeros: ${mockItinerary.searchParams.travelers.adults} adultos, ${mockItinerary.searchParams.travelers.children} niños, ${mockItinerary.searchParams.travelers.babies} bebés`
-      );
-      console.log(`Tipo de viaje: ${mockItinerary.searchParams.travelType}\n`);
+      console.log(`Tipo de viaje: ${itinerary.searchParams.travelType}\n`);
 
-      console.log(`📅 ITINERARIO (${mockItinerary.days.length} días):`);
+      console.log(`📅 ITINERARIO (${itinerary.days.length} días):`);
       console.log("═══════════════════════════════════════\n");
 
-      mockItinerary.days.forEach((day) => {
+      itinerary.days.forEach((day) => {
         console.log(
           `\n📆 DÍA ${day.dayNumber} - ${day.date.toLocaleDateString()}`
         );
@@ -132,9 +135,7 @@ function NewTripForm() {
           console.log(`   Hora: ${item.time}`);
           console.log(`   Tipo: ${item.type}`);
           console.log(
-            `   Precio: ${
-              mockItinerary.currency
-            } ${item.price.toLocaleString()}`
+            `   Precio: ${itinerary.currency} ${item.price.toLocaleString()}`
           );
           console.log(`   Ubicación: ${item.location.name}`);
           console.log(`   Dirección: ${item.location.address}`);
@@ -186,7 +187,7 @@ function NewTripForm() {
               `      Entrada: ${
                 item.touristSiteDetails.hasFee
                   ? `${
-                      mockItinerary.currency
+                      itinerary.currency
                     } ${item.touristSiteDetails.entryFee.toLocaleString()}`
                   : "Gratis"
               }`
@@ -205,7 +206,7 @@ function NewTripForm() {
       console.log("\n═══════════════════════════════════════");
       console.log("✅ Fin del itinerario mock\n");
     }
-  }, [mockLoading, mockItinerary]);
+  }, [itineraryLoading, itinerary]);
 
   useEffect(() => {
     if (Object.keys(errors).length > 0 && formRef.current) {
@@ -437,78 +438,35 @@ function NewTripForm() {
     setIsLoading(true);
 
     try {
-      console.log("🚀 Iniciando búsqueda de servicios...\n");
+      console.log("🚀 Iniciando generación de itinerario completo...\n");
 
-      const [
-        flightsResult,
-        hotelsResult,
-        restaurantsResult,
-        touristSitesResult,
-      ] = await Promise.all([
-        searchFlights(),
-        searchHotels(),
-        searchRestaurants(),
-        searchTouristSites(),
-      ]);
+      // Generar itinerario usando el nuevo servicio
+      await generateItinerary({
+        originCityName: originData!.name,
+        originCoordinates: originData!.coordinates,
+        // originPlaceId: originData?.placeId,
+        destinationCityName: destinationData!.name,
+        destinationCoordinates: destinationData!.coordinates,
+        // destinationPlaceId: destinationData?.placeId,
+        departureDate: startDate!,
+        returnDate: endDate!,
+        adults,
+        children: children > 0 ? children : undefined,
+        babies: babies > 0 ? babies : undefined,
+        travelType: tripType as
+          | "relaxation"
+          | "luxury"
+          | "cultural"
+          | "adventure"
+          | "gastronomic"
+          | "spiritual",
+        foodPreferences,
+        currency: "COP",
+      });
 
-      console.log("✈️ VUELOS:");
-      console.log("═══════════════════════════════════════");
-      if (flightsResult.success) {
-        console.log(
-          `Total de vuelos encontrados: ${flightsResult.data.totalResults}`
-        );
-        console.log("Vuelos:", flightsResult.data.flights);
-      } else {
-        console.log("Error:", flightsResult.error, flightsResult.message);
-      }
-      console.log("\n");
+      console.log("✅ Itinerario generado exitosamente");
 
-      console.log("🏨 HOTELES:");
-      console.log("═══════════════════════════════════════");
-      if (hotelsResult.success) {
-        console.log(
-          `Total de hoteles encontrados: ${hotelsResult.data.totalResults}`
-        );
-        console.log("Hoteles:", hotelsResult.data.hotels);
-      } else {
-        console.log("Error:", hotelsResult.error, hotelsResult.message);
-      }
-      console.log("\n");
-
-      console.log("🍽️ RESTAURANTES:");
-      console.log("═══════════════════════════════════════");
-      if (restaurantsResult.success) {
-        console.log(
-          `Total de restaurantes encontrados: ${restaurantsResult.data.totalResults}`
-        );
-        console.log("Restaurantes:", restaurantsResult.data.restaurants);
-      } else {
-        console.log(
-          "Error:",
-          restaurantsResult.error,
-          restaurantsResult.message
-        );
-      }
-      console.log("\n");
-
-      console.log("🏛️ SITIOS TURÍSTICOS:");
-      console.log("═══════════════════════════════════════");
-      if (touristSitesResult.success) {
-        console.log(
-          `Total de sitios encontrados: ${touristSitesResult.data.totalResults}`
-        );
-        console.log("Sitios:", touristSitesResult.data.sites);
-      } else {
-        console.log(
-          "Error:",
-          touristSitesResult.error,
-          touristSitesResult.message
-        );
-      }
-      console.log("\n");
-
-      console.log("✅ Búsqueda completada exitosamente");
-
+      // Guardar datos para mostrar en el header
       setSavedDestination(destinationData!.name);
       setSavedDestinationData(destinationData);
       setSavedStartDate(startDate);
@@ -518,9 +476,10 @@ function NewTripForm() {
       setShowItinerary(true);
       setItineraryGenerated(true);
     } catch (error) {
-      console.error("❌ Error al buscar servicios:", error);
+      console.error("❌ Error al generar itinerario:", error);
       setErrors({
-        destination: "Error al buscar servicios. Por favor intenta nuevamente.",
+        destination:
+          "Error al generar el itinerario. Por favor intenta nuevamente.",
       });
     } finally {
       setIsLoading(false);
