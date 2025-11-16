@@ -21,6 +21,9 @@ interface ItineraryViewProps {
 function ItineraryView({ destination, startDate, endDate, totalPassengers, coordinates }: ItineraryViewProps) {
   const { mockItinerary, isLoading } = useMockItinerary();
 
+  const tite = "tite"
+  console.log(tite)
+
   const formatDateRange = (start: Date | undefined, end: Date | undefined): string => {
     if (!start || !end) return '';
     
