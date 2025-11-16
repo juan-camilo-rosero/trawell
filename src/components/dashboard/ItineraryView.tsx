@@ -1,3 +1,11 @@
+'use client'
+import React from 'react';
+import { useMockItinerary } from '@/contexts/MockItineraryContext';
+import FlightItem from './itinerary/FlightItem';
+import HotelItem from './itinerary/HotelItem';
+import RestaurantItem from './itinerary/RestaurantItem';
+import TouristSiteItem from './itinerary/TouristSiteItem';
+
 interface ItineraryViewProps {
   destination: string;
   startDate: Date | undefined;
@@ -10,6 +18,8 @@ interface ItineraryViewProps {
 }
 
 function ItineraryView({ destination, startDate, endDate, totalPassengers, coordinates }: ItineraryViewProps) {
+  const { mockItinerary, isLoading } = useMockItinerary();
+
   const formatDateRange = (start: Date | undefined, end: Date | undefined): string => {
     if (!start || !end) return '';
     
@@ -23,13 +33,83 @@ function ItineraryView({ destination, startDate, endDate, totalPassengers, coord
     return `${startDay} ${startMonth} - ${endDay} ${endMonth}`;
   };
 
+  const formatDayDate = (date: Date): string => {
+    const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    
+    const dayName = days[date.getDay()];
+    const day = date.getDate();
+    const month = months[date.getMonth()];
+    
+    return `${dayName}, ${day} de ${month}`;
+  };
+
   const getMapUrl = () => {
     if (!coordinates) return '';
     return `https://maps.google.com/maps?q=${coordinates.lat},${coordinates.lng}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
   };
 
+  const renderItem = (item: any, isLast: boolean) => {
+    switch (item.type) {
+      case 'flight':
+        return (
+          <FlightItem
+            key={item.itemId}
+            title={item.title}
+            flightDetails={item.flightDetails}
+            price={item.price}
+            isLast={isLast}
+          />
+        );
+      case 'accommodation':
+        return (
+          <HotelItem
+            key={item.itemId}
+            title={item.title}
+            accommodationDetails={item.accommodationDetails}
+            location={item.location}
+            price={item.price}
+            stars={4}
+            isLast={isLast}
+          />
+        );
+      case 'food':
+        return (
+          <RestaurantItem
+            key={item.itemId}
+            title={item.title}
+            foodDetails={item.foodDetails}
+            location={item.location}
+            isLast={isLast}
+          />
+        );
+      case 'tourist_site':
+        return (
+          <TouristSiteItem
+            key={item.itemId}
+            title={item.title}
+            description={item.description}
+            touristSiteDetails={item.touristSiteDetails}
+            location={item.location}
+            price={item.price}
+            isLast={isLast}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <p className="text-muted-500">Cargando itinerario...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full h-full flex flex-col gap-4">
+    <div className="w-full h-full lg:h-[calc(100vh-6rem)] lg:overflow-y-auto flex flex-col gap-4">
       <div className="bg-white rounded-lg p-6 flex flex-col gap-4">
         <h2 className="text-2xl font-semibold">Viaje a {destination}</h2>
         
@@ -52,6 +132,26 @@ function ItineraryView({ destination, startDate, endDate, totalPassengers, coord
           />
         )}
       </div>
+
+      {mockItinerary && (
+        <div className="bg-white rounded-lg p-6 flex flex-col gap-4">
+          {mockItinerary.days.map((day, dayIndex) => (
+            <div key={day._id || dayIndex}>
+              {dayIndex > 0 && <div className="mb-2" />}
+              
+              <div className="itinerary-day-separator mb-4">
+                {formatDayDate(day.date)}
+              </div>
+
+              <div className="flex flex-col">
+                {day.items.map((item, itemIndex) => 
+                  renderItem(item, itemIndex === day.items.length - 1)
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -15,29 +15,54 @@
   }
 }
 
-*::selection{
+*::selection {
   @apply bg-secondary-200 text-primary;
 }
-
 
 /* ------------ Custom styles ------------ */
 
 /* --- UI elements --- */
 
-.primary-btn{
+.primary-btn {
   @apply bg-primary text-secondary-100 font-semibold py-2 px-8 rounded-lg transition hover:bg-primary-600;
 }
 
-.secondary-btn{
+.secondary-btn {
   @apply bg-secondary-100 border-[1px] border-muted-900 text-muted-900 font-semibold py-2 px-8 rounded-lg transition hover:bg-secondary-200;
 }
 
-.third-btn{
+.third-btn {
   @apply bg-secondary-200 text-muted-900 font-semibold py-2 px-8 rounded-lg transition hover:bg-secondary-300;
 }
 
 /* --- Landing --- */
 
-.custom-ph{
+.custom-ph {
   @apply px-8 md:px-12 lg:px-16;
+}
+
+/* --- New Trip --- */
+
+.itinerary-item-title {
+  @apply text-base font-semibold text-black;
+}
+
+.itinerary-item-subtitle {
+  @apply text-sm text-muted-500;
+}
+
+.itinerary-item-price {
+  @apply text-sm text-black font-medium;
+}
+
+.itinerary-icon-circle {
+  @apply w-12 h-12 rounded-full bg-primary flex items-center justify-center flex-shrink-0;
+}
+
+.itinerary-connector-line {
+  @apply w-0.5 bg-primary mx-auto;
+}
+
+.itinerary-day-separator {
+  @apply w-full bg-secondary-200 px-4 py-3 rounded-md text-sm font-medium text-black;
 }
