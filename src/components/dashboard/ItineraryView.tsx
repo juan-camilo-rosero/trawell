@@ -1,5 +1,3 @@
-'use client'
-
 interface ItineraryViewProps {
   destination: string;
   startDate: Date | undefined;
@@ -27,13 +25,12 @@ function ItineraryView({ destination, startDate, endDate, totalPassengers, coord
 
   const getMapUrl = () => {
     if (!coordinates) return '';
-    const apiKey = process.env.NEXT_PUBLIC_MAPS_API_KEY;
-    return `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${coordinates.lat},${coordinates.lng}&zoom=12`;
+    return `https://maps.google.com/maps?q=${coordinates.lat},${coordinates.lng}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
   };
 
   return (
     <div className="w-full h-full flex flex-col gap-4">
-      <div className="bg-secondary-200 rounded-lg p-6 flex flex-col gap-4">
+      <div className="bg-white rounded-lg p-6 flex flex-col gap-4">
         <h2 className="text-2xl font-semibold">Viaje a {destination}</h2>
         
         <div className="bg-secondary-100 rounded-lg px-4 py-3 flex items-center justify-between gap-4">
@@ -43,7 +40,7 @@ function ItineraryView({ destination, startDate, endDate, totalPassengers, coord
         </div>
       </div>
 
-      <div className="lg:hidden w-full h-[35vh] rounded-lg overflow-hidden">
+      <div className="lg:hidden w-full h-[50vh] rounded-lg overflow-hidden">
         {coordinates && (
           <iframe
             width="100%"
