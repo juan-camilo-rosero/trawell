@@ -5,6 +5,7 @@ import FlightItem from './itinerary/FlightItem';
 import HotelItem from './itinerary/HotelItem';
 import RestaurantItem from './itinerary/RestaurantItem';
 import TouristSiteItem from './itinerary/TouristSiteItem';
+import type { ItineraryItem } from '@/contexts/MockItineraryContext';
 
 interface ItineraryViewProps {
   destination: string;
@@ -49,9 +50,10 @@ function ItineraryView({ destination, startDate, endDate, totalPassengers, coord
     return `https://maps.google.com/maps?q=${coordinates.lat},${coordinates.lng}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
   };
 
-  const renderItem = (item: any, isLast: boolean) => {
+  const renderItem = (item: ItineraryItem, isLast: boolean) => {
     switch (item.type) {
       case 'flight':
+        if (!item.flightDetails) return null;
         return (
           <FlightItem
             key={item.itemId}
@@ -62,6 +64,7 @@ function ItineraryView({ destination, startDate, endDate, totalPassengers, coord
           />
         );
       case 'accommodation':
+        if (!item.accommodationDetails) return null;
         return (
           <HotelItem
             key={item.itemId}
@@ -74,6 +77,7 @@ function ItineraryView({ destination, startDate, endDate, totalPassengers, coord
           />
         );
       case 'food':
+        if (!item.foodDetails) return null;
         return (
           <RestaurantItem
             key={item.itemId}
@@ -84,6 +88,7 @@ function ItineraryView({ destination, startDate, endDate, totalPassengers, coord
           />
         );
       case 'tourist_site':
+        if (!item.touristSiteDetails) return null;
         return (
           <TouristSiteItem
             key={item.itemId}

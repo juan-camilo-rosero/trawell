@@ -93,7 +93,7 @@ interface TouristSiteDetails {
 
 type ItemType = 'flight' | 'accommodation' | 'food' | 'tourist_site'
 
-interface ItineraryItem {
+export interface ItineraryItem {
   _id?: string
   itemId: string
   type: ItemType

@@ -23,7 +23,6 @@ interface HotelItemProps {
 
 const HotelItem: React.FC<HotelItemProps> = ({ 
   title, 
-  accommodationDetails, 
   location, 
   price, 
   stars = 4,
