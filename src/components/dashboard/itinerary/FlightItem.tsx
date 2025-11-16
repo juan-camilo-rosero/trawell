@@ -43,7 +43,7 @@ const FlightItem: React.FC<FlightItemProps> = ({ title, flightDetails, price, is
         <p className="itinerary-item-subtitle mt-1">
           {parseDuration(flightDetails.duration)} • {flightDetails.departureAirport} - {flightDetails.arrivalAirport}
         </p>
-        <p className="itinerary-item-price mt-1">{formatPrice(price)}</p>
+        <p className="itinerary-item-price mt-1">{formatPrice(price)} en total</p>
       </div>
     </div>
   );

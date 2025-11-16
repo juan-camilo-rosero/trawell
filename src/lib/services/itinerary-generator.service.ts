@@ -19,8 +19,6 @@ import {
   ITouristSiteDetails,
 } from "@/models/itinerary/interfaces";
 import {
-  calculateDistance,
-  estimateTravelTime,
   parseDurationToMinutes,
   addMinutesToTime,
   timeToMinutes,
@@ -32,8 +30,9 @@ import {
   estimateVisitDuration,
   groupByProximity,
   formatDateToYYYYMMDD,
-  getCurrencyForCountry,
 } from "@/lib/helpers/itinerary.helpers";
+
+import { Types } from "mongoose";
 
 export interface GenerateItineraryRequest {
   originCityName: string;
@@ -283,11 +282,11 @@ class ItineraryGeneratorService {
    */
   private async searchRestaurants(
     request: GenerateItineraryRequest,
-    limits: { restaurants: number; touristSites: number; hotels: number }
+    _limits: { restaurants: number; touristSites: number; hotels: number } // Prefijo con _ para indicar que no se usa
   ): Promise<RestaurantResponse[]> {
     try {
       // Aumentar el límite para asegurar suficientes restaurantes
-      const increasedLimit = Math.max(limits.restaurants, 15);
+      const increasedLimit = Math.max(_limits.restaurants, 15);
 
       console.log(
         "[searchRestaurants] Buscando con preferencias:",
@@ -549,7 +548,8 @@ class ItineraryGeneratorService {
     );
     const activitiesPerDay = getActivitiesPerDayForTripType(request.travelType);
 
-    let restaurantIndexes = {
+    const restaurantIndexes = {
+      // Cambiado a const
       breakfast: 0,
       lunch: 0,
       dinner: 0,
@@ -884,7 +884,7 @@ class ItineraryGeneratorService {
       }
 
       days.push({
-        _id: undefined as any,
+        _id: new Types.ObjectId(), // Usar Types.ObjectId() en lugar de undefined as any
         dayNumber: dayNum,
         date: currentDate,
         items,
@@ -960,14 +960,14 @@ class ItineraryGeneratorService {
           }`;
 
     return {
-      _id: undefined as any,
+      _id: new Types.ObjectId(), // Usar Types.ObjectId()
       itemId: `flight-${direction}-${order}`,
       type: "flight",
       order,
       time: flightDetails.departureTime,
       title,
       description,
-      price: halfPrice, // Mitad del precio total
+      price: halfPrice,
       location: {
         name:
           direction === "outbound"
@@ -1001,7 +1001,11 @@ class ItineraryGeneratorService {
     dayNumber?: number
   ): IItineraryItem {
     const nights = this.calculateTripDays(checkIn, checkOut) - 1;
-    const pricePerNight = hotel.price.total / nights;
+
+    // Convertir precio a COP (multiplicar por 3800)
+    const CONVERSION_RATE = 3800;
+    const totalPriceInCOP = hotel.price.total * CONVERSION_RATE;
+    const pricePerNight = totalPriceInCOP / nights;
 
     const accommodationDetails: IAccommodationDetails = {
       hotelId: hotel.hotelId,
@@ -1017,15 +1021,24 @@ class ItineraryGeneratorService {
       hotel.roomDetails?.description?.text ||
       "Hotel con excelentes comodidades";
 
+    console.log(`[createAccommodationItem] Hotel: ${hotel.name}`);
+    console.log(
+      `  Precio original: ${hotel.price.currency} ${hotel.price.total}`
+    );
+    console.log(
+      `  Precio en COP (total): COP ${totalPriceInCOP.toLocaleString()}`
+    );
+    console.log(`  Precio por noche: COP ${pricePerNight.toLocaleString()}`);
+
     return {
-      _id: undefined as any,
+      _id: new Types.ObjectId(), // Usar Types.ObjectId()
       itemId: `accommodation-night-${order}`,
       type: "accommodation",
       order,
       time,
       title,
       description,
-      price: pricePerNight,
+      price: Math.round(pricePerNight),
       location: {
         name: hotel.name,
         address: hotel.address || hotel.name,
@@ -1068,7 +1081,7 @@ class ItineraryGeneratorService {
     };
 
     return {
-      _id: undefined as any,
+      _id: new Types.ObjectId(), // Usar Types.ObjectId()
       itemId: `food-${mealType}-${order}`,
       type: "food",
       order,
@@ -1117,7 +1130,7 @@ class ItineraryGeneratorService {
     };
 
     return {
-      _id: undefined as any,
+      _id: new Types.ObjectId(), // Usar Types.ObjectId()
       itemId: `tourist-${site.placeId}-${order}`,
       type: "tourist_site",
       order,
