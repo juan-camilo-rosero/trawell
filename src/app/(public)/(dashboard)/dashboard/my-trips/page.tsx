@@ -19,7 +19,6 @@ function Page() {
 
   const isLoading = userLoading || itinerariesLoading;
 
-  // Calcular página actual
   const currentPage = pagination
     ? Math.floor(pagination.skip / pagination.limit)
     : 0;
@@ -32,19 +31,18 @@ function Page() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleDelete = () => {
+    fetchItineraries(currentPage);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-          Mis viajes
+        <h1 className="text-2xl md:text-4xl font-semibold text-gray-900 mb-2">
+          Historial de itinerarios
         </h1>
-        <p className="text-gray-600">
-          Explora y gestiona todos tus itinerarios de viaje
-        </p>
       </div>
 
-      {/* Estado de carga */}
       {isLoading && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[...Array(8)].map((_, index) => (
@@ -53,7 +51,6 @@ function Page() {
         </div>
       )}
 
-      {/* Estado de error */}
       {!isLoading && error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 flex items-start gap-4">
           <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
@@ -73,9 +70,8 @@ function Page() {
         </div>
       )}
 
-      {/* Estado vacío */}
       {!isLoading && !error && itineraries.length === 0 && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-12 text-center">
+        <div className="bg-secondary-200 border border-gray-200 rounded-lg p-12 text-center">
           <Plane className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
             No tienes itinerarios aún
@@ -88,19 +84,18 @@ function Page() {
         </div>
       )}
 
-      {/* Grid de itinerarios */}
       {!isLoading && !error && itineraries.length > 0 && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {itineraries.map((itinerary) => (
               <ItineraryCard
-                key={itinerary._id.toString()} // ← FIX
+                key={itinerary._id.toString()}
                 itinerary={itinerary}
+                onDelete={handleDelete}
               />
             ))}
           </div>
 
-          {/* Paginación */}
           {pagination && totalPages > 1 && (
             <div className="flex justify-center items-center gap-4">
               <Button
