@@ -486,6 +486,7 @@ function NewTripForm() {
               <MapView
                 markers={mapMarkers}
                 center={savedDestinationData?.coordinates}
+                showSaveButton={true}
               />
             </div>
           </>

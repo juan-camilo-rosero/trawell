@@ -1,5 +1,3 @@
-// @/lib/helpers/itinerary.helpers.ts
-
 import {
   ICoordinates,
   TouristSiteCategory,

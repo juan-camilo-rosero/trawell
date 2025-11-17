@@ -71,15 +71,13 @@ const createUserInDatabase = async (payload: CreateUserPayload): Promise<void> =
   }
 };
 
-// Funciones de autenticación
 export const continueWithGoogle = async (): Promise<User> => {
   const provider = new GoogleAuthProvider();
- 
+  
   try {
     const result: UserCredential = await signInWithPopup(auth, provider);
     const user = result.user;
 
-    // Crear usuario en la base de datos
     await createUserInDatabase({
       firebaseUid: user.uid,
       email: user.email || '',
@@ -99,7 +97,6 @@ export const signUpWithEmail = async (
   email: string,
   password: string
 ): Promise<AuthResult> => {
-  // Validaciones
   if (!email || !password) {
     throw new AuthError('Email y contraseña son requeridos', 'auth/missing-credentials');
   }
@@ -121,14 +118,12 @@ export const signUpWithEmail = async (
     );
     const user = result.user;
 
-    // Crear usuario en la base de datos
     await createUserInDatabase({
       firebaseUid: user.uid,
       email: user.email || '',
       name: user.email?.split('@')[0] || 'Usuario',
     });
 
-    // Enviar verificación de email automáticamente
     await sendEmailVerification(user);
 
     return {
@@ -147,7 +142,6 @@ export const signInWithEmail = async (
   email: string,
   password: string
 ): Promise<User> => {
-  // Validaciones
   if (!email || !password) {
     throw new AuthError('Email y contraseña son requeridos', 'auth/missing-credentials');
   }
@@ -164,7 +158,6 @@ export const signInWithEmail = async (
     );
     const user = result.user;
 
-    // Verificar si el email está verificado
     if (!user.emailVerified) {
       throw new AuthError(
         'auth/email-not-verified',
@@ -174,12 +167,10 @@ export const signInWithEmail = async (
 
     return user;
   } catch (error) {
-    // Si es nuestro error personalizado de email no verificado, lo lanzamos tal cual
     if (error instanceof AuthError && error.code === 'auth/email-not-verified') {
       throw error;
     }
     
-    // Para otros errores, mantenemos el comportamiento original
     if (error instanceof Error) {
       throw new Error(error.message);
     }
@@ -218,3 +209,29 @@ export const signOut = async (): Promise<void> => {
     throw new Error('Error desconocido al cerrar sesión');
   }
 };
+
+export async function verifyFirebaseToken(token: string): Promise<string | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/auth/verify-token`, { 
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`, 
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Verificación de token fallida en el servidor:', errorData.error);
+      return null;
+    }
+
+    const data = await response.json();
+    
+    return data.uid as string; 
+
+  } catch (error) {
+    console.error('Error durante la comunicación con el servidor para verificar el token:', error);
+    return null;
+  }
+}

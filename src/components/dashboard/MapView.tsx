@@ -5,11 +5,15 @@ import { MdFlight, MdRestaurant } from 'react-icons/md'
 import { RiHotelBedFill } from 'react-icons/ri'
 import { FaLandmark, FaMonument, FaTree, FaUniversity } from 'react-icons/fa'
 import { MapMarker, TouristSiteCategory } from '@/models/types/map.types'
+import { useRouter } from 'next/navigation'
+import { useUser } from '@/contexts/UserContext'
+import { useItinerary } from '@/contexts/ItineraryContext'
 
 interface MapViewProps {
   markers: MapMarker[]
   center?: { lat: number; lng: number }
   zoom?: number
+  showSaveButton?: boolean
 }
 
 const mapContainerStyle = {
@@ -22,7 +26,6 @@ const defaultCenter = {
   lng: 2.3522,
 }
 
-// Función para obtener el ícono según el tipo de marcador
 const getMarkerIcon = (marker: MapMarker) => {
   const iconProps = {
     size: 20,
@@ -43,7 +46,6 @@ const getMarkerIcon = (marker: MapMarker) => {
   }
 }
 
-// Función para obtener íconos específicos de sitios turísticos
 const getTouristSiteIcon = (
   category: TouristSiteCategory | undefined,
   iconProps: { size: number; className: string }
@@ -62,7 +64,6 @@ const getTouristSiteIcon = (
   }
 }
 
-// Componente de marcador personalizado
 interface CustomMarkerProps {
   marker: MapMarker
   onClick: () => void
@@ -91,7 +92,6 @@ const CustomMarker: React.FC<CustomMarkerProps> = ({ marker, onClick, isSelected
   )
 }
 
-// InfoWindow personalizado
 interface CustomInfoWindowProps {
   marker: MapMarker
   onClose: () => void
@@ -126,7 +126,7 @@ const CustomInfoWindow: React.FC<CustomInfoWindowProps> = ({ marker, onClose }) 
   )
 }
 
-function MapView({ markers, center, zoom = 13 }: MapViewProps) {
+function MapView({ markers, center, zoom = 13, showSaveButton = false }: MapViewProps) {
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: process.env.NEXT_PUBLIC_MAPS_API_KEY || '',
@@ -136,6 +136,11 @@ function MapView({ markers, center, zoom = 13 }: MapViewProps) {
   const [selectedMarker, setSelectedMarker] = useState<string | null>(null)
   const boundsSet = useRef(false)
 
+  const router = useRouter()
+  const { userData } = useUser()
+  const { saveItinerary, isLoading: isSavingItinerary } = useItinerary()
+  const [saveError, setSaveError] = useState<string | null>(null)
+
   const onLoad = useCallback((map: google.maps.Map) => {
     setMap(map)
   }, [])
@@ -144,7 +149,6 @@ function MapView({ markers, center, zoom = 13 }: MapViewProps) {
     setMap(null)
   }, [])
 
-  // Ajustar el mapa para mostrar todos los marcadores
   useEffect(() => {
     if (!map || markers.length === 0 || boundsSet.current) return
 
@@ -157,7 +161,6 @@ function MapView({ markers, center, zoom = 13 }: MapViewProps) {
 
     map.fitBounds(bounds)
     
-    // Ajustar el zoom si es necesario
     const listener = google.maps.event.addListener(map, 'idle', () => {
       const currentZoom = map.getZoom()
       if (currentZoom && currentZoom > 15) {
@@ -168,7 +171,6 @@ function MapView({ markers, center, zoom = 13 }: MapViewProps) {
     })
   }, [map, markers])
 
-  // Resetear boundsSet cuando cambien los marcadores
   useEffect(() => {
     boundsSet.current = false
   }, [markers])
@@ -176,7 +178,6 @@ function MapView({ markers, center, zoom = 13 }: MapViewProps) {
   const handleMarkerClick = useCallback((markerId: string, marker: MapMarker) => {
     setSelectedMarker(markerId === selectedMarker ? null : markerId)
     
-    // Hacer zoom al marcador seleccionado
     if (map && markerId !== selectedMarker) {
       map.panTo(marker.coordinates)
       const currentZoom = map.getZoom()
@@ -185,6 +186,22 @@ function MapView({ markers, center, zoom = 13 }: MapViewProps) {
       }
     }
   }, [map, selectedMarker])
+
+  const handleSaveItinerary = async () => {
+    if (!userData?.firebaseUid) {
+      setSaveError('Debes iniciar sesión para guardar el itinerario')
+      return
+    }
+
+    setSaveError(null)
+    const success = await saveItinerary(userData.firebaseUid)
+    
+    if (success) {
+      router.push('/dashboard/my-trips')
+    } else {
+      setSaveError('Error al guardar el itinerario. Intenta nuevamente.')
+    }
+  }
 
   if (!isLoaded) {
     return (
@@ -198,49 +215,68 @@ function MapView({ markers, center, zoom = 13 }: MapViewProps) {
   }
 
   return (
-    <GoogleMap
-      mapContainerStyle={mapContainerStyle}
-      center={center || defaultCenter}
-      zoom={zoom}
-      onLoad={onLoad}
-      onUnmount={onUnmount}
-      options={{
-        zoomControl: true,
-        streetViewControl: false,
-        mapTypeControl: true,
-        fullscreenControl: true,
-        mapTypeControlOptions: {
-          position: google.maps.ControlPosition.TOP_RIGHT,
-        },
-      }}
-    >
-      {markers.map((marker) => (
-        <React.Fragment key={marker.id}>
-          <OverlayView
-            position={marker.coordinates}
-            mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
-          >
-            <CustomMarker
-              marker={marker}
-              onClick={() => handleMarkerClick(marker.id, marker)}
-              isSelected={selectedMarker === marker.id}
-            />
-          </OverlayView>
-
-          {selectedMarker === marker.id && (
+    <div className="relative w-full h-full">
+      <GoogleMap
+        mapContainerStyle={mapContainerStyle}
+        center={center || defaultCenter}
+        zoom={zoom}
+        onLoad={onLoad}
+        onUnmount={onUnmount}
+        options={{
+          zoomControl: true,
+          streetViewControl: false,
+          mapTypeControl: true,
+          fullscreenControl: true,
+          mapTypeControlOptions: {
+            position: google.maps.ControlPosition.TOP_RIGHT,
+          },
+        }}
+      >
+        {markers.map((marker) => (
+          <React.Fragment key={marker.id}>
             <OverlayView
               position={marker.coordinates}
               mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
             >
-              <CustomInfoWindow
+              <CustomMarker
                 marker={marker}
-                onClose={() => setSelectedMarker(null)}
+                onClick={() => handleMarkerClick(marker.id, marker)}
+                isSelected={selectedMarker === marker.id}
               />
             </OverlayView>
+
+            {selectedMarker === marker.id && (
+              <OverlayView
+                position={marker.coordinates}
+                mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+              >
+                <CustomInfoWindow
+                  marker={marker}
+                  onClose={() => setSelectedMarker(null)}
+                />
+              </OverlayView>
+            )}
+          </React.Fragment>
+        ))}
+      </GoogleMap>
+
+      {showSaveButton && (
+        <div className="absolute bottom-0 left-0 right-0 px-4 pb-4 z-10">
+          {saveError && (
+            <p className="text-red-500 text-sm mb-2 text-center bg-white rounded px-2 py-1">
+              {saveError}
+            </p>
           )}
-        </React.Fragment>
-      ))}
-    </GoogleMap>
+          <button
+            onClick={handleSaveItinerary}
+            disabled={isSavingItinerary}
+            className="w-full primary-btn py-3 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSavingItinerary ? 'Guardando...' : 'Guardar itinerario'}
+          </button>
+        </div>
+      )}
+    </div>
   )
 }
 

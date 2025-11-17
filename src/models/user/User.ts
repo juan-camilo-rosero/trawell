@@ -11,7 +11,6 @@ export interface IUser extends Document {
   updatedAt: Date;
 }
 
-// Reusable coordinate schema for User
 const CoordinatesSchema = new Schema(
   {
     lat: { type: Number, required: true },
@@ -20,7 +19,6 @@ const CoordinatesSchema = new Schema(
   { _id: false }
 );
 
-// Location schema for User
 const LocationSchema = new Schema(
   {
     name: { type: String, required: true },
@@ -64,7 +62,6 @@ const UserSchema = new Schema<IUser>(
   }
 );
 
-// Prevent model recompilation in Next.js hot reload
 const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
 
 export default User;

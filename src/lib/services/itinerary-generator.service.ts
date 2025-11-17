@@ -1,4 +1,4 @@
-// @/lib/services/itinerary-generator.service.ts
+import { convertToCOP } from "@/lib/helpers/currency.helpers";
 
 import {
   ICoordinates,
@@ -1003,9 +1003,7 @@ class ItineraryGeneratorService {
   ): IItineraryItem {
     const nights = this.calculateTripDays(checkIn, checkOut) - 1;
 
-    // Convertir precio a COP (multiplicar por 3800)
-    const CONVERSION_RATE = 3800;
-    const totalPriceInCOP = hotel.price.total * CONVERSION_RATE;
+    const totalPriceInCOP = convertToCOP(hotel.price.total, hotel.price.currency);
     const pricePerNight = totalPriceInCOP / nights;
 
     const accommodationDetails: IAccommodationDetails = {

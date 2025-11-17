@@ -1,7 +1,5 @@
-// @/components/dashboard/ItineraryView.tsx
-
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { useItinerary } from "@/contexts/ItineraryContext";
 import FlightItem from "./itinerary/FlightItem";
 import HotelItem from "./itinerary/HotelItem";
@@ -9,6 +7,8 @@ import RestaurantItem from "./itinerary/RestaurantItem";
 import TouristSiteItem from "./itinerary/TouristSiteItem";
 import type { IItineraryItem } from "@/models/itinerary/interfaces";
 import MapView from "@/components/dashboard/MapView";
+import { useRouter } from "next/navigation";
+import { useUser } from "@/contexts/UserContext";
 
 interface ItineraryViewProps {
   destination: string;
@@ -25,6 +25,28 @@ interface ItineraryViewProps {
 
 function ItineraryView({ coordinates }: ItineraryViewProps) {
   const { itinerary, isLoading, error, mapMarkers } = useItinerary();
+
+  const router = useRouter();
+  const { userData } = useUser();
+  const { saveItinerary, isLoading: isSavingItinerary } = useItinerary();
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const handleSaveItinerary = async () => {
+    if (!userData?.firebaseUid) {
+      setSaveError("Debes iniciar sesión para guardar el itinerario");
+      return;
+    }
+
+    setSaveError(null);
+    const success = await saveItinerary(userData.firebaseUid);
+
+    if (success) {
+      // Redirigir a mis viajes
+      router.push("/dashboard/my-trips");
+    } else {
+      setSaveError("Error al guardar el itinerario. Intenta nuevamente.");
+    }
+  };
 
   const formatDateRange = (
     start: Date | undefined,
@@ -87,7 +109,6 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
 
     return `${dayName}, ${day} de ${month}`;
   };
-
 
   const renderItem = (item: IItineraryItem, isLast: boolean) => {
     switch (item.type) {
@@ -245,6 +266,19 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
           ))}
         </div>
       )}
+
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-secondary-100 shadow-md custom-ph py-4 z-10">
+        {saveError && (
+          <p className="text-red-500 text-sm mb-2 text-center">{saveError}</p>
+        )}
+        <button
+          onClick={handleSaveItinerary}
+          disabled={isSavingItinerary}
+          className="w-full primary-btn py-3 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSavingItinerary ? "Guardando..." : "Guardar itinerario"}
+        </button>
+      </div>
     </div>
   );
 }
