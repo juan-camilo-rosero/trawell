@@ -1,9 +1,9 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import mongoose, { Schema, Document, Model, Types } from 'mongoose';
 import { IDay, ISearchParams } from './interfaces';
 
 
 export interface IItineraryDocument extends Document {
-  _id: any;
+  _id: Types.ObjectId | string;
   userId: string;
   searchParams: ISearchParams;
   title: string;
@@ -261,9 +261,11 @@ export type ItineraryLean = {
   updatedAt: Date;
 };
 
-export function toItineraryLean(doc: any): ItineraryLean {
+export function toItineraryLean(
+  doc: Omit<IItineraryDocument, never> & { _id: Types.ObjectId | string }
+): ItineraryLean {
   return {
     ...doc,
-    _id: doc._id?.toString(),
+    _id: doc._id.toString(),
   };
 }
