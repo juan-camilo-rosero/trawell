@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Model, Types } from 'mongoose';
+import mongoose, { Schema, Document, Model } from 'mongoose';
 import { IDay, ISearchParams } from './interfaces';
 
 export interface IItineraryDocument extends Document {
