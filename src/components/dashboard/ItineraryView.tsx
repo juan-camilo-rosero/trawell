@@ -20,7 +20,7 @@ interface ItineraryViewProps {
   } | undefined;
 }
 
-function ItineraryView({ destination, startDate, endDate, totalPassengers, coordinates }: ItineraryViewProps) {
+function ItineraryView({ coordinates }: ItineraryViewProps) {
   const { itinerary, isLoading, error } = useItinerary();
 
   const formatDateRange = (start: Date | undefined, end: Date | undefined): string => {
