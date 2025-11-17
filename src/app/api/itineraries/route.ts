@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     const skip = parseInt(searchParams.get("skip") || "0");
     const userId = searchParams.get("userId");
 
-    let query: Record<string, unknown> = {};
+    const query: Record<string, unknown> = {};
 
     if (isPublic) query.isPublic = true;
     else if (userId) query.userId = userId;
