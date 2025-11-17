@@ -1,8 +1,6 @@
-// @/app/api/itineraries/user/[userId]/route.ts
-
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/db/db";
-import Itinerary, { toItineraryLean } from "@/models/itinerary/Itinerary";
+import Itinerary, { toItineraryLean, IItineraryDocument, ItineraryLean } from "@/models/itinerary/Itinerary";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -44,10 +42,9 @@ export async function GET(
       .limit(limit)
       .skip(skip)
       .select("-__v")
-      .lean();
+      .lean<IItineraryDocument[]>();
 
-    // Convertir los documentos al tipo correcto
-    const itineraries = rawItineraries.map(toItineraryLean);
+    const itineraries: ItineraryLean[] = rawItineraries.map(toItineraryLean);
 
     const total = await Itinerary.countDocuments(query);
 
