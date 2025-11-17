@@ -13,6 +13,7 @@ import FoodPreferencesSelector, {
 import ItineraryView from "@/components/dashboard/ItineraryView";
 import { FiCalendar, FiArrowLeft } from "react-icons/fi";
 import { useItinerary } from "@/contexts/ItineraryContext";
+import MapView from "@/components/dashboard/MapView";
 
 interface CityData {
   name: string;
@@ -34,9 +35,7 @@ interface ValidationErrors {
 
 function NewTripForm() {
   const { userData } = useUser();
-  const {
-    generateItinerary,
-  } = useItinerary();
+  const { generateItinerary, mapMarkers } = useItinerary();
 
   const [origin, setOrigin] = useState<string>("");
   const [originData, setOriginData] = useState<CityData | undefined>();
@@ -490,16 +489,10 @@ function NewTripForm() {
               />
             </div>
             <div className="flex-1 rounded-lg overflow-hidden">
-              {savedDestinationData?.coordinates && (
-                <iframe
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  loading="lazy"
-                  allowFullScreen
-                  src={getMapUrl()}
-                />
-              )}
+              <MapView
+                markers={mapMarkers}
+                center={savedDestinationData?.coordinates}
+              />
             </div>
           </>
         )}

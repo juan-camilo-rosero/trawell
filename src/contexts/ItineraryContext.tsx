@@ -1,10 +1,9 @@
-// @/contexts/ItineraryContext.tsx
-
 'use client'
-import React, { createContext, useContext, useState, ReactNode } from 'react'
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'
 import { itineraryGeneratorService, GenerateItineraryRequest } from '@/lib/services/itinerary-generator.service'
 import { IDay, ISearchParams } from '@/models/itinerary/interfaces'
 import { RestaurantCategory } from '@/models/types'
+import { MapMarker } from '@/models/types/map.types'
 
 export interface ItineraryData {
   _id?: string
@@ -24,6 +23,7 @@ interface ItineraryContextType {
   itinerary: ItineraryData | null
   isLoading: boolean
   error: string | null
+  mapMarkers: MapMarker[]
   generateItinerary: (params: GenerateItineraryParams) => Promise<void>
   clearItinerary: () => void
 }
@@ -43,7 +43,6 @@ export interface GenerateItineraryParams {
   travelType: 'relaxation' | 'luxury' | 'cultural' | 'adventure' | 'gastronomic' | 'spiritual'
   foodPreferences: RestaurantCategory[]
   
-  // Parámetros opcionales
   cabinClass?: 'ECONOMY' | 'PREMIUM_ECONOMY' | 'BUSINESS' | 'FIRST'
   maxStops?: number
   budget?: number
@@ -58,6 +57,48 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
   const [itinerary, setItinerary] = useState<ItineraryData | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
+  const [mapMarkers, setMapMarkers] = useState<MapMarker[]>([])
+
+  // Efecto para generar marcadores cuando cambia el itinerario
+  useEffect(() => {
+    if (!itinerary) {
+      setMapMarkers([])
+      return
+    }
+
+    const markers: MapMarker[] = []
+
+    itinerary.days.forEach((day) => {
+      day.items.forEach((item) => {
+        // Verificar si el item tiene coordenadas válidas
+        if (!item.location?.coordinates?.lat || !item.location?.coordinates?.lng) {
+          return
+        }
+
+        const baseMarker = {
+          id: `${item.itemId}-${day.dayNumber}`,
+          itemId: item.itemId,
+          type: item.type,
+          coordinates: item.location.coordinates,
+          title: item.title,
+          address: item.location.address,
+          dayNumber: day.dayNumber,
+        }
+
+        if (item.type === 'tourist_site' && item.touristSiteDetails?.category) {
+          markers.push({
+            ...baseMarker,
+            category: item.touristSiteDetails.category,
+          })
+        } else {
+          markers.push(baseMarker)
+        }
+      })
+    })
+
+    console.log(`📍 Generados ${markers.length} marcadores para el mapa`)
+    setMapMarkers(markers)
+  }, [itinerary])
 
   const generateItinerary = async (params: GenerateItineraryParams) => {
     setIsLoading(true)
@@ -69,11 +110,9 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
       const request: GenerateItineraryRequest = {
         ...params,
       }
-
       const result = await itineraryGeneratorService.generateItinerary(request)
-
       const itineraryData: ItineraryData = {
-        userId: 'current-user-id', // TODO: Obtener del contexto de autenticación
+        userId: 'current-user-id',
         searchParams: result.searchParams,
         title: result.title,
         totalPrice: result.totalPrice,
@@ -83,7 +122,6 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
         createdAt: new Date(),
         updatedAt: new Date(),
       }
-
       setItinerary(itineraryData)
       console.log('✅ Itinerario generado y guardado en contexto')
     } catch (err) {
@@ -98,12 +136,14 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
   const clearItinerary = () => {
     setItinerary(null)
     setError(null)
+    setMapMarkers([])
   }
 
   const value: ItineraryContextType = {
     itinerary,
     isLoading,
     error,
+    mapMarkers,
     generateItinerary,
     clearItinerary,
   }
