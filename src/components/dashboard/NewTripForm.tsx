@@ -270,12 +270,6 @@ function NewTripForm() {
     setSavedTotalPassengers(0);
   };
 
-  const getMapUrl = () => {
-    if (!savedDestinationData?.coordinates) return "";
-    const { lat, lng } = savedDestinationData.coordinates;
-    return `https://maps.google.com/maps?q=${lat},${lng}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
-  };
-
   return (
     <div className="w-full h-full grid grid-cols-1 lg:grid-cols-6 gap-6">
       <div

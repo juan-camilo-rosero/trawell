@@ -88,10 +88,6 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
     return `${dayName}, ${day} de ${month}`;
   };
 
-  const getMapUrl = () => {
-    if (!coordinates) return "";
-    return `https://maps.google.com/maps?q=${coordinates.lat},${coordinates.lng}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
-  };
 
   const renderItem = (item: IItineraryItem, isLast: boolean) => {
     switch (item.type) {

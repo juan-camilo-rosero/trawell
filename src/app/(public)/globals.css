@@ -64,5 +64,5 @@
 }
 
 .itinerary-day-separator {
-  @apply w-full bg-secondary-200 px-4 py-3 rounded-md text-sm font-medium text-black;
+  @apply w-full bg-secondary-100 px-4 py-3 text-sm rounded-md font-semibold text-muted-500 text-center;
 }
