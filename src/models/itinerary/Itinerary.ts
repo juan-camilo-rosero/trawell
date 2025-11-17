@@ -248,7 +248,7 @@ const Itinerary: Model<IItineraryDocument> =
 export default Itinerary;
 
 export type ItineraryLean = {
-  _id: string;
+  _id: string | { toString(): string };
   userId: string;
   searchParams: ISearchParams;
   title: string;
