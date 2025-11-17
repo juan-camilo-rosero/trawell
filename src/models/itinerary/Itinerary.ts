@@ -3,7 +3,7 @@ import { IDay, ISearchParams } from './interfaces';
 
 
 export interface IItineraryDocument extends Document {
-  _id: Types.ObjectId | string;
+  _id: string | Types.ObjectId;
   userId: string;
   searchParams: ISearchParams;
   title: string;
