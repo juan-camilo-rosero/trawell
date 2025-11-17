@@ -259,9 +259,14 @@ export type ItineraryLean = {
   updatedAt: Date;
 };
 
-export function toItineraryLean(doc: any): ItineraryLean {
+export function toItineraryLean(doc: Record<string, unknown> & { _id: unknown }): ItineraryLean {
+  const idValue = doc._id;
+  const idString = typeof idValue === 'object' && idValue !== null && 'toString' in idValue
+    ? (idValue as { toString: () => string }).toString()
+    : String(idValue);
+
   return {
     ...doc,
-    _id: doc._id.toString(),
-  };
+    _id: idString,
+  } as ItineraryLean;
 }
