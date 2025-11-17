@@ -141,11 +141,14 @@ export function ItineraryCard({ itinerary, onDelete }: ItineraryCardProps) {
             <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
             <AlertDialogDescription>
               Esta acción no se puede deshacer. Esto eliminará permanentemente
-              el itinerario "{itinerary.title}".
+              el itinerario &quot;{itinerary.title}&quot;.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting} className="bg-secondary-200 hover:bg-secondary-300 transition-all">
+            <AlertDialogCancel
+              disabled={isDeleting}
+              className="bg-secondary-200 hover:bg-secondary-300 transition-all"
+            >
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
