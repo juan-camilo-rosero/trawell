@@ -171,7 +171,7 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
           <p className="text-muted-500 text-lg">
-            Generando tu itinerario perfecto...
+            Cargando
           </p>
         </div>
       </div>

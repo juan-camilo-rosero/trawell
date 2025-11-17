@@ -16,7 +16,6 @@ export async function OPTIONS() {
   });
 }
 
-// GET — Obtener itinerarios
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
@@ -32,7 +31,6 @@ export async function GET(request: NextRequest) {
     if (isPublic) query.isPublic = true;
     else if (userId) query.userId = userId;
 
-    // TIPADO EXPLÍCITO → evita error de any[]
     const itineraries: ItineraryLean[] = await Itinerary.find(query)
       .sort({ createdAt: -1 })
       .limit(limit)
@@ -66,7 +64,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST — Crear itinerario
 export async function POST(request: NextRequest) {
   try {
     await connectDB();

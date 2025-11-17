@@ -1,4 +1,3 @@
-// @/context/UserContext.tsx
 'use client'
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
@@ -7,7 +6,6 @@ import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://trawell-yuxn.vercel.app'
 
-// Interfaces
 interface Coordinates {
   lat: number
   lng: number
@@ -40,17 +38,14 @@ interface UserContextType {
   clearUserData: () => void
 }
 
-// Crear el contexto
 const UserContext = createContext<UserContextType | undefined>(undefined)
 
-// Provider
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null)
   const [userData, setUserData] = useState<UserData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Función para obtener datos del usuario desde la API
   const fetchUserData = async (firebaseUid: string): Promise<UserData | null> => {
     try {
       const response = await fetch(
@@ -74,7 +69,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  // Función para refrescar los datos del usuario
   const refreshUserData = async () => {
     if (!firebaseUser) return
 
@@ -91,20 +85,17 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  // Función para actualizar datos localmente (optimistic update)
   const updateUserData = (updates: Partial<UserData>) => {
     if (userData) {
       setUserData({ ...userData, ...updates })
     }
   }
 
-  // Función para limpiar datos
   const clearUserData = () => {
     setUserData(null)
     setError(null)
   }
 
-  // Efecto principal: escuchar cambios de autenticación
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setFirebaseUser(currentUser)
@@ -143,7 +134,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>
 }
 
-// Hook personalizado para usar el contexto
 export function useUser() {
   const context = useContext(UserContext)
   

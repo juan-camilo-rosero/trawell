@@ -246,4 +246,6 @@ const Itinerary: Model<IItineraryDocument> =
   mongoose.models.Itinerary || mongoose.model<IItineraryDocument>('Itinerary', ItinerarySchema);
 
 export default Itinerary;
-export type ItineraryLean = Omit<IItineraryDocument, keyof Document>;
+export type ItineraryLean = Omit<IItineraryDocument, keyof Document> & {
+  _id: string;
+};
