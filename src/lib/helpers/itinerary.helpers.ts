@@ -191,11 +191,6 @@ export function getRestaurantCategoriesForMeal(
     "indonesian",
     "middle_eastern",
   ];
-  const dinnerSuitable: RestaurantCategory[] = [
-    "fine_dining",
-    "steak_house",
-    "seafood",
-  ];
 
   switch (mealType) {
     case "desayuno":

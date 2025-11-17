@@ -213,6 +213,7 @@ class ItineraryGeneratorService {
     limits: { restaurants: number; touristSites: number; hotels: number }
   ): Promise<FlightResponse[]> {
     try {
+      console.log(limits)
       const response = await fetch(`${this.apiBaseUrl}/flights`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
