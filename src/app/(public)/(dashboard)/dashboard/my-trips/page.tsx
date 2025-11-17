@@ -1,31 +1,35 @@
-'use client';
+"use client";
 
-import { useUser } from '@/contexts/UserContext';
-import { useItineraries } from '@/hooks/use-itineraries';
-import { ItineraryCard } from '@/components/dashboard/ItineraryCard';
-import { ItineraryCardSkeleton } from '@/components/dashboard/ItineraryCardSkeleton';
-import { AlertCircle, Plane } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useUser } from "@/contexts/UserContext";
+import { useItineraries } from "@/hooks/use-itineraries";
+import { ItineraryCard } from "@/components/dashboard/ItineraryCard";
+import { ItineraryCardSkeleton } from "@/components/dashboard/ItineraryCardSkeleton";
+import { AlertCircle, Plane } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 function Page() {
   const { userData, isLoading: userLoading } = useUser();
-  const { 
-    itineraries, 
-    isLoading: itinerariesLoading, 
-    error, 
+  const {
+    itineraries,
+    isLoading: itinerariesLoading,
+    error,
     pagination,
-    fetchItineraries 
+    fetchItineraries,
   } = useItineraries(userData?.firebaseUid);
 
   const isLoading = userLoading || itinerariesLoading;
 
   // Calcular página actual
-  const currentPage = pagination ? Math.floor(pagination.skip / pagination.limit) : 0;
-  const totalPages = pagination ? Math.ceil(pagination.total / pagination.limit) : 0;
+  const currentPage = pagination
+    ? Math.floor(pagination.skip / pagination.limit)
+    : 0;
+  const totalPages = pagination
+    ? Math.ceil(pagination.total / pagination.limit)
+    : 0;
 
   const handlePageChange = (newPage: number) => {
     fetchItineraries(newPage);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
@@ -77,11 +81,10 @@ function Page() {
             No tienes itinerarios aún
           </h3>
           <p className="text-gray-600 mb-6">
-            Comienza a planificar tu próxima aventura creando tu primer itinerario
+            Comienza a planificar tu próxima aventura creando tu primer
+            itinerario
           </p>
-          <Button className="primary-btn">
-            Crear itinerario
-          </Button>
+          <Button className="primary-btn">Crear itinerario</Button>
         </div>
       )}
 
@@ -90,7 +93,10 @@ function Page() {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {itineraries.map((itinerary) => (
-              <ItineraryCard key={itinerary._id} itinerary={itinerary} />
+              <ItineraryCard
+                key={itinerary._id.toString()} // ← FIX
+                itinerary={itinerary}
+              />
             ))}
           </div>
 
@@ -110,7 +116,8 @@ function Page() {
                   Página {currentPage + 1} de {totalPages}
                 </span>
                 <span className="text-xs text-gray-400">
-                  ({pagination.total} {pagination.total === 1 ? 'itinerario' : 'itinerarios'})
+                  ({pagination.total}{" "}
+                  {pagination.total === 1 ? "itinerario" : "itinerarios"})
                 </span>
               </div>
 
