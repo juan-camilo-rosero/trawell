@@ -1,6 +1,4 @@
-// @/models/itinerary/Itinerary.ts
-
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import mongoose, { Schema, Document, Model, Types } from 'mongoose';
 import { IDay, ISearchParams } from './interfaces';
 
 export interface IItineraryDocument extends Document {
@@ -246,6 +244,24 @@ const Itinerary: Model<IItineraryDocument> =
   mongoose.models.Itinerary || mongoose.model<IItineraryDocument>('Itinerary', ItinerarySchema);
 
 export default Itinerary;
-export type ItineraryLean = Omit<IItineraryDocument, keyof Document> & {
+
+export type ItineraryLean = {
   _id: string;
+  userId: string;
+  searchParams: ISearchParams;
+  title: string;
+  totalPrice: number;
+  currency: string;
+  isPublic: boolean;
+  days: IDay[];
+  lastViewedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 };
+
+export function toItineraryLean(doc: any): ItineraryLean {
+  return {
+    ...doc,
+    _id: doc._id.toString(),
+  };
+}
