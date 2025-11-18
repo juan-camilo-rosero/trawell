@@ -124,7 +124,13 @@ function Page() {
         <Header />
       </div>
       <div className="bg-secondary-200 md:bg-secondary-100 min-h-screen flex">
-        <div className="w-full hidden lg:flex bg-secondary-200"></div>
+        <div className="w-full hidden lg:flex bg-secondary-200 justify-center items-center">
+          <img
+            src="static/trawell_ilustracion2.png"
+            alt="Ilustración crear cuenta"
+            className="h-[100vh]"
+          />
+        </div>
         <div className="w-screen custom-ph flex items-center justify-center flex-col pt-16 min-h-screen md:max-w-xl md:mx-auto lg:w-1/2 bg-secondary-100 lg:py-8">
           <div className="w-full">
             <Link href="/" className="flex justify-center">

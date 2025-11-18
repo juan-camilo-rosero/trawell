@@ -570,8 +570,8 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
           <div className="flex-1 bg-secondary-100 rounded-lg items-center justify-center flex">
             <div className="flex flex-col items-center gap-4">
               <img
-                src="https://images.fineartamerica.com/images/artworkimages/medium/3/snoopy-pilot-airplane-elizabeth-j-campbell-transparent.png"
-                alt="Snoopy Pilot"
+                src="static/trawell_ilustracion2.png"
+                alt="Trawell illustration"
                 className="w-64 h-64 object-contain"
               />
               <p className="text-muted-500 text-2xl mt-6">

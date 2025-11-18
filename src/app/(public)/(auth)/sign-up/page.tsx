@@ -32,7 +32,8 @@ function Page() {
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
-  const [showVerificationMessage, setShowVerificationMessage] = useState<boolean>(false);
+  const [showVerificationMessage, setShowVerificationMessage] =
+    useState<boolean>(false);
 
   const getErrorMessage = (error: unknown): string => {
     if (error instanceof Error) {
@@ -89,7 +90,7 @@ function Page() {
 
     try {
       const result = await signUpWithEmail(email, password);
-      
+
       // Siempre mostramos el mensaje de verificación ya que needsVerification siempre es true
       if (result.needsVerification) {
         setShowVerificationMessage(true);
@@ -115,21 +116,37 @@ function Page() {
           <Header />
         </div>
         <div className="bg-secondary-200 md:bg-secondary-100 min-h-screen flex">
-          <div className="w-full hidden lg:flex bg-secondary-200"></div>
+          <div className="w-full hidden lg:flex items-center justify-center bg-secondary-200">
+            <img
+              src="static/trawell_ilustracion2.png"
+              alt="Ilustración crear cuenta"
+              className="w-40 h-auto"
+            />
+          </div>
           <div className="w-screen custom-ph flex items-center justify-center flex-col pt-16 lg:pt-0 min-h-screen md:max-w-xl md:mx-auto lg:w-1/2 bg-secondary-100">
             <div className="w-full max-w-md">
               <div className="bg-secondary-100 rounded-lg p-6">
                 <div className="text-center mb-4">
-                  <img src="static/logo.png" alt="Logo Trawell" className="h-16 mb-8 w-auto mx-auto"/>
+                  <img
+                    src="static/logo.png"
+                    alt="Logo Trawell"
+                    className="h-16 mb-8 w-auto mx-auto"
+                  />
                   <h2 className="text-2xl font-semibold text-muted-900 mb-2">
                     ¡Cuenta creada!
                   </h2>
                   <p className="text-muted-500 mb-4">
                     Hemos enviado un correo de verificación a:
                   </p>
-                  <p className="font-semibold text-muted-900 mb-4 text-lg">{email}</p>
+                  <p className="font-semibold text-muted-900 mb-4 text-lg">
+                    {email}
+                  </p>
                   <p className="text-sm text-muted-500">
-                    Por favor revisa tu bandeja de entrada y haz clic en el enlace de verificación para activar tu cuenta. <span className="text-muted-900 font-semibold">Posiblemente llegue a spam jajan&apos;t :(</span>
+                    Por favor revisa tu bandeja de entrada y haz clic en el
+                    enlace de verificación para activar tu cuenta.{" "}
+                    <span className="text-muted-900 font-semibold">
+                      Posiblemente llegue a spam jajan&apos;t :(
+                    </span>
                   </p>
                 </div>
               </div>
@@ -153,7 +170,13 @@ function Page() {
         <Header />
       </div>
       <div className="bg-secondary-200 md:bg-secondary-100 min-h-screen flex">
-        <div className="w-full hidden lg:flex bg-secondary-200"></div>
+        <div className="w-full hidden lg:flex items-center justify-center bg-secondary-200">
+          <img
+              src="static/trawell_ilustracion4.png"
+              alt="Ilustración crear cuenta"
+              className="h-[100vh]"
+            />
+        </div>
         <div className="w-screen custom-ph flex items-center justify-center flex-col pt-16 lg:pt-0 min-h-screen md:max-w-xl md:mx-auto lg:w-1/2 bg-secondary-100">
           <div className="w-full">
             <Link href="/" className="flex justify-center">
@@ -212,13 +235,11 @@ function Page() {
           </div>
 
           {error && (
-            <p className="text-primary text-sm mt-4 text-center">
-              {error}
-            </p>
+            <p className="text-primary text-sm mt-4 text-center">{error}</p>
           )}
 
           <Link
-            href="/signup"
+            href="/login"
             className="underline text-muted-500 mt-12 md:mt-8"
           >
             ¿Ya tienes una cuenta?

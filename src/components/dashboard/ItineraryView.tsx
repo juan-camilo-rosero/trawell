@@ -199,8 +199,8 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
       <div className="w-full h-full flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <img
-            src="https://images.fineartamerica.com/images/artworkimages/medium/3/snoopy-pilot-airplane-elizabeth-j-campbell-transparent.png"
-            alt="Snoopy Pilot"
+            src="static/trawell_ilustracion3.png"
+            alt="Trawell illustration"
             className="w-48 h-48 object-contain opacity-50"
           />
           <p className="text-muted-500 text-lg">No hay itinerario disponible</p>
