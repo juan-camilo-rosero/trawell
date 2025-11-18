@@ -7,6 +7,7 @@ import React, {
   useState,
   ReactNode,
   useEffect,
+  useCallback
 } from "react";
 import {
   itineraryGeneratorService,
@@ -157,44 +158,51 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
   }, [itinerary]);
 
   const generateItinerary = async (params: GenerateItineraryParams) => {
-    setIsLoading(true);
-    setError(null);
+  setIsLoading(true);
+  setError(null);
 
-    try {
-      console.log("🚀 Generando itinerario desde contexto...");
+  try {
+    console.log("🚀 Generando itinerario desde contexto...");
 
-      const request: GenerateItineraryRequest = {
-        ...params,
-      };
+    const request: GenerateItineraryRequest = {
+      ...params,
+    };
 
-      const result = await itineraryGeneratorService.generateItinerary(request);
+    const result = await itineraryGeneratorService.generateItinerary(request);
 
-      const itineraryData: ItineraryData = {
-        userId: "temp-user-id", // Se actualizará al guardar
-        searchParams: result.searchParams,
-        title: result.title,
-        totalPrice: result.totalPrice,
-        currency: result.currency,
-        isPublic: false,
-        days: result.days,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+    const itineraryData: ItineraryData = {
+      userId: itinerary?._id ? itinerary.userId : "temp-user-id",
+      _id: itinerary?._id,
+      searchParams: result.searchParams,
+      title: result.title,
+      totalPrice: result.totalPrice,
+      currency: result.currency,
+      isPublic: false,
+      days: result.days,
+      createdAt: itinerary?.createdAt || new Date(),
+      updatedAt: new Date(),
+    };
 
-      setItinerary(itineraryData);
-      console.log("✅ Itinerario generado y guardado en contexto");
-    } catch (err) {
-      console.error("❌ Error generando itinerario:", err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Error desconocido al generar itinerario"
-      );
-      setItinerary(null);
-    } finally {
-      setIsLoading(false);
+    setItinerary(itineraryData);
+
+    if (itinerary?._id && itinerary.userId !== "temp-user-id") {
+      console.log("🔄 Actualizando itinerario existente en BD...");
+      await updateItinerary(itinerary._id, itineraryData);
     }
-  };
+
+    console.log("✅ Itinerario generado y guardado en contexto");
+  } catch (err) {
+    console.error("❌ Error generando itinerario:", err);
+    setError(
+      err instanceof Error
+        ? err.message
+        : "Error desconocido al generar itinerario"
+    );
+    setItinerary(null);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const saveItinerary = async (userId: string): Promise<boolean> => {
     if (!itinerary) {

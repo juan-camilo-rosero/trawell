@@ -41,7 +41,6 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
     const success = await saveItinerary(userData.firebaseUid);
 
     if (success) {
-      // Redirigir a mis viajes
       router.push("/dashboard/my-trips");
     } else {
       setSaveError("Error al guardar el itinerario. Intenta nuevamente.");
@@ -49,8 +48,8 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
   };
 
   const formatDateRange = (
-    start: Date | undefined,
-    end: Date | undefined
+    start: Date | string | undefined,
+    end: Date | string | undefined
   ): string => {
     if (!start || !end) return "";
 
@@ -69,15 +68,18 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
       "dic",
     ];
 
-    const startDay = start.getDate();
-    const startMonth = months[start.getMonth()];
-    const endDay = end.getDate();
-    const endMonth = months[end.getMonth()];
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+
+    const startDay = startDate.getDate();
+    const startMonth = months[startDate.getMonth()];
+    const endDay = endDate.getDate();
+    const endMonth = months[endDate.getMonth()];
 
     return `${startDay} ${startMonth} - ${endDay} ${endMonth}`;
   };
 
-  const formatDayDate = (date: Date): string => {
+  const formatDayDate = (date: Date | string): string => {
     const days = [
       "Domingo",
       "Lunes",
@@ -225,8 +227,8 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
           <div className="w-px h-6 bg-muted-500 rounded-full"></div>
           <span className="text-sm text-muted-600">
             {itinerary.searchParams.travelers.adults +
-              itinerary.searchParams.travelers.children +
-              itinerary.searchParams.travelers.babies}{" "}
+              (itinerary.searchParams.travelers.children || 0) +
+              (itinerary.searchParams.travelers.babies || 0)}{" "}
             personas
           </span>
         </div>

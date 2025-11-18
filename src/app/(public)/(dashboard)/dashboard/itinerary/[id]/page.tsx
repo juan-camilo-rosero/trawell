@@ -1,12 +1,18 @@
-'use client'
 import NewTripForm from "@/components/dashboard/NewTripForm"
 
-function page() {
+interface PageProps {
+  params: { id: string }
+}
+
+function Page({ params }: PageProps) {
+  const itineraryId = params.id
+  console.log('itineraryId desde params:', itineraryId)
+  
   return (
     <div className="w-full h-full">
-      <NewTripForm />
+      <NewTripForm itineraryId={itineraryId} />
     </div>
   )
 }
 
-export default page
+export default Page

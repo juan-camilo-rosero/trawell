@@ -14,6 +14,7 @@ import ItineraryView from "@/components/dashboard/ItineraryView";
 import { FiCalendar, FiArrowLeft } from "react-icons/fi";
 import { useItinerary } from "@/contexts/ItineraryContext";
 import MapView from "@/components/dashboard/MapView";
+import { useRouter } from "next/navigation";
 
 interface CityData {
   name: string;
@@ -22,6 +23,7 @@ interface CityData {
     lat: number;
     lng: number;
   };
+  placeId?: string;
 }
 
 interface ValidationErrors {
@@ -33,16 +35,26 @@ interface ValidationErrors {
   foodPreferences?: string;
 }
 
-function NewTripForm() {
+interface NewTripFormProps {
+  itineraryId?: string;
+}
+
+function NewTripForm({ itineraryId }: NewTripFormProps) {
   const { userData } = useUser();
-  const { generateItinerary, mapMarkers } = useItinerary();
+  const { 
+    generateItinerary, 
+    mapMarkers, 
+    loadItinerary, 
+    itinerary: contextItinerary,
+    saveItinerary,
+    isLoading: contextLoading 
+  } = useItinerary();
+  const router = useRouter();
 
   const [origin, setOrigin] = useState<string>("");
   const [originData, setOriginData] = useState<CityData | undefined>();
   const [destination, setDestination] = useState<string>("");
-  const [destinationData, setDestinationData] = useState<
-    CityData | undefined
-  >();
+  const [destinationData, setDestinationData] = useState<CityData | undefined>();
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
   const [adults, setAdults] = useState<number>(0);
@@ -55,21 +67,98 @@ function NewTripForm() {
   const [showItinerary, setShowItinerary] = useState<boolean>(false);
   const [itineraryGenerated, setItineraryGenerated] = useState<boolean>(false);
   const [showItineraryView, setShowItineraryView] = useState<boolean>(false);
+  const [isLoadingItinerary, setIsLoadingItinerary] = useState<boolean>(false);
 
   const [savedDestination, setSavedDestination] = useState<string>("");
-  const [savedDestinationData, setSavedDestinationData] = useState<
-    CityData | undefined
-  >();
+  const [savedDestinationData, setSavedDestinationData] = useState<CityData | undefined>();
   const [savedStartDate, setSavedStartDate] = useState<Date | undefined>();
   const [savedEndDate, setSavedEndDate] = useState<Date | undefined>();
   const [savedTotalPassengers, setSavedTotalPassengers] = useState<number>(0);
 
   const formRef = useRef<HTMLFormElement>(null);
+  const hasLoadedItinerary = useRef<boolean>(false);
 
+  const isUpdateMode = !!itineraryId;
   const totalPassengers = adults + children + babies;
 
   useEffect(() => {
-    if (userData?.originCity && !origin) {
+    const loadExistingItinerary = async () => {
+      if (!itineraryId || hasLoadedItinerary.current) return;
+
+      hasLoadedItinerary.current = true;
+      setIsLoadingItinerary(true);
+      try {
+        console.log("📖 Cargando itinerario existente para editar...");
+        await loadItinerary(itineraryId);
+      } catch (error) {
+        console.error("Error cargando itinerario:", error);
+        setErrors({
+          destination: "Error al cargar el itinerario. Por favor intenta nuevamente."
+        });
+      } finally {
+        setIsLoadingItinerary(false);
+      }
+    };
+
+    loadExistingItinerary();
+  }, [itineraryId, loadItinerary]);
+
+  useEffect(() => {
+    if (!contextItinerary || !isUpdateMode || !hasLoadedItinerary.current) return;
+
+    console.log("📝 Pre-llenando formulario con datos del itinerario...");
+
+    setOrigin(contextItinerary.searchParams.originCity.name);
+    setOriginData({
+      name: contextItinerary.searchParams.originCity.name,
+      country: "",
+      coordinates: contextItinerary.searchParams.originCity.coordinates,
+      placeId: contextItinerary.searchParams.originCity.placeId,
+    });
+
+    setDestination(contextItinerary.searchParams.destinationCity.name);
+    setDestinationData({
+      name: contextItinerary.searchParams.destinationCity.name,
+      country: "",
+      coordinates: contextItinerary.searchParams.destinationCity.coordinates,
+      placeId: contextItinerary.searchParams.destinationCity.placeId,
+    });
+
+    const departureDate = new Date(contextItinerary.searchParams.departureDate);
+    const returnDate = new Date(contextItinerary.searchParams.returnDate);
+
+    setStartDate(departureDate);
+    setEndDate(returnDate);
+
+    setAdults(contextItinerary.searchParams.travelers.adults);
+    setChildren(contextItinerary.searchParams.travelers.children || 0);
+    setBabies(contextItinerary.searchParams.travelers.babies || 0);
+
+    setTripType(contextItinerary.searchParams.travelType as TripType);
+
+    setShowItinerary(true);
+    setItineraryGenerated(true);
+
+    setSavedDestination(contextItinerary.searchParams.destinationCity.name);
+    setSavedDestinationData({
+      name: contextItinerary.searchParams.destinationCity.name,
+      country: "",
+      coordinates: contextItinerary.searchParams.destinationCity.coordinates,
+      placeId: contextItinerary.searchParams.destinationCity.placeId,
+    });
+    setSavedStartDate(departureDate);
+    setSavedEndDate(returnDate);
+    setSavedTotalPassengers(
+      contextItinerary.searchParams.travelers.adults +
+      (contextItinerary.searchParams.travelers.children || 0) +
+      (contextItinerary.searchParams.travelers.babies || 0)
+    );
+
+    console.log("✅ Formulario pre-llenado exitosamente");
+  }, [contextItinerary, isUpdateMode]);
+
+  useEffect(() => {
+    if (userData?.originCity && !origin && !isUpdateMode) {
       const cityDisplay = userData.originCity.name;
       setOrigin(cityDisplay);
       setOriginData({
@@ -78,7 +167,7 @@ function NewTripForm() {
         coordinates: userData.originCity.coordinates,
       });
     }
-  }, [userData, origin]);
+  }, [userData, origin, isUpdateMode]);
 
   useEffect(() => {
     if (Object.keys(errors).length > 0 && formRef.current) {
@@ -87,6 +176,7 @@ function NewTripForm() {
   }, [errors]);
 
   const handleOriginChange = (value: string, cityData?: CityData) => {
+    if (isUpdateMode) return;
     setOrigin(value);
     setOriginData(cityData);
     if (errors.origin) {
@@ -95,6 +185,7 @@ function NewTripForm() {
   };
 
   const handleDestinationChange = (value: string, cityData?: CityData) => {
+    if (isUpdateMode) return;
     setDestination(value);
     setDestinationData(cityData);
     if (errors.destination) {
@@ -191,16 +282,13 @@ function NewTripForm() {
     setIsLoading(true);
 
     try {
-      console.log("🚀 Iniciando generación de itinerario completo...\n");
-
-      // Generar itinerario usando el nuevo servicio
       await generateItinerary({
         originCityName: originData!.name,
         originCoordinates: originData!.coordinates,
-        // originPlaceId: originData?.placeId,
+        originPlaceId: originData?.placeId,
         destinationCityName: destinationData!.name,
         destinationCoordinates: destinationData!.coordinates,
-        // destinationPlaceId: destinationData?.placeId,
+        destinationPlaceId: destinationData?.placeId,
         departureDate: startDate!,
         returnDate: endDate!,
         adults,
@@ -217,22 +305,29 @@ function NewTripForm() {
         currency: "COP",
       });
 
-      console.log("✅ Itinerario generado exitosamente");
+      console.log(`✅ Itinerario ${isUpdateMode ? 'actualizado' : 'generado'} exitosamente`);
 
-      // Guardar datos para mostrar en el header
-      setSavedDestination(destinationData!.name);
-      setSavedDestinationData(destinationData);
-      setSavedStartDate(startDate);
-      setSavedEndDate(endDate);
-      setSavedTotalPassengers(totalPassengers);
+      if (isUpdateMode) {
+        router.push("/dashboard/my-trips");
+      } else {
+        setSavedDestination(destinationData!.name);
+        setSavedDestinationData(destinationData);
+        setSavedStartDate(startDate);
+        setSavedEndDate(endDate);
+        setSavedTotalPassengers(totalPassengers);
 
-      setShowItinerary(true);
-      setItineraryGenerated(true);
+        setShowItinerary(true);
+        setItineraryGenerated(true);
+      }
     } catch (error) {
-      console.error("❌ Error al generar itinerario:", error);
+      console.error(
+        `❌ Error al ${isUpdateMode ? "actualizar" : "generar"} itinerario:`,
+        error
+      );
       setErrors({
-        destination:
-          "Error al generar el itinerario. Por favor intenta nuevamente.",
+        destination: `Error al ${
+          isUpdateMode ? "actualizar" : "generar"
+        } el itinerario. Por favor intenta nuevamente.`,
       });
     } finally {
       setIsLoading(false);
@@ -270,6 +365,17 @@ function NewTripForm() {
     setSavedTotalPassengers(0);
   };
 
+  if (isLoadingItinerary) {
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+          <p className="text-muted-500 text-lg">Cargando itinerario...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-full grid grid-cols-1 lg:grid-cols-6 gap-6">
       <div
@@ -282,29 +388,34 @@ function NewTripForm() {
           className="bg-white rounded-lg flex flex-col space-y-8 pt-4 pb-0 lg:px-6"
           ref={formRef}
         >
+
           <div className="mb-0">
-            <CityAutocomplete
-              value={origin}
-              onChange={handleOriginChange}
-              placeholder="¿Desde dónde viajas?"
-              label="Origen"
-              showMapIcon={true}
-              showClearIcon={true}
-            />
+            <div className={isUpdateMode ? "pointer-events-none opacity-60" : ""}>
+              <CityAutocomplete
+                value={origin}
+                onChange={handleOriginChange}
+                placeholder="¿Desde dónde viajas?"
+                label="Origen"
+                showMapIcon={true}
+                showClearIcon={!isUpdateMode}
+              />
+            </div>
             {errors.origin && (
               <p className="text-red-500 text-xs mt-1">{errors.origin}</p>
             )}
           </div>
 
           <div className="mb-4">
-            <CityAutocomplete
-              value={destination}
-              onChange={handleDestinationChange}
-              placeholder="¿A dónde vas?"
-              label="Destino"
-              showMapIcon={true}
-              showClearIcon={true}
-            />
+            <div className={isUpdateMode ? "pointer-events-none opacity-60" : ""}>
+              <CityAutocomplete
+                value={destination}
+                onChange={handleDestinationChange}
+                placeholder="¿A dónde vas?"
+                label="Destino"
+                showMapIcon={true}
+                showClearIcon={!isUpdateMode}
+              />
+            </div>
             {errors.destination && (
               <p className="text-red-500 text-xs mt-1">{errors.destination}</p>
             )}
@@ -419,13 +530,17 @@ function NewTripForm() {
 
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || contextLoading}
             className="w-full py-3 primary-btn mt-8 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading
-              ? "Generando itinerario..."
-              : itineraryGenerated
+            {isLoading || contextLoading
+              ? isUpdateMode
+                ? "Actualizando..."
+                : "Generando itinerario..."
+              : isUpdateMode
               ? "Actualizar itinerario"
+              : itineraryGenerated
+              ? "Regenerar itinerario"
               : "Crear itinerario"}
           </button>
         </form>
@@ -465,8 +580,10 @@ function NewTripForm() {
                 className="w-64 h-64 object-contain"
               />
               <p className="text-muted-500 text-2xl mt-6">
-                {isLoading
+                {isLoading || contextLoading
                   ? "Buscando los mejores servicios para tu viaje..."
+                  : isUpdateMode
+                  ? "Modifica los parámetros y actualiza tu itinerario"
                   : "Ingresa los datos de tu próximo viaje"}
               </p>
             </div>
@@ -486,14 +603,14 @@ function NewTripForm() {
               <MapView
                 markers={mapMarkers}
                 center={savedDestinationData?.coordinates}
-                showSaveButton={true}
+                showSaveButton={!isUpdateMode}
               />
             </div>
           </>
         )}
       </div>
 
-      {itineraryGenerated && !showItineraryView && (
+      {itineraryGenerated && !showItineraryView && !isUpdateMode && (
         <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white shadow-lg rounded-t-lg custom-ph py-4 flex flex-col gap-3">
           <button
             onClick={handleViewItinerary}
