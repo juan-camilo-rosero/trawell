@@ -46,10 +46,8 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
     mapMarkers, 
     loadItinerary, 
     itinerary: contextItinerary,
-    saveItinerary,
     isLoading: contextLoading 
   } = useItinerary();
-  const router = useRouter();
 
   const [origin, setOrigin] = useState<string>("");
   const [originData, setOriginData] = useState<CityData | undefined>();
