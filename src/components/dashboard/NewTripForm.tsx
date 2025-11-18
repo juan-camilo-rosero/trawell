@@ -14,7 +14,6 @@ import ItineraryView from "@/components/dashboard/ItineraryView";
 import { FiCalendar, FiArrowLeft } from "react-icons/fi";
 import { useItinerary } from "@/contexts/ItineraryContext";
 import MapView from "@/components/dashboard/MapView";
-import { useRouter } from "next/navigation";
 
 interface CityData {
   name: string;
