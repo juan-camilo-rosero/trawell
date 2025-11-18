@@ -378,49 +378,48 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const loadItinerary = async (id: string): Promise<void> => {
-    setIsLoading(true);
-    setError(null);
+  const loadItinerary = useCallback(async (id: string): Promise<void> => {
+  setIsLoading(true);
+  setError(null);
 
-    try {
-      console.log(`📖 Cargando itinerario ${id}...`);
+  try {
+    console.log(`📖 Cargando itinerario ${id}...`);
 
-      const token = await getFirebaseToken();
-      // Para itinerarios públicos, el token es opcional
+    const token = await getFirebaseToken();
 
-      const headers: HeadersInit = {
-        "Content-Type": "application/json",
-      };
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+    };
 
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-
-      const response = await fetch(`${API_BASE_URL}/itineraries/${id}`, {
-        method: "GET",
-        headers,
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || `Error HTTP: ${response.status}`);
-      }
-
-      setItinerary(data.data.itinerary);
-      console.log("✅ Itinerario cargado exitosamente");
-    } catch (err) {
-      console.error("❌ Error cargando itinerario:", err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Error desconocido al cargar itinerario"
-      );
-      setItinerary(null);
-    } finally {
-      setIsLoading(false);
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
     }
-  };
+
+    const response = await fetch(`${API_BASE_URL}/itineraries/${id}`, {
+      method: "GET",
+      headers,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || `Error HTTP: ${response.status}`);
+    }
+
+    setItinerary(data.data.itinerary);
+    console.log("✅ Itinerario cargado exitosamente");
+  } catch (err) {
+    console.error("❌ Error cargando itinerario:", err);
+    setError(
+      err instanceof Error
+        ? err.message
+        : "Error desconocido al cargar itinerario"
+    );
+    setItinerary(null);
+  } finally {
+    setIsLoading(false);
+  }
+}, []);
 
   const loadUserItineraries = async (): Promise<void> => {
     setIsLoading(true);

@@ -269,70 +269,68 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const validationErrors = validateForm();
+  const validationErrors = validateForm();
 
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
+  if (Object.keys(validationErrors).length > 0) {
+    setErrors(validationErrors);
+    return;
+  }
+
+  setErrors({});
+  setIsLoading(true);
+
+  try {
+    await generateItinerary({
+      originCityName: originData!.name,
+      originCoordinates: originData!.coordinates,
+      originPlaceId: originData?.placeId,
+      destinationCityName: destinationData!.name,
+      destinationCoordinates: destinationData!.coordinates,
+      destinationPlaceId: destinationData?.placeId,
+      departureDate: startDate!,
+      returnDate: endDate!,
+      adults,
+      children: children > 0 ? children : undefined,
+      babies: babies > 0 ? babies : undefined,
+      travelType: tripType as
+        | "relaxation"
+        | "luxury"
+        | "cultural"
+        | "adventure"
+        | "gastronomic"
+        | "spiritual",
+      foodPreferences,
+      currency: "COP",
+    });
+
+    console.log(`✅ Itinerario ${isUpdateMode ? 'actualizado' : 'generado'} exitosamente`);
+
+    if (!isUpdateMode) {
+      setSavedDestination(destinationData!.name);
+      setSavedDestinationData(destinationData);
+      setSavedStartDate(startDate);
+      setSavedEndDate(endDate);
+      setSavedTotalPassengers(totalPassengers);
+
+      setShowItinerary(true);
+      setItineraryGenerated(true);
     }
-
-    setErrors({});
-    setIsLoading(true);
-
-    try {
-      await generateItinerary({
-        originCityName: originData!.name,
-        originCoordinates: originData!.coordinates,
-        originPlaceId: originData?.placeId,
-        destinationCityName: destinationData!.name,
-        destinationCoordinates: destinationData!.coordinates,
-        destinationPlaceId: destinationData?.placeId,
-        departureDate: startDate!,
-        returnDate: endDate!,
-        adults,
-        children: children > 0 ? children : undefined,
-        babies: babies > 0 ? babies : undefined,
-        travelType: tripType as
-          | "relaxation"
-          | "luxury"
-          | "cultural"
-          | "adventure"
-          | "gastronomic"
-          | "spiritual",
-        foodPreferences,
-        currency: "COP",
-      });
-
-      console.log(`✅ Itinerario ${isUpdateMode ? 'actualizado' : 'generado'} exitosamente`);
-
-      if (isUpdateMode) {
-        router.push("/dashboard/my-trips");
-      } else {
-        setSavedDestination(destinationData!.name);
-        setSavedDestinationData(destinationData);
-        setSavedStartDate(startDate);
-        setSavedEndDate(endDate);
-        setSavedTotalPassengers(totalPassengers);
-
-        setShowItinerary(true);
-        setItineraryGenerated(true);
-      }
-    } catch (error) {
-      console.error(
-        `❌ Error al ${isUpdateMode ? "actualizar" : "generar"} itinerario:`,
-        error
-      );
-      setErrors({
-        destination: `Error al ${
-          isUpdateMode ? "actualizar" : "generar"
-        } el itinerario. Por favor intenta nuevamente.`,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  } catch (error) {
+    console.error(
+      `❌ Error al ${isUpdateMode ? "actualizar" : "generar"} itinerario:`,
+      error
+    );
+    setErrors({
+      destination: `Error al ${
+        isUpdateMode ? "actualizar" : "generar"
+      } el itinerario. Por favor intenta nuevamente.`,
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleBackToForm = () => {
     setShowItineraryView(false);
