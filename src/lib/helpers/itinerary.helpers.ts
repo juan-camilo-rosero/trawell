@@ -66,8 +66,9 @@ export function parseDurationToMinutes(duration: string): number {
  * Convierte minutos a formato de hora HH:MM
  */
 export function minutesToTimeString(minutes: number): string {
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
+  const normalizedMinutes = minutes % (24 * 60);
+  const hours = Math.floor(normalizedMinutes / 60);
+  const mins = normalizedMinutes % 60;
   return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
 }
 

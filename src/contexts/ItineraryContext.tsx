@@ -17,6 +17,7 @@ import { IDay, ISearchParams } from "@/models/itinerary/interfaces";
 import { RestaurantCategory } from "@/models/types";
 import { MapMarker } from "@/models/types/map.types";
 import { getAuth } from "firebase/auth";
+import { useRouter } from "next/navigation";
 
 export interface ItineraryData {
   _id?: string;
@@ -94,7 +95,8 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [mapMarkers, setMapMarkers] = useState<MapMarker[]>([]);
 
-  // Función auxiliar para obtener el token de Firebase
+  const router = useRouter();
+
   const getFirebaseToken = async (): Promise<string | null> => {
     try {
       const auth = getAuth();
@@ -113,7 +115,6 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Efecto para generar marcadores cuando cambia el itinerario
   useEffect(() => {
     if (!itinerary) {
       setMapMarkers([]);
@@ -205,73 +206,76 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
 };
 
   const saveItinerary = async (userId: string): Promise<boolean> => {
-    if (!itinerary) {
-      setError("No hay itinerario para guardar");
+  if (!itinerary) {
+    setError("No hay itinerario para guardar");
+    return false;
+  }
+
+  setIsLoading(true);
+  setError(null);
+
+  try {
+    console.log("💾 Guardando itinerario en la base de datos...");
+
+    const token = await getFirebaseToken();
+    if (!token) {
+      setError("No se pudo obtener el token de autenticación");
       return false;
     }
 
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      console.log("💾 Guardando itinerario en la base de datos...");
-
-      const token = await getFirebaseToken();
-      if (!token) {
-        setError("No se pudo obtener el token de autenticación");
-        return false;
-      }
-
-      const response = await fetch(`${API_BASE_URL}/itineraries`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          ...itinerary,
-          userId,
-        }),
-      });
-
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        const text = await response.text();
-        console.error("Response no es JSON:", text);
-        throw new Error(
-          `La respuesta del servidor no es JSON válida. Status: ${response.status}`
-        );
-      }
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || `Error HTTP: ${response.status}`);
-      }
-
-      setItinerary({
+    const response = await fetch(`${API_BASE_URL}/itineraries`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
         ...itinerary,
-        _id: data.data.itinerary._id,
         userId,
-      });
+      }),
+    });
 
-      console.log(
-        "✅ Itinerario guardado exitosamente con ID:",
-        data.data.itinerary._id
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      const text = await response.text();
+      console.error("Response no es JSON:", text);
+      throw new Error(
+        `La respuesta del servidor no es JSON válida. Status: ${response.status}`
       );
-      return true;
-    } catch (err) {
-      console.error("❌ Error guardando itinerario:", err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Error desconocido al guardar itinerario"
-      );
-      return false;
-    } finally {
-      setIsLoading(false);
     }
-  };
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || `Error HTTP: ${response.status}`);
+    }
+
+    setItinerary({
+      ...itinerary,
+      _id: data.data.itinerary._id,
+      userId,
+    });
+
+    console.log(
+      "✅ Itinerario guardado exitosamente con ID:",
+      data.data.itinerary._id
+    );
+
+    router.push('/dashboard/my-trips');
+
+    return true;
+  } catch (err) {
+    console.error("❌ Error guardando itinerario:", err);
+    setError(
+      err instanceof Error
+        ? err.message
+        : "Error desconocido al guardar itinerario"
+    );
+    return false;
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const updateItinerary = async (
     id: string,
