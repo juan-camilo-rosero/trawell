@@ -40,18 +40,20 @@ interface NewTripFormProps {
 
 function NewTripForm({ itineraryId }: NewTripFormProps) {
   const { userData } = useUser();
-  const { 
-    generateItinerary, 
-    mapMarkers, 
-    loadItinerary, 
+  const {
+    generateItinerary,
+    mapMarkers,
+    loadItinerary,
     itinerary: contextItinerary,
-    isLoading: contextLoading 
+    isLoading: contextLoading,
   } = useItinerary();
 
   const [origin, setOrigin] = useState<string>("");
   const [originData, setOriginData] = useState<CityData | undefined>();
   const [destination, setDestination] = useState<string>("");
-  const [destinationData, setDestinationData] = useState<CityData | undefined>();
+  const [destinationData, setDestinationData] = useState<
+    CityData | undefined
+  >();
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
   const [adults, setAdults] = useState<number>(0);
@@ -67,7 +69,9 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
   const [isLoadingItinerary, setIsLoadingItinerary] = useState<boolean>(false);
 
   const [savedDestination, setSavedDestination] = useState<string>("");
-  const [savedDestinationData, setSavedDestinationData] = useState<CityData | undefined>();
+  const [savedDestinationData, setSavedDestinationData] = useState<
+    CityData | undefined
+  >();
   const [savedStartDate, setSavedStartDate] = useState<Date | undefined>();
   const [savedEndDate, setSavedEndDate] = useState<Date | undefined>();
   const [savedTotalPassengers, setSavedTotalPassengers] = useState<number>(0);
@@ -90,7 +94,8 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
       } catch (error) {
         console.error("Error cargando itinerario:", error);
         setErrors({
-          destination: "Error al cargar el itinerario. Por favor intenta nuevamente."
+          destination:
+            "Error al cargar el itinerario. Por favor intenta nuevamente.",
         });
       } finally {
         setIsLoadingItinerary(false);
@@ -101,7 +106,8 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
   }, [itineraryId, loadItinerary]);
 
   useEffect(() => {
-    if (!contextItinerary || !isUpdateMode || !hasLoadedItinerary.current) return;
+    if (!contextItinerary || !isUpdateMode || !hasLoadedItinerary.current)
+      return;
 
     console.log("📝 Pre-llenando formulario con datos del itinerario...");
 
@@ -147,8 +153,8 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
     setSavedEndDate(returnDate);
     setSavedTotalPassengers(
       contextItinerary.searchParams.travelers.adults +
-      (contextItinerary.searchParams.travelers.children || 0) +
-      (contextItinerary.searchParams.travelers.babies || 0)
+        (contextItinerary.searchParams.travelers.children || 0) +
+        (contextItinerary.searchParams.travelers.babies || 0)
     );
 
     console.log("✅ Formulario pre-llenado exitosamente");
@@ -266,68 +272,72 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const validationErrors = validateForm();
+    const validationErrors = validateForm();
 
-  if (Object.keys(validationErrors).length > 0) {
-    setErrors(validationErrors);
-    return;
-  }
-
-  setErrors({});
-  setIsLoading(true);
-
-  try {
-    await generateItinerary({
-      originCityName: originData!.name,
-      originCoordinates: originData!.coordinates,
-      originPlaceId: originData?.placeId,
-      destinationCityName: destinationData!.name,
-      destinationCoordinates: destinationData!.coordinates,
-      destinationPlaceId: destinationData?.placeId,
-      departureDate: startDate!,
-      returnDate: endDate!,
-      adults,
-      children: children > 0 ? children : undefined,
-      babies: babies > 0 ? babies : undefined,
-      travelType: tripType as
-        | "relaxation"
-        | "luxury"
-        | "cultural"
-        | "adventure"
-        | "gastronomic"
-        | "spiritual",
-      foodPreferences,
-      currency: "COP",
-    });
-
-    console.log(`✅ Itinerario ${isUpdateMode ? 'actualizado' : 'generado'} exitosamente`);
-
-    if (!isUpdateMode) {
-      setSavedDestination(destinationData!.name);
-      setSavedDestinationData(destinationData);
-      setSavedStartDate(startDate);
-      setSavedEndDate(endDate);
-      setSavedTotalPassengers(totalPassengers);
-
-      setShowItinerary(true);
-      setItineraryGenerated(true);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
     }
-  } catch (error) {
-    console.error(
-      `❌ Error al ${isUpdateMode ? "actualizar" : "generar"} itinerario:`,
-      error
-    );
-    setErrors({
-      destination: `Error al ${
-        isUpdateMode ? "actualizar" : "generar"
-      } el itinerario. Por favor intenta nuevamente.`,
-    });
-  } finally {
-    setIsLoading(false);
-  }
-};
+
+    setErrors({});
+    setIsLoading(true);
+
+    try {
+      await generateItinerary({
+        originCityName: originData!.name,
+        originCoordinates: originData!.coordinates,
+        originPlaceId: originData?.placeId,
+        destinationCityName: destinationData!.name,
+        destinationCoordinates: destinationData!.coordinates,
+        destinationPlaceId: destinationData?.placeId,
+        departureDate: startDate!,
+        returnDate: endDate!,
+        adults,
+        children: children > 0 ? children : undefined,
+        babies: babies > 0 ? babies : undefined,
+        travelType: tripType as
+          | "relaxation"
+          | "luxury"
+          | "cultural"
+          | "adventure"
+          | "gastronomic"
+          | "spiritual",
+        foodPreferences,
+        currency: "COP",
+      });
+
+      console.log(
+        `✅ Itinerario ${
+          isUpdateMode ? "actualizado" : "generado"
+        } exitosamente`
+      );
+
+      if (!isUpdateMode) {
+        setSavedDestination(destinationData!.name);
+        setSavedDestinationData(destinationData);
+        setSavedStartDate(startDate);
+        setSavedEndDate(endDate);
+        setSavedTotalPassengers(totalPassengers);
+
+        setShowItinerary(true);
+        setItineraryGenerated(true);
+      }
+    } catch (error) {
+      console.error(
+        `❌ Error al ${isUpdateMode ? "actualizar" : "generar"} itinerario:`,
+        error
+      );
+      setErrors({
+        destination: `Error al ${
+          isUpdateMode ? "actualizar" : "generar"
+        } el itinerario. Por favor intenta nuevamente.`,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleBackToForm = () => {
     setShowItineraryView(false);
@@ -383,9 +393,10 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
           className="bg-white rounded-lg flex flex-col space-y-8 pt-4 pb-0 lg:px-6"
           ref={formRef}
         >
-
           <div className="mb-0">
-            <div className={isUpdateMode ? "pointer-events-none opacity-60" : ""}>
+            <div
+              className={isUpdateMode ? "pointer-events-none opacity-60" : ""}
+            >
               <CityAutocomplete
                 value={origin}
                 onChange={handleOriginChange}
@@ -401,7 +412,9 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
           </div>
 
           <div className="mb-4">
-            <div className={isUpdateMode ? "pointer-events-none opacity-60" : ""}>
+            <div
+              className={isUpdateMode ? "pointer-events-none opacity-60" : ""}
+            >
               <CityAutocomplete
                 value={destination}
                 onChange={handleDestinationChange}
@@ -570,9 +583,9 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
           <div className="flex-1 bg-secondary-100 rounded-lg items-center justify-center flex">
             <div className="flex flex-col items-center gap-4">
               <img
-                src="static/trawell_ilustracion2.png"
+                src="https://trawell-yuxn.vercel.app/static/trawell_ilustracion3.png"
                 alt="Trawell illustration"
-                className="w-64 h-64 object-contain"
+                className="h-64"
               />
               <p className="text-muted-500 text-2xl mt-6">
                 {isLoading || contextLoading
