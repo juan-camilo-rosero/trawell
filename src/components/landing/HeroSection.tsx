@@ -5,7 +5,7 @@ import Link from "next/link";
 
 export default function Hero() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center pt-20">
       <div className="max-w-(--breakpoint-xl) w-full mx-auto grid lg:grid-cols-2 gap-12 custom-ph">
         <div>
           <h1 className="mt-6 max-w-[17ch] text-4xl md:text-5xl lg:text-[2.75rem] xl:text-[3.25rem] font-medium">
@@ -28,11 +28,11 @@ export default function Hero() {
             </Link>
           </div>
         </div>
-        <div className="w-full aspect-video bg-secondary-200 rounded-xl">
+        <div className="w-full aspect-video flex items-center justify-center rounded-xl">
           <img
-            src="static/hero_section_snoopy.jpg"
+            src="static/hero_section_illustration.png"
             alt="Snoopy"
-            className="w-full h-full object-cover rounded-xl"
+            className="h-full rounded-xl"
           />
         </div>
       </div>
