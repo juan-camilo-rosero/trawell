@@ -113,7 +113,7 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
     return `${dayName}, ${day} de ${month}`;
   };
 
-  const renderItem = (item: IItineraryItem, isLast: boolean) => {
+  const renderItem = (item: IItineraryItem) => {
     switch (item.type) {
       case "flight":
         if (!item.flightDetails) return null;
@@ -259,9 +259,7 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
               </div>
 
               <div className="flex flex-col">
-                {day.items.map((item, itemIndex) =>
-                  renderItem(item, itemIndex === day.items.length - 1)
-                )}
+                {day.items.map((item, itemIndex) => renderItem(item))}
                 <AddItem />
               </div>
             </div>
