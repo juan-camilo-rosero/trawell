@@ -89,7 +89,6 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
       hasLoadedItinerary.current = true;
       setIsLoadingItinerary(true);
       try {
-        console.log("📖 Cargando itinerario existente para editar...");
         await loadItinerary(itineraryId);
       } catch (error) {
         console.error("Error cargando itinerario:", error);
@@ -108,8 +107,6 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
   useEffect(() => {
     if (!contextItinerary || !isUpdateMode || !hasLoadedItinerary.current)
       return;
-
-    console.log("📝 Pre-llenando formulario con datos del itinerario...");
 
     setOrigin(contextItinerary.searchParams.originCity.name);
     setOriginData({
@@ -308,11 +305,6 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
         currency: "COP",
       });
 
-      console.log(
-        `✅ Itinerario ${
-          isUpdateMode ? "actualizado" : "generado"
-        } exitosamente`
-      );
 
       if (!isUpdateMode) {
         setSavedDestination(destinationData!.name);

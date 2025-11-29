@@ -5,6 +5,7 @@ import FlightItem from "./itinerary/FlightItem";
 import HotelItem from "./itinerary/HotelItem";
 import RestaurantItem from "./itinerary/RestaurantItem";
 import TouristSiteItem from "./itinerary/TouristSiteItem";
+import AddItem from "./itinerary/AddItem";
 import type { IItineraryItem } from "@/models/itinerary/interfaces";
 import MapView from "@/components/dashboard/MapView";
 import { useRouter } from "next/navigation";
@@ -122,7 +123,7 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
             title={item.title}
             flightDetails={item.flightDetails}
             price={item.price}
-            isLast={isLast}
+            isLast={false}
           />
         );
       case "accommodation":
@@ -135,7 +136,7 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
             location={item.location}
             price={item.price}
             stars={4}
-            isLast={isLast}
+            isLast={false}
           />
         );
       case "food":
@@ -146,7 +147,7 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
             title={item.title}
             foodDetails={item.foodDetails}
             location={item.location}
-            isLast={isLast}
+            isLast={false}
           />
         );
       case "tourist_site":
@@ -159,7 +160,7 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
             touristSiteDetails={item.touristSiteDetails}
             location={item.location}
             price={item.price}
-            isLast={isLast}
+            isLast={false}
           />
         );
       default:
@@ -172,9 +173,7 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
       <div className="w-full h-full flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-          <p className="text-muted-500 text-lg">
-            Cargando
-          </p>
+          <p className="text-muted-500 text-lg">Cargando</p>
         </div>
       </div>
     );
@@ -263,6 +262,7 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
                 {day.items.map((item, itemIndex) =>
                   renderItem(item, itemIndex === day.items.length - 1)
                 )}
+                <AddItem />
               </div>
             </div>
           ))}

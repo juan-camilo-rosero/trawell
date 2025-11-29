@@ -59,6 +59,10 @@
   @apply w-12 h-12 rounded-full bg-primary flex items-center justify-center flex-shrink-0;
 }
 
+.itinerary-icon-circle-add {
+  @apply w-12 h-12 rounded-full bg-secondary-100 border-2 border-primary cursor-pointer flex items-center justify-center flex-shrink-0 transition-all hover:bg-secondary-200;
+}
+
 .itinerary-connector-line {
   @apply w-0.5 bg-primary mx-auto;
 }
