@@ -234,7 +234,8 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
       setAvailableFlights(result.availableFlights || []);
 
       if (itinerary?._id) {
-        const { _id: _, ...updates } = itineraryData;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { _id, ...updates } = itineraryData;
         await updateItinerary(itinerary._id, updates);
       }
 
@@ -265,7 +266,8 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
       if (day.dayNumber === dayNumber) {
         const maxOrder = Math.max(...day.items.map((item) => item.order), 0);
 
-        const { _id: _, ...itemWithoutId } = newItem;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { _id, ...itemWithoutId } = newItem;
         const itemWithOrder: IItineraryItem = {
           ...itemWithoutId,
           order: maxOrder + 1,
