@@ -99,11 +99,6 @@ const ItineraryContext = createContext<ItineraryContextType | undefined>(
   undefined
 );
 
-interface ObjectIdLike {
-  toString: () => string;
-  _bsontype: string;
-}
-
 function generateObjectId(): string {
   const timestamp = ((new Date().getTime() / 1000) | 0).toString(16);
   const objectId =
@@ -274,73 +269,72 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
   };
 
   const addItemToDay = async (
-    dayNumber: number,
-    newItem: IItineraryItem
-  ): Promise<boolean> => {
-    if (!itinerary) {
-      setError("No hay itinerario activo");
-      return false;
-    }
+  dayNumber: number,
+  newItem: IItineraryItem
+): Promise<boolean> => {
+  if (!itinerary) {
+    setError("No hay itinerario activo");
+    return false;
+  }
 
-    try {
-      const updatedDays = itinerary.days.map((day) => {
-        if (day.dayNumber === dayNumber) {
-          const maxOrder = Math.max(...day.items.map((item) => item.order), 0);
+  try {
+    const updatedDays = itinerary.days.map((day) => {
+      if (day.dayNumber === dayNumber) {
+        const maxOrder = Math.max(...day.items.map((item) => item.order), 0);
 
-          const { _id: itemId, ...itemWithoutId } = newItem;
-          const itemWithOrder: IItineraryItem = {
-            ...itemWithoutId,
-            order: maxOrder + 1,
-            _id: generateObjectId(),
-          };
+        // Simplemente excluye _id sin asignarlo a una variable
+        const { _id, ...itemWithoutId } = newItem;
+        const itemWithOrder: IItineraryItem = {
+          ...itemWithoutId,
+          order: maxOrder + 1,
+          _id: generateObjectId(), // Genera un nuevo ID
+        };
 
-          return {
-            ...day,
-            items: [...day.items, itemWithOrder],
-          };
-        }
-        return day;
-      });
-
-      const newTotalPrice = updatedDays.reduce((total, day) => {
-        return (
-          total + day.items.reduce((dayTotal, item) => dayTotal + item.price, 0)
-        );
-      }, 0);
-
-      const updatedItinerary: ItineraryData = {
-        ...itinerary,
-        days: updatedDays,
-        totalPrice: Math.round(newTotalPrice),
-        updatedAt: new Date(),
-      };
-
-      setItinerary(updatedItinerary);
-
-      if (itinerary._id) {
-        const { _id: itineraryId, ...updates } = updatedItinerary;
-        const success = await updateItinerary(itinerary._id, updates);
-
-        // Usamos itineraryId solo para el log si es necesario
-        console.log(`Itinerario ID: ${itineraryId}`);
-
-        if (!success) {
-          console.error("❌ Error al actualizar en BD");
-          setItinerary(itinerary);
-          return false;
-        }
+        return {
+          ...day,
+          items: [...day.items, itemWithOrder],
+        };
       }
+      return day;
+    });
 
-      console.log(`✅ Item añadido al día ${dayNumber} exitosamente`);
-      return true;
-    } catch (err) {
-      console.error("❌ Error añadiendo item:", err);
-      setError(
-        err instanceof Error ? err.message : "Error desconocido al añadir item"
+    const newTotalPrice = updatedDays.reduce((total, day) => {
+      return (
+        total +
+        day.items.reduce((dayTotal, item) => dayTotal + item.price, 0)
       );
-      return false;
+    }, 0);
+
+    const updatedItinerary: ItineraryData = {
+      ...itinerary,
+      days: updatedDays,
+      totalPrice: Math.round(newTotalPrice),
+      updatedAt: new Date(),
+    };
+
+    setItinerary(updatedItinerary);
+
+    if (itinerary._id) {
+      const { _id: itineraryId, ...updates } = updatedItinerary;
+      const success = await updateItinerary(itinerary._id, updates);
+
+      if (!success) {
+        console.error("❌ Error al actualizar en BD");
+        setItinerary(itinerary);
+        return false;
+      }
     }
-  };
+
+    console.log(`✅ Item añadido al día ${dayNumber} exitosamente`);
+    return true;
+  } catch (err) {
+    console.error("❌ Error añadiendo item:", err);
+    setError(
+      err instanceof Error ? err.message : "Error desconocido al añadir item"
+    );
+    return false;
+  }
+};
 
   const saveItinerary = async (userId: string): Promise<boolean> => {
     if (!itinerary) {
