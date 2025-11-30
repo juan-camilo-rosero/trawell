@@ -1,5 +1,3 @@
-// @/contexts/ItineraryContext.tsx
-
 "use client";
 import React, {
   createContext,
@@ -7,13 +5,24 @@ import React, {
   useState,
   ReactNode,
   useEffect,
-  useCallback
+  useCallback,
 } from "react";
 import {
   itineraryGeneratorService,
   GenerateItineraryRequest,
+  GenerateItineraryResponse,
 } from "@/lib/services/itinerary-generator.service";
-import { IDay, ISearchParams } from "@/models/itinerary/interfaces";
+import {
+  HotelResponse,
+  RestaurantResponse,
+  TouristSiteResponse,
+  FlightResponse,
+} from "@/models/types";
+import {
+  IDay,
+  ISearchParams,
+  IItineraryItem,
+} from "@/models/itinerary/interfaces";
 import { RestaurantCategory } from "@/models/types";
 import { MapMarker } from "@/models/types/map.types";
 import { getAuth } from "firebase/auth";
@@ -39,6 +48,10 @@ interface ItineraryContextType {
   isLoading: boolean;
   error: string | null;
   mapMarkers: MapMarker[];
+  availableHotels: HotelResponse[];
+  availableRestaurants: RestaurantResponse[];
+  availableTouristSites: TouristSiteResponse[];
+  availableFlights: FlightResponse[];
   generateItinerary: (params: GenerateItineraryParams) => Promise<void>;
   saveItinerary: (userId: string) => Promise<boolean>;
   updateItinerary: (
@@ -50,6 +63,7 @@ interface ItineraryContextType {
   loadUserItineraries: () => Promise<void>;
   loadPublicItineraries: (limit?: number, skip?: number) => Promise<void>;
   clearItinerary: () => void;
+  addItemToDay: (dayNumber: number, item: IItineraryItem) => Promise<boolean>;
 }
 
 export interface GenerateItineraryParams {
@@ -85,6 +99,19 @@ const ItineraryContext = createContext<ItineraryContextType | undefined>(
   undefined
 );
 
+function generateObjectId(): any {
+  const timestamp = ((new Date().getTime() / 1000) | 0).toString(16);
+  const objectId =
+    timestamp +
+    "xxxxxxxxxxxxxxxx"
+      .replace(/[x]/g, () => {
+        return ((Math.random() * 16) | 0).toString(16);
+      })
+      .toLowerCase();
+
+  return { toString: () => objectId, _bsontype: "ObjectId" };
+}
+
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "https://trawell-yuxn.vercel.app/api";
 
@@ -94,6 +121,17 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [mapMarkers, setMapMarkers] = useState<MapMarker[]>([]);
+
+  const [availableHotels, setAvailableHotels] = useState<HotelResponse[]>([]);
+  const [availableRestaurants, setAvailableRestaurants] = useState<
+    RestaurantResponse[]
+  >([]);
+  const [availableTouristSites, setAvailableTouristSites] = useState<
+    TouristSiteResponse[]
+  >([]);
+  const [availableFlights, setAvailableFlights] = useState<FlightResponse[]>(
+    []
+  );
 
   const router = useRouter();
 
@@ -125,7 +163,6 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
 
     itinerary.days.forEach((day) => {
       day.items.forEach((item) => {
-        // Verificar si el item tiene coordenadas válidas
         if (
           !item.location?.coordinates?.lat ||
           !item.location?.coordinates?.lng
@@ -159,123 +196,212 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
   }, [itinerary]);
 
   const generateItinerary = async (params: GenerateItineraryParams) => {
-  setIsLoading(true);
-  setError(null);
+    setIsLoading(true);
+    setError(null);
 
-  try {
-    console.log("🚀 Generando itinerario desde contexto...");
+    try {
+      console.log("🚀 Generando itinerario desde contexto...");
 
-    const request: GenerateItineraryRequest = {
-      ...params,
-    };
+      const request: GenerateItineraryRequest = {
+        ...params,
+      } as GenerateItineraryRequest;
 
-    const result = await itineraryGeneratorService.generateItinerary(request);
+      const result: GenerateItineraryResponse =
+        await itineraryGeneratorService.generateItinerary(request);
 
-    const itineraryData: ItineraryData = {
-      userId: itinerary?._id ? itinerary.userId : "temp-user-id",
-      _id: itinerary?._id,
-      searchParams: result.searchParams,
-      title: result.title,
-      totalPrice: result.totalPrice,
-      currency: result.currency,
-      isPublic: false,
-      days: result.days,
-      createdAt: itinerary?.createdAt || new Date(),
-      updatedAt: new Date(),
-    };
+      const itineraryData: ItineraryData = {
+        userId: "temp-user-id",
+        _id: itinerary?._id,
+        searchParams: result.searchParams,
+        title: result.title,
+        totalPrice: result.totalPrice,
+        currency: result.currency,
+        isPublic: false,
+        days: result.days,
+        createdAt: itinerary?.createdAt || new Date(),
+        updatedAt: new Date(),
+      };
 
-    setItinerary(itineraryData);
+      const auth = getAuth();
+      const user = auth.currentUser;
+      if (user) {
+        itineraryData.userId = user.uid;
+      }
 
-    if (itinerary?._id && itinerary.userId !== "temp-user-id") {
-      console.log("🔄 Actualizando itinerario existente en BD...");
-      await updateItinerary(itinerary._id, itineraryData);
+      setItinerary(itineraryData);
+
+      // Guardar todas las opciones disponibles
+      setAvailableHotels(result.availableHotels || []);
+      setAvailableRestaurants(result.availableRestaurants || []);
+      setAvailableTouristSites(result.availableTouristSites || []);
+      setAvailableFlights(result.availableFlights || []);
+
+      console.log("📦 Opciones disponibles guardadas:");
+      console.log("  - Hoteles:", result.availableHotels?.length || 0);
+      console.log(
+        "  - Restaurantes:",
+        result.availableRestaurants?.length || 0
+      );
+      console.log(
+        "  - Sitios turísticos:",
+        result.availableTouristSites?.length || 0
+      );
+
+      if (itinerary?._id) {
+        console.log("🔄 Actualizando itinerario existente en BD...");
+        const { _id, ...updates } = itineraryData;
+        await updateItinerary(itinerary._id, updates);
+      }
+
+      console.log("✅ Itinerario generado y guardado en contexto");
+    } catch (err) {
+      console.error("❌ Error generando itinerario:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Error desconocido al generar itinerario"
+      );
+      setItinerary(null);
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    console.log("✅ Itinerario generado y guardado en contexto");
-  } catch (err) {
-    console.error("❌ Error generando itinerario:", err);
-    setError(
-      err instanceof Error
-        ? err.message
-        : "Error desconocido al generar itinerario"
-    );
-    setItinerary(null);
-  } finally {
-    setIsLoading(false);
-  }
-};
-
-  const saveItinerary = async (userId: string): Promise<boolean> => {
-  if (!itinerary) {
-    setError("No hay itinerario para guardar");
-    return false;
-  }
-
-  setIsLoading(true);
-  setError(null);
-
-  try {
-    console.log("💾 Guardando itinerario en la base de datos...");
-
-    const token = await getFirebaseToken();
-    if (!token) {
-      setError("No se pudo obtener el token de autenticación");
+  const addItemToDay = async (
+    dayNumber: number,
+    newItem: IItineraryItem
+  ): Promise<boolean> => {
+    if (!itinerary) {
+      setError("No hay itinerario activo");
       return false;
     }
 
-    const response = await fetch(`${API_BASE_URL}/itineraries`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
+    try {
+      const updatedDays = itinerary.days.map((day) => {
+        if (day.dayNumber === dayNumber) {
+          // Calcular nuevo order (después del último item)
+          const maxOrder = Math.max(...day.items.map((item) => item.order), 0);
+          const itemWithOrder = {
+            ...newItem,
+            order: maxOrder + 1,
+            _id: generateObjectId(),
+          };
+
+          return {
+            ...day,
+            items: [...day.items, itemWithOrder],
+          };
+        }
+        return day;
+      });
+
+      // Recalcular precio total
+      const newTotalPrice = updatedDays.reduce((total, day) => {
+        return (
+          total + day.items.reduce((dayTotal, item) => dayTotal + item.price, 0)
+        );
+      }, 0);
+
+      const updatedItinerary: ItineraryData = {
         ...itinerary,
-        userId,
-      }),
-    });
+        days: updatedDays,
+        totalPrice: Math.round(newTotalPrice),
+        updatedAt: new Date(),
+      };
 
-    const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-      const text = await response.text();
-      console.error("Response no es JSON:", text);
-      throw new Error(
-        `La respuesta del servidor no es JSON válida. Status: ${response.status}`
+      setItinerary(updatedItinerary);
+
+      // Si tiene _id, actualizar en BD
+      if (itinerary._id) {
+        const { _id, ...updates } = updatedItinerary;
+        await updateItinerary(itinerary._id, updates);
+      }
+
+      console.log(`✅ Item añadido al día ${dayNumber} exitosamente`);
+      return true;
+    } catch (err) {
+      console.error("❌ Error añadiendo item:", err);
+      setError(
+        err instanceof Error ? err.message : "Error desconocido al añadir item"
       );
+      return false;
+    }
+  };
+
+  const saveItinerary = async (userId: string): Promise<boolean> => {
+    if (!itinerary) {
+      setError("No hay itinerario para guardar");
+      return false;
     }
 
-    const data = await response.json();
+    setIsLoading(true);
+    setError(null);
 
-    if (!response.ok || !data.success) {
-      throw new Error(data.error || `Error HTTP: ${response.status}`);
+    try {
+      console.log("💾 Guardando itinerario en la base de datos...");
+
+      const token = await getFirebaseToken();
+      if (!token) {
+        setError("No se pudo obtener el token de autenticación");
+        return false;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/itineraries`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          ...itinerary,
+          userId,
+          _id: undefined, // Asegurar que no enviamos un _id temporal
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }),
+      });
+
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await response.text();
+        console.error("Response no es JSON:", text);
+        throw new Error(
+          `La respuesta del servidor no es JSON válida. Status: ${response.status}`
+        );
+      }
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || `Error HTTP: ${response.status}`);
+      }
+
+      setItinerary({
+        ...itinerary,
+        _id: data.data.itinerary._id,
+        userId,
+      });
+
+      console.log(
+        "✅ Itinerario guardado exitosamente con ID:",
+        data.data.itinerary._id
+      );
+
+      router.push("/dashboard/my-trips");
+
+      return true;
+    } catch (err) {
+      console.error("❌ Error guardando itinerario:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Error desconocido al guardar itinerario"
+      );
+      return false;
+    } finally {
+      setIsLoading(false);
     }
-
-    setItinerary({
-      ...itinerary,
-      _id: data.data.itinerary._id,
-      userId,
-    });
-
-    console.log(
-      "✅ Itinerario guardado exitosamente con ID:",
-      data.data.itinerary._id
-    );
-
-    router.push('/dashboard/my-trips');
-
-    return true;
-  } catch (err) {
-    console.error("❌ Error guardando itinerario:", err);
-    setError(
-      err instanceof Error
-        ? err.message
-        : "Error desconocido al guardar itinerario"
-    );
-    return false;
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   const updateItinerary = async (
     id: string,
@@ -293,13 +419,19 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
         return false;
       }
 
+      // Establecer la fecha de actualización automáticamente
+      const updatesWithTimestamp = {
+        ...updates,
+        updatedAt: new Date(),
+      };
+
       const response = await fetch(`${API_BASE_URL}/itineraries/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(updates),
+        body: JSON.stringify(updatesWithTimestamp),
       });
 
       const data = await response.json();
@@ -353,10 +485,14 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
         },
       });
 
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || `Error HTTP: ${response.status}`);
+      // No esperamos JSON si el DELETE es exitoso y responde 204/200 sin cuerpo.
+      if (!response.ok) {
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const data = await response.json();
+          throw new Error(data.error || `Error HTTP: ${response.status}`);
+        }
+        throw new Error(`Error HTTP: ${response.status}`);
       }
 
       // Si el itinerario eliminado es el actual, limpiarlo
@@ -383,47 +519,47 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
   };
 
   const loadItinerary = useCallback(async (id: string): Promise<void> => {
-  setIsLoading(true);
-  setError(null);
+    setIsLoading(true);
+    setError(null);
 
-  try {
-    console.log(`📖 Cargando itinerario ${id}...`);
+    try {
+      console.log(`📖 Cargando itinerario ${id}...`);
 
-    const token = await getFirebaseToken();
+      const token = await getFirebaseToken();
 
-    const headers: HeadersInit = {
-      "Content-Type": "application/json",
-    };
+      const headers: HeadersInit = {
+        "Content-Type": "application/json",
+      };
 
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/itineraries/${id}`, {
+        method: "GET",
+        headers,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || `Error HTTP: ${response.status}`);
+      }
+
+      setItinerary(data.data.itinerary);
+      console.log("✅ Itinerario cargado exitosamente");
+    } catch (err) {
+      console.error("❌ Error cargando itinerario:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Error desconocido al cargar itinerario"
+      );
+      setItinerary(null);
+    } finally {
+      setIsLoading(false);
     }
-
-    const response = await fetch(`${API_BASE_URL}/itineraries/${id}`, {
-      method: "GET",
-      headers,
-    });
-
-    const data = await response.json();
-
-    if (!response.ok || !data.success) {
-      throw new Error(data.error || `Error HTTP: ${response.status}`);
-    }
-
-    setItinerary(data.data.itinerary);
-    console.log("✅ Itinerario cargado exitosamente");
-  } catch (err) {
-    console.error("❌ Error cargando itinerario:", err);
-    setError(
-      err instanceof Error
-        ? err.message
-        : "Error desconocido al cargar itinerario"
-    );
-    setItinerary(null);
-  } finally {
-    setIsLoading(false);
-  }
-}, []);
+  }, []);
 
   const loadUserItineraries = async (): Promise<void> => {
     setIsLoading(true);
@@ -512,6 +648,10 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
     setItinerary(null);
     setError(null);
     setMapMarkers([]);
+    setAvailableHotels([]);
+    setAvailableRestaurants([]);
+    setAvailableTouristSites([]);
+    setAvailableFlights([]);
   };
 
   const value: ItineraryContextType = {
@@ -520,6 +660,10 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
     isLoading,
     error,
     mapMarkers,
+    availableHotels,
+    availableRestaurants,
+    availableTouristSites,
+    availableFlights,
     generateItinerary,
     saveItinerary,
     updateItinerary,
@@ -528,6 +672,7 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
     loadUserItineraries,
     loadPublicItineraries,
     clearItinerary,
+    addItemToDay,
   };
 
   return (
