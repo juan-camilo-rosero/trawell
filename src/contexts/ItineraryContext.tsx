@@ -200,8 +200,6 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
     setError(null);
 
     try {
-      console.log("🚀 Generando itinerario desde contexto...");
-
       const request: GenerateItineraryRequest = {
         ...params,
       } as GenerateItineraryRequest;
@@ -235,26 +233,11 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
       setAvailableTouristSites(result.availableTouristSites || []);
       setAvailableFlights(result.availableFlights || []);
 
-      console.log("📦 Opciones disponibles guardadas:");
-      console.log("  - Hoteles:", result.availableHotels?.length || 0);
-      console.log(
-        "  - Restaurantes:",
-        result.availableRestaurants?.length || 0
-      );
-      console.log(
-        "  - Sitios turísticos:",
-        result.availableTouristSites?.length || 0
-      );
-
       if (itinerary?._id) {
-        console.log("🔄 Actualizando itinerario existente en BD...");
-        const { _id: existingId, ...updates } = itineraryData;
+        const { _id: _, ...updates } = itineraryData;
         await updateItinerary(itinerary._id, updates);
-        // Usamos existingId solo para el log si es necesario
-        console.log(`ID existente: ${existingId}`);
       }
 
-      console.log("✅ Itinerario generado y guardado en contexto");
     } catch (err) {
       console.error("❌ Error generando itinerario:", err);
       setError(
@@ -282,12 +265,11 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
       if (day.dayNumber === dayNumber) {
         const maxOrder = Math.max(...day.items.map((item) => item.order), 0);
 
-        // Simplemente excluye _id sin asignarlo a una variable
-        const { _id, ...itemWithoutId } = newItem;
+        const { _id: _, ...itemWithoutId } = newItem;
         const itemWithOrder: IItineraryItem = {
           ...itemWithoutId,
           order: maxOrder + 1,
-          _id: generateObjectId(), // Genera un nuevo ID
+          _id: generateObjectId(),
         };
 
         return {
