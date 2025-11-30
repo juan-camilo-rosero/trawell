@@ -99,7 +99,12 @@ const ItineraryContext = createContext<ItineraryContextType | undefined>(
   undefined
 );
 
-function generateObjectId(): any {
+interface ObjectIdLike {
+  toString: () => string;
+  _bsontype: string;
+}
+
+function generateObjectId(): string {
   const timestamp = ((new Date().getTime() / 1000) | 0).toString(16);
   const objectId =
     timestamp +
@@ -109,7 +114,7 @@ function generateObjectId(): any {
       })
       .toLowerCase();
 
-  return { toString: () => objectId, _bsontype: "ObjectId" };
+  return objectId;
 }
 
 const API_BASE_URL =
@@ -248,8 +253,10 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
 
       if (itinerary?._id) {
         console.log("🔄 Actualizando itinerario existente en BD...");
-        const { _id, ...updates } = itineraryData;
+        const { _id: existingId, ...updates } = itineraryData;
         await updateItinerary(itinerary._id, updates);
+        // Usamos existingId solo para el log si es necesario
+        console.log(`ID existente: ${existingId}`);
       }
 
       console.log("✅ Itinerario generado y guardado en contexto");
@@ -267,72 +274,73 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
   };
 
   const addItemToDay = async (
-  dayNumber: number,
-  newItem: IItineraryItem
-): Promise<boolean> => {
-  if (!itinerary) {
-    setError("No hay itinerario activo");
-    return false;
-  }
-
-  try {
-    const updatedDays = itinerary.days.map((day) => {
-      if (day.dayNumber === dayNumber) {
-        const maxOrder = Math.max(...day.items.map((item) => item.order), 0);
-        
-        const { _id, ...itemWithoutId } = newItem;
-        const itemWithOrder: IItineraryItem = {
-          ...itemWithoutId,
-          order: maxOrder + 1,
-          _id: generateObjectId().toString(),
-        };
-
-        return {
-          ...day,
-          items: [...day.items, itemWithOrder],
-        };
-      }
-      return day;
-    });
-
-    const newTotalPrice = updatedDays.reduce((total, day) => {
-      return (
-        total + day.items.reduce((dayTotal, item) => dayTotal + item.price, 0)
-      );
-    }, 0);
-
-    const updatedItinerary: ItineraryData = {
-      ...itinerary,
-      days: updatedDays,
-      totalPrice: Math.round(newTotalPrice),
-      updatedAt: new Date(),
-    };
-
-    setItinerary(updatedItinerary);
-
-    if (itinerary._id) {
-      const { _id, ...updates } = updatedItinerary;
-      const success = await updateItinerary(itinerary._id, updates);
-      
-      if (!success) {
-        console.error("❌ Error al actualizar en BD");
-        setItinerary(itinerary);
-        return false;
-      }
+    dayNumber: number,
+    newItem: IItineraryItem
+  ): Promise<boolean> => {
+    if (!itinerary) {
+      setError("No hay itinerario activo");
+      return false;
     }
 
-    console.log(`✅ Item añadido al día ${dayNumber} exitosamente`);
-    return true;
-  } catch (err) {
-    console.error("❌ Error añadiendo item:", err);
-    setError(
-      err instanceof Error
-        ? err.message
-        : "Error desconocido al añadir item"
-    );
-    return false;
-  }
-};
+    try {
+      const updatedDays = itinerary.days.map((day) => {
+        if (day.dayNumber === dayNumber) {
+          const maxOrder = Math.max(...day.items.map((item) => item.order), 0);
+
+          const { _id: itemId, ...itemWithoutId } = newItem;
+          const itemWithOrder: IItineraryItem = {
+            ...itemWithoutId,
+            order: maxOrder + 1,
+            _id: generateObjectId(),
+          };
+
+          return {
+            ...day,
+            items: [...day.items, itemWithOrder],
+          };
+        }
+        return day;
+      });
+
+      const newTotalPrice = updatedDays.reduce((total, day) => {
+        return (
+          total + day.items.reduce((dayTotal, item) => dayTotal + item.price, 0)
+        );
+      }, 0);
+
+      const updatedItinerary: ItineraryData = {
+        ...itinerary,
+        days: updatedDays,
+        totalPrice: Math.round(newTotalPrice),
+        updatedAt: new Date(),
+      };
+
+      setItinerary(updatedItinerary);
+
+      if (itinerary._id) {
+        const { _id: itineraryId, ...updates } = updatedItinerary;
+        const success = await updateItinerary(itinerary._id, updates);
+
+        // Usamos itineraryId solo para el log si es necesario
+        console.log(`Itinerario ID: ${itineraryId}`);
+
+        if (!success) {
+          console.error("❌ Error al actualizar en BD");
+          setItinerary(itinerary);
+          return false;
+        }
+      }
+
+      console.log(`✅ Item añadido al día ${dayNumber} exitosamente`);
+      return true;
+    } catch (err) {
+      console.error("❌ Error añadiendo item:", err);
+      setError(
+        err instanceof Error ? err.message : "Error desconocido al añadir item"
+      );
+      return false;
+    }
+  };
 
   const saveItinerary = async (userId: string): Promise<boolean> => {
     if (!itinerary) {

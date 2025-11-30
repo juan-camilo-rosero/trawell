@@ -12,7 +12,7 @@ import {
 import { convertToCOP } from "./currency.helpers";
 import { estimateMealPrice, estimateVisitDuration } from "./itinerary.helpers";
 
-function generateObjectId(): any {
+function generateObjectId(): string {
   const timestamp = ((new Date().getTime() / 1000) | 0).toString(16);
   const objectId =
     timestamp +
@@ -22,7 +22,7 @@ function generateObjectId(): any {
       })
       .toLowerCase();
 
-  return { toString: () => objectId, _bsontype: "ObjectId" };
+  return objectId;
 }
 
 export function createHotelItemFromResponse(

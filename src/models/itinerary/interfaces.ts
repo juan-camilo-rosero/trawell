@@ -66,7 +66,7 @@ export interface ITouristSiteDetails {
 }
 
 export interface IItineraryItem {
-  _id: Types.ObjectId;
+  _id?: Types.ObjectId | string;
   itemId: string;
   type: ItemType;
   order: number;
@@ -82,7 +82,7 @@ export interface IItineraryItem {
 }
 
 export interface IDay {
-  _id: Types.ObjectId;
+  _id?: Types.ObjectId | string;
   dayNumber: number;
   date: Date;
   items: IItineraryItem[];

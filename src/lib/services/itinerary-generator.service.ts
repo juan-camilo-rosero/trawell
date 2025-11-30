@@ -497,7 +497,7 @@ export class ItineraryGeneratorService {
       }
 
       days.push({
-        _id: new Types.ObjectId(),
+        _id: new Types.ObjectId().toString(),
         dayNumber: dayNum,
         date: currentDate,
         items,
@@ -569,7 +569,7 @@ export class ItineraryGeneratorService {
           }`;
 
     return {
-      _id: new Types.ObjectId(),
+      _id: new Types.ObjectId().toString(),
       itemId: `flight-${direction}-${order}`,
       type: "flight",
       order,
@@ -638,7 +638,7 @@ export class ItineraryGeneratorService {
     console.log(`  Precio por noche: COP ${pricePerNight.toLocaleString()}`);
 
     return {
-      _id: new Types.ObjectId(),
+      _id: new Types.ObjectId().toString(),
       itemId: `accommodation-night-${order}`,
       type: "accommodation",
       order,
@@ -685,7 +685,7 @@ export class ItineraryGeneratorService {
     };
 
     return {
-      _id: new Types.ObjectId(),
+      _id: new Types.ObjectId().toString(),
       itemId: `food-${mealType}-${order}`,
       type: "food",
       order,
@@ -731,7 +731,7 @@ export class ItineraryGeneratorService {
     };
 
     return {
-      _id: new Types.ObjectId(),
+      _id: new Types.ObjectId().toString(),
       itemId: `tourist-${site.placeId}-${order}`,
       type: "tourist_site",
       order,
