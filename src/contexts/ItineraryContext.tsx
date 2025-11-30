@@ -230,7 +230,6 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
 
       setItinerary(itineraryData);
 
-      // Guardar todas las opciones disponibles
       setAvailableHotels(result.availableHotels || []);
       setAvailableRestaurants(result.availableRestaurants || []);
       setAvailableTouristSites(result.availableTouristSites || []);
@@ -268,65 +267,72 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
   };
 
   const addItemToDay = async (
-    dayNumber: number,
-    newItem: IItineraryItem
-  ): Promise<boolean> => {
-    if (!itinerary) {
-      setError("No hay itinerario activo");
-      return false;
-    }
+  dayNumber: number,
+  newItem: IItineraryItem
+): Promise<boolean> => {
+  if (!itinerary) {
+    setError("No hay itinerario activo");
+    return false;
+  }
 
-    try {
-      const updatedDays = itinerary.days.map((day) => {
-        if (day.dayNumber === dayNumber) {
-          // Calcular nuevo order (después del último item)
-          const maxOrder = Math.max(...day.items.map((item) => item.order), 0);
-          const itemWithOrder = {
-            ...newItem,
-            order: maxOrder + 1,
-            _id: generateObjectId(),
-          };
+  try {
+    const updatedDays = itinerary.days.map((day) => {
+      if (day.dayNumber === dayNumber) {
+        const maxOrder = Math.max(...day.items.map((item) => item.order), 0);
+        
+        const { _id, ...itemWithoutId } = newItem;
+        const itemWithOrder: IItineraryItem = {
+          ...itemWithoutId,
+          order: maxOrder + 1,
+          _id: generateObjectId().toString(),
+        };
 
-          return {
-            ...day,
-            items: [...day.items, itemWithOrder],
-          };
-        }
-        return day;
-      });
-
-      // Recalcular precio total
-      const newTotalPrice = updatedDays.reduce((total, day) => {
-        return (
-          total + day.items.reduce((dayTotal, item) => dayTotal + item.price, 0)
-        );
-      }, 0);
-
-      const updatedItinerary: ItineraryData = {
-        ...itinerary,
-        days: updatedDays,
-        totalPrice: Math.round(newTotalPrice),
-        updatedAt: new Date(),
-      };
-
-      setItinerary(updatedItinerary);
-
-      // Si tiene _id, actualizar en BD
-      if (itinerary._id) {
-        const { _id, ...updates } = updatedItinerary;
-        await updateItinerary(itinerary._id, updates);
+        return {
+          ...day,
+          items: [...day.items, itemWithOrder],
+        };
       }
+      return day;
+    });
 
-      console.log(`✅ Item añadido al día ${dayNumber} exitosamente`);
-      return true;
-    } catch (err) {
-      console.error("❌ Error añadiendo item:", err);
-      setError(
-        err instanceof Error ? err.message : "Error desconocido al añadir item"
+    const newTotalPrice = updatedDays.reduce((total, day) => {
+      return (
+        total + day.items.reduce((dayTotal, item) => dayTotal + item.price, 0)
       );
-      return false;
+    }, 0);
+
+    const updatedItinerary: ItineraryData = {
+      ...itinerary,
+      days: updatedDays,
+      totalPrice: Math.round(newTotalPrice),
+      updatedAt: new Date(),
+    };
+
+    setItinerary(updatedItinerary);
+
+    if (itinerary._id) {
+      const { _id, ...updates } = updatedItinerary;
+      const success = await updateItinerary(itinerary._id, updates);
+      
+      if (!success) {
+        console.error("❌ Error al actualizar en BD");
+        setItinerary(itinerary);
+        return false;
+      }
     }
-  };
+
+    console.log(`✅ Item añadido al día ${dayNumber} exitosamente`);
+    return true;
+  } catch (err) {
+    console.error("❌ Error añadiendo item:", err);
+    setError(
+      err instanceof Error
+        ? err.message
+        : "Error desconocido al añadir item"
+    );
+    return false;
+  }
+};
 
   const saveItinerary = async (userId: string): Promise<boolean> => {
     if (!itinerary) {
@@ -355,7 +361,7 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({
           ...itinerary,
           userId,
-          _id: undefined, // Asegurar que no enviamos un _id temporal
+          _id: undefined,
           createdAt: new Date(),
           updatedAt: new Date(),
         }),
@@ -419,7 +425,6 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
         return false;
       }
 
-      // Establecer la fecha de actualización automáticamente
       const updatesWithTimestamp = {
         ...updates,
         updatedAt: new Date(),
@@ -440,12 +445,10 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
         throw new Error(data.error || `Error HTTP: ${response.status}`);
       }
 
-      // Actualizar el itinerario en el estado si es el actual
       if (itinerary?._id === id) {
         setItinerary(data.data.itinerary);
       }
 
-      // Actualizar en la lista de itinerarios
       setItineraries((prev) =>
         prev.map((item) => (item._id === id ? data.data.itinerary : item))
       );
@@ -485,7 +488,6 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
         },
       });
 
-      // No esperamos JSON si el DELETE es exitoso y responde 204/200 sin cuerpo.
       if (!response.ok) {
         const contentType = response.headers.get("content-type");
         if (contentType && contentType.includes("application/json")) {
@@ -495,12 +497,10 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
         throw new Error(`Error HTTP: ${response.status}`);
       }
 
-      // Si el itinerario eliminado es el actual, limpiarlo
       if (itinerary?._id === id) {
         setItinerary(null);
       }
 
-      // Remover de la lista de itinerarios
       setItineraries((prev) => prev.filter((item) => item._id !== id));
 
       console.log("✅ Itinerario eliminado exitosamente");

@@ -1,7 +1,6 @@
 import { convertToCOP } from "@/lib/helpers/currency.helpers";
 
 import {
-  RestaurantCategory,
   FlightResponse,
   HotelResponse,
   RestaurantResponse,

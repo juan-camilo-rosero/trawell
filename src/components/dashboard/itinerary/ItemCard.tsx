@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { FiStar, FiMapPin } from "react-icons/fi";
+import { FiStar } from "react-icons/fi";
 
 interface ItemCardProps {
   title: string;
