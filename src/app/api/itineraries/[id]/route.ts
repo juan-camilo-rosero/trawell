@@ -22,7 +22,6 @@ export async function GET(
 ) {
   try {
     await connectDB();
-
     const { id } = params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -64,9 +63,8 @@ export async function PUT(
 ) {
   try {
     await connectDB();
-
     const { id } = params;
-    const body = await req.json();
+    const body: Partial<ItineraryLean> = await req.json();
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
