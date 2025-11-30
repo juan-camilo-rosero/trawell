@@ -37,31 +37,38 @@ const AddItem: React.FC<AddItemProps> = ({ dayNumber }) => {
       <AiOutlinePlus className="text-primary text-2xl" />
     </div>
   );
+
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={setOpen}>
         <DrawerTrigger asChild>{trigger}</DrawerTrigger>
         <DrawerContent className="bg-secondary-100 custom-ph pb-6 pt-4">
           <DrawerHeader className="hidden">
-            <DrawerTitle></DrawerTitle>
-            <DrawerDescription></DrawerDescription>
+            <DrawerTitle>Añadir item al día {dayNumber}</DrawerTitle>
+            <DrawerDescription>
+              Selecciona el tipo de item que deseas añadir
+            </DrawerDescription>
           </DrawerHeader>
           <CustomizeItinerary dayNumber={dayNumber} onClose={handleClose} />
         </DrawerContent>
       </Drawer>
     );
   }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Añadir item al día {dayNumber}</DialogTitle>
-          <DialogDescription></DialogDescription>
+          <DialogDescription>
+            Selecciona el tipo de item que deseas añadir
+          </DialogDescription>
         </DialogHeader>
         <CustomizeItinerary dayNumber={dayNumber} onClose={handleClose} />
       </DialogContent>
     </Dialog>
   );
 };
+
 export default AddItem;

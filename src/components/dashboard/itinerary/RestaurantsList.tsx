@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { useItinerary } from "@/contexts/ItineraryContext";
 import ItemCard from "./ItemCard";
 import { createRestaurantItemFromResponse } from "@/lib/helpers/item-creator.helper";
@@ -12,41 +12,56 @@ interface RestaurantsListProps {
 
 function RestaurantsList({ dayNumber, onSuccess }: RestaurantsListProps) {
   const { availableRestaurants, itinerary, addItemToDay } = useItinerary();
+  const [isAdding, setIsAdding] = useState(false);
 
   const handleSelectRestaurant = async (restaurantIndex: number) => {
-    if (!itinerary) return;
+    if (!itinerary || isAdding) return;
 
-    const restaurant = availableRestaurants[restaurantIndex];
-    const day = itinerary.days.find((d) => d.dayNumber === dayNumber);
+    setIsAdding(true);
+    try {
+      const restaurant = availableRestaurants[restaurantIndex];
+      const day = itinerary.days.find((d) => d.dayNumber === dayNumber);
 
-    if (!day) return;
+      if (!day) {
+        console.error("Día no encontrado");
+        return;
+      }
 
-    const lastItem = day.items[day.items.length - 1];
-    const newTime = lastItem ? addMinutesToTime(lastItem.time, 30) : "12:00";
+      const lastItem = day.items[day.items.length - 1];
+      const newTime = lastItem ? addMinutesToTime(lastItem.time, 30) : "12:00";
 
-    const totalTravelers =
-      itinerary.searchParams.travelers.adults +
-      (itinerary.searchParams.travelers.children || 0) +
-      (itinerary.searchParams.travelers.babies || 0);
+      const totalTravelers =
+        itinerary.searchParams.travelers.adults +
+        (itinerary.searchParams.travelers.children || 0) +
+        (itinerary.searchParams.travelers.babies || 0);
 
-    // Determinar tipo de comida basado en la hora
-    const hour = parseInt(newTime.split(":")[0]);
-    let mealType: "desayuno" | "almuerzo" | "cena" = "almuerzo";
-    if (hour < 11) mealType = "desayuno";
-    else if (hour >= 18) mealType = "cena";
+      const hour = parseInt(newTime.split(":")[0]);
+      let mealType: "desayuno" | "almuerzo" | "cena" = "almuerzo";
+      if (hour < 11) mealType = "desayuno";
+      else if (hour >= 18) mealType = "cena";
 
-    const newItem = createRestaurantItemFromResponse(
-      restaurant,
-      mealType,
-      0,
-      newTime,
-      totalTravelers
-    );
+      const newItem = createRestaurantItemFromResponse(
+        restaurant,
+        mealType,
+        0,
+        newTime,
+        totalTravelers
+      );
 
-    const success = await addItemToDay(dayNumber, newItem);
+      const success = await addItemToDay(dayNumber, newItem);
 
-    if (success && onSuccess) {
-      onSuccess();
+      if (success) {
+        console.log("✅ Restaurante añadido exitosamente");
+        if (onSuccess) {
+          setTimeout(() => {
+            onSuccess();
+          }, 300);
+        }
+      }
+    } catch (error) {
+      console.error("Error añadiendo restaurante:", error);
+    } finally {
+      setIsAdding(false);
     }
   };
 
@@ -96,6 +111,13 @@ function RestaurantsList({ dayNumber, onSuccess }: RestaurantsListProps) {
           );
         })}
       </div>
+      {isAdding && (
+        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-4 shadow-lg">
+            <p className="text-muted-700">Añadiendo restaurante...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

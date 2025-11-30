@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { useItinerary } from "@/contexts/ItineraryContext";
 import ItemCard from "./ItemCard";
 import { createHotelItemFromResponse } from "@/lib/helpers/item-creator.helper";
@@ -12,40 +12,53 @@ interface HotelsListProps {
 
 function HotelsList({ dayNumber, onSuccess }: HotelsListProps) {
   const { availableHotels, itinerary, addItemToDay } = useItinerary();
+  const [isAdding, setIsAdding] = useState(false);
 
   const handleSelectHotel = async (hotelIndex: number) => {
-    if (!itinerary) return;
+    if (!itinerary || isAdding) return;
 
-    const hotel = availableHotels[hotelIndex];
-    const day = itinerary.days.find((d) => d.dayNumber === dayNumber);
+    setIsAdding(true);
+    try {
+      const hotel = availableHotels[hotelIndex];
+      const day = itinerary.days.find((d) => d.dayNumber === dayNumber);
 
-    if (!day) return;
+      if (!day) {
+        console.error("Día no encontrado");
+        return;
+      }
 
-    // Calcular tiempo del último item
-    const lastItem = day.items[day.items.length - 1];
-    const newTime = lastItem
-      ? addMinutesToTime(lastItem.time, 30)
-      : "22:00";
+      const lastItem = day.items[day.items.length - 1];
+      const newTime = lastItem ? addMinutesToTime(lastItem.time, 30) : "22:00";
 
-    const totalTravelers =
-      itinerary.searchParams.travelers.adults +
-      (itinerary.searchParams.travelers.children || 0) +
-      (itinerary.searchParams.travelers.babies || 0);
+      const totalTravelers =
+        itinerary.searchParams.travelers.adults +
+        (itinerary.searchParams.travelers.children || 0) +
+        (itinerary.searchParams.travelers.babies || 0);
 
-    const newItem = createHotelItemFromResponse(
-      hotel,
-      0, // El order se calculará en addItemToDay
-      newTime,
-      itinerary.searchParams.departureDate,
-      itinerary.searchParams.returnDate,
-      totalTravelers,
-      dayNumber
-    );
+      const newItem = createHotelItemFromResponse(
+        hotel,
+        0,
+        newTime,
+        itinerary.searchParams.departureDate,
+        itinerary.searchParams.returnDate,
+        totalTravelers,
+        dayNumber
+      );
 
-    const success = await addItemToDay(dayNumber, newItem);
+      const success = await addItemToDay(dayNumber, newItem);
 
-    if (success && onSuccess) {
-      onSuccess();
+      if (success) {
+        console.log("✅ Hotel añadido exitosamente");
+        if (onSuccess) {
+          setTimeout(() => {
+            onSuccess();
+          }, 300);
+        }
+      }
+    } catch (error) {
+      console.error("Error añadiendo hotel:", error);
+    } finally {
+      setIsAdding(false);
     }
   };
 
@@ -81,6 +94,13 @@ function HotelsList({ dayNumber, onSuccess }: HotelsListProps) {
           />
         ))}
       </div>
+      {isAdding && (
+        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-4 shadow-lg">
+            <p className="text-muted-700">Añadiendo hotel...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

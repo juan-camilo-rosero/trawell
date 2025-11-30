@@ -1,4 +1,3 @@
-import { Types } from "mongoose";
 import {
   IItineraryItem,
   IAccommodationDetails,
@@ -12,6 +11,19 @@ import {
 } from "@/models/types";
 import { convertToCOP } from "./currency.helpers";
 import { estimateMealPrice, estimateVisitDuration } from "./itinerary.helpers";
+
+function generateObjectId(): any {
+  const timestamp = ((new Date().getTime() / 1000) | 0).toString(16);
+  const objectId =
+    timestamp +
+    "xxxxxxxxxxxxxxxx"
+      .replace(/[x]/g, () => {
+        return ((Math.random() * 16) | 0).toString(16);
+      })
+      .toLowerCase();
+
+  return { toString: () => objectId, _bsontype: "ObjectId" };
+}
 
 export function createHotelItemFromResponse(
   hotel: HotelResponse,
@@ -46,8 +58,8 @@ export function createHotelItemFromResponse(
     "Hotel con excelentes comodidades";
 
   return {
-    _id: new Types.ObjectId(),
-    itemId: `accommodation-night-${order}`,
+    _id: generateObjectId(),
+    itemId: `accommodation-custom-${Date.now()}`,
     type: "accommodation",
     order,
     time,
@@ -93,8 +105,8 @@ export function createRestaurantItemFromResponse(
   };
 
   return {
-    _id: new Types.ObjectId(),
-    itemId: `food-${mealType}-${order}`,
+    _id: generateObjectId(),
+    itemId: `food-custom-${Date.now()}`,
     type: "food",
     order,
     time,
@@ -139,8 +151,8 @@ export function createTouristSiteItemFromResponse(
   };
 
   return {
-    _id: new Types.ObjectId(),
-    itemId: `tourist-${site.placeId}-${order}`,
+    _id: generateObjectId(),
+    itemId: `tourist-custom-${Date.now()}`,
     type: "tourist_site",
     order,
     time,

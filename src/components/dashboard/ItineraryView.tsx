@@ -260,7 +260,7 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
 
               <div className="flex flex-col">
                 {day.items.map((item) => renderItem(item))}
-                <AddItem />
+                <AddItem dayNumber={day.dayNumber}/>
               </div>
             </div>
           ))}
