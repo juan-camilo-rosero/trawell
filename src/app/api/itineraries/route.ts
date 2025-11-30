@@ -10,15 +10,27 @@ const CORS_HEADERS = {
   "Access-Control-Max-Age": "86400",
 };
 
-// Helper para convertir strings a ObjectId recursivamente
-function convertIdsToObjectId(obj: any): any {
+type ConvertibleValue = 
+  | string 
+  | number 
+  | boolean 
+  | null 
+  | undefined 
+  | mongoose.Types.ObjectId
+  | ConvertibleObject 
+  | ConvertibleArray;
+
+type ConvertibleObject = { [key: string]: ConvertibleValue };
+type ConvertibleArray = ConvertibleValue[];
+
+function convertIdsToObjectId(obj: ConvertibleValue): ConvertibleValue {
   if (!obj || typeof obj !== 'object') return obj;
 
   if (Array.isArray(obj)) {
     return obj.map(item => convertIdsToObjectId(item));
   }
 
-  const result: any = {};
+  const result: ConvertibleObject = {};
   for (const [key, value] of Object.entries(obj)) {
     if (key === '_id' && typeof value === 'string' && mongoose.Types.ObjectId.isValid(value)) {
       result[key] = new mongoose.Types.ObjectId(value);
@@ -88,16 +100,7 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
     const body = await request.json();
-
-    console.log("📥 Recibiendo datos para crear itinerario...");
-    console.log("  - Usuario:", body.userId);
-    console.log("  - Título:", body.title);
-    console.log("  - Días:", body.days?.length || 0);
-
-    // Convertir todos los _id de string a ObjectId
     const processedDays = body.days ? convertIdsToObjectId(body.days) : [];
-
-    console.log("🔄 IDs procesados y convertidos a ObjectId");
 
     const itinerary = await Itinerary.create({
       userId: body.userId,
@@ -111,8 +114,6 @@ export async function POST(request: NextRequest) {
       createdAt: new Date(),
       updatedAt: new Date(),
     });
-
-    console.log("✅ Itinerario creado con ID:", itinerary._id);
 
     const itineraryObj: ItineraryLean = itinerary.toObject();
 
@@ -129,7 +130,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("❌ POST /api/itineraries error:", error);
     
-    // Mostrar más detalles del error
     if (error instanceof Error) {
       console.error("Error message:", error.message);
       console.error("Error stack:", error.stack);
