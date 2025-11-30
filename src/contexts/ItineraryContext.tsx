@@ -299,6 +299,7 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
     setItinerary(updatedItinerary);
 
     if (itinerary._id) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { _id: itineraryId, ...updates } = updatedItinerary;
       const success = await updateItinerary(itinerary._id, updates);
 
