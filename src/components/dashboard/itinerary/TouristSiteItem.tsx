@@ -86,14 +86,13 @@ const TouristSiteItem: React.FC<TouristSiteItemProps> = ({
         onMoveDown={handleMoveDown}
         onAddBefore={() => {}}
         onAddAfter={() => {}}
-        itemType="touristic_site"
+        onReplace={() => {}}
+        itemType="tourist_site"
       />
-
       <div className="flex flex-col items-center">
         <div className="itinerary-icon-circle">{getCategoryIcon()}</div>
         <div className="itinerary-connector-line flex-1" />
       </div>
-
       <div className="flex-1 pb-10 pr-8">
         <div className="flex items-center gap-2 mb-1">
           <h3 className="itinerary-item-title">{title}</h3>
