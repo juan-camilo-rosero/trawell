@@ -100,10 +100,10 @@ function ItemMenu({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
-            className="absolute top-2 right-2 p-1.5 rounded-full hover:bg-muted-200 transition-colors z-10"
+            className="absolute top-0 right-2 p-1.5 rounded-full hover:bg-secondary-200 transition-all z-10"
             onClick={(e) => e.stopPropagation()}
           >
-            <MoreVertical className="w-5 h-5 text-muted-600" />
+            <MoreVertical className="w-4 h-4 text-muted-600" />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">

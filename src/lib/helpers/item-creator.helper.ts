@@ -33,7 +33,7 @@ export function createFlightItemFromResponse(
   time: string,
   totalTravelers: number
 ): IItineraryItem {
-  const totalPriceInCOP = convertToCOP(flight.price.total, flight.price.currency);
+  const totalPriceInCOP = convertToCOP(flight.price.total, flight.price.currency) / 2;
   const pricePerPerson = totalPriceInCOP / totalTravelers;
 
   const outboundSegment = flight.outbound.segments[0];
