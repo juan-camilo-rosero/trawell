@@ -18,7 +18,10 @@ interface UseItinerariesReturn {
   fetchItineraries: (page?: number) => Promise<void>;
 }
 
-export function useItineraries(userId: string | undefined): UseItinerariesReturn {
+export function useItineraries(
+  userId: string | undefined,
+  initialLimit: number = 16
+): UseItinerariesReturn {
   const [itineraries, setItineraries] = useState<ItineraryLean[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +37,7 @@ export function useItineraries(userId: string | undefined): UseItinerariesReturn
     setError(null);
 
     try {
-      const limit = 16;
+      const limit = initialLimit;
       const skip = page * limit;
       
       const response = await fetch(
@@ -46,7 +49,7 @@ export function useItineraries(userId: string | undefined): UseItinerariesReturn
       }
 
       const data = await response.json();
-
+      
       if (data.success) {
         console.log('Itinerarios completos:', data.data.itineraries);
         setItineraries(data.data.itineraries);
