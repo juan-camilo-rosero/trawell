@@ -166,7 +166,7 @@ function ItemMenu({
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-primary hover:bg-primary-600 text-secondary-100"
             >
               Eliminar
             </AlertDialogAction>
