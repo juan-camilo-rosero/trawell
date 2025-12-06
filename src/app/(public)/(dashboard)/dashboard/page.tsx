@@ -75,7 +75,7 @@ export default function Page() {
             <p className="text-gray-600 mb-6">
               Aún no tienes itinerarios. Comienza a planificar tu próxima aventura.
             </p>
-            <Button className="primary-btn">Crear itinerario</Button>
+            <Link className="primary-btn" href="/dashboard/new-trip">Crear itinerario</Link>
           </div>
         )}
 
