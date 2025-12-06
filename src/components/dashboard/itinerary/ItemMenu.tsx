@@ -58,9 +58,6 @@ function ItemMenu({
   onDelete,
   onMoveUp,
   onMoveDown,
-  onAddBefore,
-  onAddAfter,
-  onReplace,
 }: ItemMenuProps) {
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [showAddBeforeDialog, setShowAddBeforeDialog] = useState(false);
@@ -71,21 +68,6 @@ function ItemMenu({
   const handleDelete = () => {
     onDelete();
     setShowDeleteAlert(false);
-  };
-
-  const handleAddBeforeSuccess = () => {
-    setShowAddBeforeDialog(false);
-    onAddBefore();
-  };
-
-  const handleAddAfterSuccess = () => {
-    setShowAddAfterDialog(false);
-    onAddAfter();
-  };
-
-  const handleReplaceSuccess = () => {
-    setShowReplaceDialog(false);
-    onReplace();
   };
 
   const AddDialogContent = ({ type }: { type: "before" | "after" }) => (
