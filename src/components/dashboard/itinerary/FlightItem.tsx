@@ -68,16 +68,15 @@ const FlightItem: React.FC<FlightItemProps> = ({
         onMoveDown={handleMoveDown}
         onAddBefore={() => {}}
         onAddAfter={() => {}}
+        onReplace={() => {}}
         itemType="flight"
       />
-
       <div className="flex flex-col items-center">
         <div className="itinerary-icon-circle">
           <MdFlight className="text-secondary-100 text-2xl" />
         </div>
         <div className="itinerary-connector-line flex-1" />
       </div>
-
       <div className="flex-1 pb-10 pr-8">
         <h3 className="itinerary-item-title">{title}</h3>
         <p className="itinerary-item-subtitle mt-1">

@@ -4,6 +4,7 @@ import ItemTypeSelector, { ItemType } from "./ItemTypeSelector";
 import HotelsList from "./HotelsList";
 import RestaurantsList from "./RestaurantsList";
 import TouristSitesList from "@/components/dashboard/itinerary/TouristSitesList";
+import FlightsList from "./FlightsList";
 
 interface CustomizeItineraryProps {
   dayNumber: number;
@@ -32,7 +33,6 @@ function CustomizeItinerary({
     setItemType(null);
   };
 
-  // Si es reemplazo, pre-seleccionar el tipo según el item a reemplazar
   React.useEffect(() => {
     if (insertPosition === "replace" && itemTypeToReplace && !itemType) {
       if (itemTypeToReplace === "accommodation") {
@@ -41,6 +41,8 @@ function CustomizeItinerary({
         setItemType("restaurant");
       } else if (itemTypeToReplace === "tourist_site") {
         setItemType("tourism");
+      } else if (itemTypeToReplace === "flight") {
+        setItemType("flight");
       }
     }
   }, [insertPosition, itemTypeToReplace, itemType]);
@@ -72,6 +74,13 @@ function CustomizeItinerary({
             relativeToItemId={relativeToItemId}
           />
         )}
+        {itemType === "flight" && (
+          <FlightsList
+            dayNumber={dayNumber}
+            onSuccess={handleSuccess}
+            relativeToItemId={relativeToItemId}
+          />
+        )}
         <button
           className="third-btn w-full !py-3 mt-4"
           type="button"
@@ -83,13 +92,14 @@ function CustomizeItinerary({
     );
   }
 
-  // Si es reemplazo de vuelo, mostrar mensaje (los vuelos no se pueden reemplazar por ahora)
   if (insertPosition === "replace" && itemTypeToReplace === "flight") {
     return (
-      <div className="p-2 text-center py-8">
-        <p className="text-muted-600">
-          Los vuelos no pueden ser reemplazados desde esta opción.
-        </p>
+      <div className="p-2">
+        <FlightsList
+          dayNumber={dayNumber}
+          onSuccess={handleSuccess}
+          relativeToItemId={relativeToItemId}
+        />
         <button
           className="third-btn w-full !py-3 mt-4"
           type="button"

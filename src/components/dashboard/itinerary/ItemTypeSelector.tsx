@@ -4,7 +4,7 @@ import { RiHotelBedFill } from "react-icons/ri";
 import { MdRestaurant } from "react-icons/md";
 import { FaMonument } from "react-icons/fa";
 
-export type ItemType = "hotel" | "tourism" | "restaurant";
+export type ItemType = "hotel" | "tourism" | "restaurant" | "flight";
 
 interface ItemOption {
   value: ItemType;

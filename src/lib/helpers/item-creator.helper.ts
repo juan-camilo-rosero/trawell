@@ -3,11 +3,13 @@ import {
   IAccommodationDetails,
   IFoodDetails,
   ITouristSiteDetails,
+  IFlightDetails,
 } from "@/models/itinerary/interfaces";
 import {
   HotelResponse,
   RestaurantResponse,
   TouristSiteResponse,
+  FlightResponse,
 } from "@/models/types";
 import { convertToCOP } from "./currency.helpers";
 import { estimateMealPrice, estimateVisitDuration } from "./itinerary.helpers";
@@ -23,6 +25,64 @@ function generateObjectId(): string {
       .toLowerCase();
 
   return objectId;
+}
+
+export function createFlightItemFromResponse(
+  flight: FlightResponse,
+  order: number,
+  time: string,
+  totalTravelers: number
+): IItineraryItem {
+  const totalPriceInCOP = convertToCOP(flight.price.total, flight.price.currency);
+  const pricePerPerson = totalPriceInCOP / totalTravelers;
+
+  const outboundSegment = flight.outbound.segments[0];
+  const lastOutboundSegment = flight.outbound.segments[flight.outbound.segments.length - 1];
+
+  const totalStops = flight.outbound.segments.reduce(
+    (sum, segment) => sum + segment.numberOfStops,
+    0
+  );
+
+  const carrierName = outboundSegment.carrierName || outboundSegment.carrierCode;
+
+  const flightDetails: IFlightDetails = {
+    carrierCode: outboundSegment.carrierCode,
+    carrierName: carrierName,
+    flightNumber: outboundSegment.flightNumber,
+    departureAirport: outboundSegment.departure.iataCode,
+    departureAirportName: flight.origin.name,
+    departureTime: outboundSegment.departure.at,
+    arrivalAirport: lastOutboundSegment.arrival.iataCode,
+    arrivalAirportName: flight.destination.name,
+    arrivalTime: lastOutboundSegment.arrival.at,
+    duration: flight.outbound.duration,
+    numberOfStops: totalStops,
+    pricePerPerson: Math.round(pricePerPerson),
+    totalPrice: Math.round(totalPriceInCOP),
+  };
+
+  const stopText = totalStops === 0 
+    ? "Directo" 
+    : `${totalStops} escala${totalStops > 1 ? 's' : ''}`;
+
+  return {
+    _id: generateObjectId(),
+    itemId: `flight-custom-${Date.now()}`,
+    type: "flight",
+    order,
+    time,
+    title: `Vuelo ${carrierName}`,
+    description: `${flight.origin.iataCode} → ${flight.destination.iataCode} • ${stopText}`,
+    price: Math.round(totalPriceInCOP),
+    location: {
+      name: flight.origin.name,
+      address: flight.origin.name,
+      coordinates: flight.origin.coordinates,
+      placeId: undefined,
+    },
+    flightDetails,
+  };
 }
 
 export function createHotelItemFromResponse(
