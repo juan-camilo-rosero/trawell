@@ -8,27 +8,49 @@ import { addMinutesToTime } from "@/lib/helpers/itinerary.helpers";
 interface RestaurantsListProps {
   dayNumber: number;
   onSuccess?: () => void;
+  insertPosition?: "before" | "after" | "end";
+  relativeToItemId?: string;
 }
 
-function RestaurantsList({ dayNumber, onSuccess }: RestaurantsListProps) {
-  const { availableRestaurants, itinerary, addItemToDay } = useItinerary();
+function RestaurantsList({
+  dayNumber,
+  onSuccess,
+  insertPosition = "end",
+  relativeToItemId,
+}: RestaurantsListProps) {
+  const { availableRestaurants, itinerary, addItemToDay, addItemToPosition } =
+    useItinerary();
   const [isAdding, setIsAdding] = useState(false);
 
   const handleSelectRestaurant = async (restaurantIndex: number) => {
     if (!itinerary || isAdding) return;
-
     setIsAdding(true);
+
     try {
       const restaurant = availableRestaurants[restaurantIndex];
       const day = itinerary.days.find((d) => d.dayNumber === dayNumber);
-
       if (!day) {
         console.error("Día no encontrado");
         return;
       }
 
-      const lastItem = day.items[day.items.length - 1];
-      const newTime = lastItem ? addMinutesToTime(lastItem.time, 30) : "12:00";
+      let newTime = "12:00";
+
+      if (insertPosition === "end") {
+        const lastItem = day.items[day.items.length - 1];
+        newTime = lastItem ? addMinutesToTime(lastItem.time, 30) : "12:00";
+      } else if (relativeToItemId) {
+        const relativeItem = day.items.find(
+          (item) => item.itemId === relativeToItemId
+        );
+        if (relativeItem) {
+          if (insertPosition === "before") {
+            newTime = addMinutesToTime(relativeItem.time, -30);
+          } else {
+            newTime = addMinutesToTime(relativeItem.time, 30);
+          }
+        }
+      }
 
       const totalTravelers =
         itinerary.searchParams.travelers.adults +
@@ -48,7 +70,18 @@ function RestaurantsList({ dayNumber, onSuccess }: RestaurantsListProps) {
         totalTravelers
       );
 
-      const success = await addItemToDay(dayNumber, newItem);
+      let success = false;
+
+      if (insertPosition === "end") {
+        success = await addItemToDay(dayNumber, newItem);
+      } else if (relativeToItemId) {
+        success = await addItemToPosition(
+          dayNumber,
+          newItem,
+          insertPosition,
+          relativeToItemId
+        );
+      }
 
       if (success) {
         console.log("✅ Restaurante añadido exitosamente");
@@ -77,7 +110,13 @@ function RestaurantsList({ dayNumber, onSuccess }: RestaurantsListProps) {
 
   const getPriceLevelText = (level?: number) => {
     if (!level) return "Precio moderado";
-    const levels = ["Gratis", "Económico", "Moderado", "Costoso", "Muy costoso"];
+    const levels = [
+      "Gratis",
+      "Económico",
+      "Moderado",
+      "Costoso",
+      "Muy costoso",
+    ];
     return levels[level] || "Precio moderado";
   };
 
@@ -92,10 +131,11 @@ function RestaurantsList({ dayNumber, onSuccess }: RestaurantsListProps) {
             restaurant.cuisine?.join(", ") || restaurant.category,
             getPriceLevelText(restaurant.priceLevel),
           ];
-
           if (restaurant.openingHours?.openNow !== undefined) {
             details.push(
-              restaurant.openingHours.openNow ? "🟢 Abierto ahora" : "🔴 Cerrado"
+              restaurant.openingHours.openNow
+                ? "🟢 Abierto ahora"
+                : "🔴 Cerrado"
             );
           }
 

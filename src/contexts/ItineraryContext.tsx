@@ -64,6 +64,23 @@ interface ItineraryContextType {
   loadPublicItineraries: (limit?: number, skip?: number) => Promise<void>;
   clearItinerary: () => void;
   addItemToDay: (dayNumber: number, item: IItineraryItem) => Promise<boolean>;
+  deleteItemFromDay: (dayNumber: number, itemId: string) => Promise<boolean>;
+  moveItemInDay: (
+    dayNumber: number,
+    itemId: string,
+    direction: "up" | "down"
+  ) => Promise<boolean>;
+  addItemToPosition: (
+    dayNumber: number,
+    newItem: IItineraryItem,
+    position: "before" | "after",
+    relativeToItemId: string
+  ) => Promise<boolean>;
+  replaceItemInDay: (
+    dayNumber: number,
+    itemIdToReplace: string,
+    newItem: IItineraryItem
+  ) => Promise<boolean>;
 }
 
 export interface GenerateItineraryParams {
@@ -238,7 +255,6 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
         const { _id, ...updates } = itineraryData;
         await updateItinerary(itinerary._id, updates);
       }
-
     } catch (err) {
       console.error("❌ Error generando itinerario:", err);
       setError(
@@ -253,73 +269,156 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
   };
 
   const addItemToDay = async (
-  dayNumber: number,
-  newItem: IItineraryItem
-): Promise<boolean> => {
-  if (!itinerary) {
-    setError("No hay itinerario activo");
-    return false;
-  }
-
-  try {
-    const updatedDays = itinerary.days.map((day) => {
-      if (day.dayNumber === dayNumber) {
-        const maxOrder = Math.max(...day.items.map((item) => item.order), 0);
-
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { _id, ...itemWithoutId } = newItem;
-        const itemWithOrder: IItineraryItem = {
-          ...itemWithoutId,
-          order: maxOrder + 1,
-          _id: generateObjectId(),
-        };
-
-        return {
-          ...day,
-          items: [...day.items, itemWithOrder],
-        };
-      }
-      return day;
-    });
-
-    const newTotalPrice = updatedDays.reduce((total, day) => {
-      return (
-        total +
-        day.items.reduce((dayTotal, item) => dayTotal + item.price, 0)
-      );
-    }, 0);
-
-    const updatedItinerary: ItineraryData = {
-      ...itinerary,
-      days: updatedDays,
-      totalPrice: Math.round(newTotalPrice),
-      updatedAt: new Date(),
-    };
-
-    setItinerary(updatedItinerary);
-
-    if (itinerary._id) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { _id: itineraryId, ...updates } = updatedItinerary;
-      const success = await updateItinerary(itinerary._id, updates);
-
-      if (!success) {
-        console.error("❌ Error al actualizar en BD");
-        setItinerary(itinerary);
-        return false;
-      }
+    dayNumber: number,
+    newItem: IItineraryItem
+  ): Promise<boolean> => {
+    if (!itinerary) {
+      setError("No hay itinerario activo");
+      return false;
     }
 
-    console.log(`✅ Item añadido al día ${dayNumber} exitosamente`);
-    return true;
-  } catch (err) {
-    console.error("❌ Error añadiendo item:", err);
-    setError(
-      err instanceof Error ? err.message : "Error desconocido al añadir item"
-    );
-    return false;
-  }
-};
+    try {
+      const updatedDays = itinerary.days.map((day) => {
+        if (day.dayNumber === dayNumber) {
+          const maxOrder = Math.max(...day.items.map((item) => item.order), 0);
+
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { _id, ...itemWithoutId } = newItem;
+          const itemWithOrder: IItineraryItem = {
+            ...itemWithoutId,
+            order: maxOrder + 1,
+            _id: generateObjectId(),
+          };
+
+          return {
+            ...day,
+            items: [...day.items, itemWithOrder],
+          };
+        }
+        return day;
+      });
+
+      const newTotalPrice = updatedDays.reduce((total, day) => {
+        return (
+          total + day.items.reduce((dayTotal, item) => dayTotal + item.price, 0)
+        );
+      }, 0);
+
+      const updatedItinerary: ItineraryData = {
+        ...itinerary,
+        days: updatedDays,
+        totalPrice: Math.round(newTotalPrice),
+        updatedAt: new Date(),
+      };
+
+      setItinerary(updatedItinerary);
+
+      if (itinerary._id) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { _id: itineraryId, ...updates } = updatedItinerary;
+        const success = await updateItinerary(itinerary._id, updates);
+
+        if (!success) {
+          console.error("❌ Error al actualizar en BD");
+          setItinerary(itinerary);
+          return false;
+        }
+      }
+
+      console.log(`✅ Item añadido al día ${dayNumber} exitosamente`);
+      return true;
+    } catch (err) {
+      console.error("❌ Error añadiendo item:", err);
+      setError(
+        err instanceof Error ? err.message : "Error desconocido al añadir item"
+      );
+      return false;
+    }
+  };
+
+  const replaceItemInDay = async (
+    dayNumber: number,
+    itemIdToReplace: string,
+    newItem: IItineraryItem
+  ): Promise<boolean> => {
+    if (!itinerary) {
+      setError("No hay itinerario activo");
+      return false;
+    }
+
+    try {
+      const updatedDays = itinerary.days.map((day) => {
+        if (day.dayNumber === dayNumber) {
+          const items = [...day.items];
+          const replaceIndex = items.findIndex(
+            (item) => item.itemId === itemIdToReplace
+          );
+
+          if (replaceIndex === -1) {
+            throw new Error("Item a reemplazar no encontrado");
+          }
+
+          const oldItem = items[replaceIndex];
+
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { _id, ...itemWithoutId } = newItem;
+          const itemWithOrderAndTime: IItineraryItem = {
+            ...itemWithoutId,
+            order: oldItem.order,
+            time: oldItem.time,
+            _id: generateObjectId(),
+          };
+
+          // Reemplazar el item
+          items[replaceIndex] = itemWithOrderAndTime;
+
+          return {
+            ...day,
+            items,
+          };
+        }
+        return day;
+      });
+
+      const newTotalPrice = updatedDays.reduce((total, day) => {
+        return (
+          total + day.items.reduce((dayTotal, item) => dayTotal + item.price, 0)
+        );
+      }, 0);
+
+      const updatedItinerary: ItineraryData = {
+        ...itinerary,
+        days: updatedDays,
+        totalPrice: Math.round(newTotalPrice),
+        updatedAt: new Date(),
+      };
+
+      setItinerary(updatedItinerary);
+
+      if (itinerary._id) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { _id: itineraryId, ...updates } = updatedItinerary;
+        const success = await updateItinerary(itinerary._id, updates);
+
+        if (!success) {
+          console.error("❌ Error al actualizar en BD");
+          setItinerary(itinerary);
+          return false;
+        }
+      }
+
+      console.log(`✅ Item reemplazado exitosamente`);
+      return true;
+    } catch (err) {
+      console.error("❌ Error reemplazando item:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Error desconocido al reemplazar item"
+      );
+      return false;
+    }
+  };
 
   const saveItinerary = async (userId: string): Promise<boolean> => {
     if (!itinerary) {
@@ -452,6 +551,257 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
       return false;
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const deleteItemFromDay = async (
+    dayNumber: number,
+    itemId: string
+  ): Promise<boolean> => {
+    if (!itinerary) {
+      setError("No hay itinerario activo");
+      return false;
+    }
+
+    try {
+      const updatedDays = itinerary.days.map((day) => {
+        if (day.dayNumber === dayNumber) {
+          const filteredItems = day.items.filter(
+            (item) => item.itemId !== itemId
+          );
+
+          // Reordenar los items restantes
+          const reorderedItems = filteredItems.map((item, index) => ({
+            ...item,
+            order: index + 1,
+          }));
+
+          return {
+            ...day,
+            items: reorderedItems,
+          };
+        }
+        return day;
+      });
+
+      const newTotalPrice = updatedDays.reduce((total, day) => {
+        return (
+          total + day.items.reduce((dayTotal, item) => dayTotal + item.price, 0)
+        );
+      }, 0);
+
+      const updatedItinerary: ItineraryData = {
+        ...itinerary,
+        days: updatedDays,
+        totalPrice: Math.round(newTotalPrice),
+        updatedAt: new Date(),
+      };
+
+      setItinerary(updatedItinerary);
+
+      if (itinerary._id) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { _id: itineraryId, ...updates } = updatedItinerary;
+        const success = await updateItinerary(itinerary._id, updates);
+
+        if (!success) {
+          console.error("❌ Error al actualizar en BD");
+          setItinerary(itinerary);
+          return false;
+        }
+      }
+
+      console.log(`✅ Item eliminado del día ${dayNumber} exitosamente`);
+      return true;
+    } catch (err) {
+      console.error("❌ Error eliminando item:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Error desconocido al eliminar item"
+      );
+      return false;
+    }
+  };
+
+  const moveItemInDay = async (
+    dayNumber: number,
+    itemId: string,
+    direction: "up" | "down"
+  ): Promise<boolean> => {
+    if (!itinerary) {
+      setError("No hay itinerario activo");
+      return false;
+    }
+
+    try {
+      const updatedDays = itinerary.days.map((day) => {
+        if (day.dayNumber === dayNumber) {
+          const items = [...day.items];
+          const currentIndex = items.findIndex(
+            (item) => item.itemId === itemId
+          );
+
+          if (currentIndex === -1) {
+            throw new Error("Item no encontrado");
+          }
+
+          const targetIndex =
+            direction === "up" ? currentIndex - 1 : currentIndex + 1;
+
+          if (targetIndex < 0 || targetIndex >= items.length) {
+            throw new Error("Movimiento inválido");
+          }
+
+          // Intercambiar items
+          [items[currentIndex], items[targetIndex]] = [
+            items[targetIndex],
+            items[currentIndex],
+          ];
+
+          // Intercambiar order
+          const tempOrder = items[currentIndex].order;
+          items[currentIndex].order = items[targetIndex].order;
+          items[targetIndex].order = tempOrder;
+
+          // Intercambiar times también (opcional, pero mantiene lógica temporal)
+          const tempTime = items[currentIndex].time;
+          items[currentIndex].time = items[targetIndex].time;
+          items[targetIndex].time = tempTime;
+
+          return {
+            ...day,
+            items,
+          };
+        }
+        return day;
+      });
+
+      const updatedItinerary: ItineraryData = {
+        ...itinerary,
+        days: updatedDays,
+        updatedAt: new Date(),
+      };
+
+      setItinerary(updatedItinerary);
+
+      if (itinerary._id) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { _id: itineraryId, ...updates } = updatedItinerary;
+        const success = await updateItinerary(itinerary._id, updates);
+
+        if (!success) {
+          console.error("❌ Error al actualizar en BD");
+          setItinerary(itinerary);
+          return false;
+        }
+      }
+
+      console.log(
+        `✅ Item movido ${direction === "up" ? "arriba" : "abajo"} exitosamente`
+      );
+      return true;
+    } catch (err) {
+      console.error("❌ Error moviendo item:", err);
+      setError(
+        err instanceof Error ? err.message : "Error desconocido al mover item"
+      );
+      return false;
+    }
+  };
+
+  const addItemToPosition = async (
+    dayNumber: number,
+    newItem: IItineraryItem,
+    position: "before" | "after",
+    relativeToItemId: string
+  ): Promise<boolean> => {
+    if (!itinerary) {
+      setError("No hay itinerario activo");
+      return false;
+    }
+
+    try {
+      const updatedDays = itinerary.days.map((day) => {
+        if (day.dayNumber === dayNumber) {
+          const items = [...day.items];
+          const relativeIndex = items.findIndex(
+            (item) => item.itemId === relativeToItemId
+          );
+
+          if (relativeIndex === -1) {
+            throw new Error("Item de referencia no encontrado");
+          }
+
+          const insertIndex =
+            position === "before" ? relativeIndex : relativeIndex + 1;
+
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { _id, ...itemWithoutId } = newItem;
+          const itemWithOrder: IItineraryItem = {
+            ...itemWithoutId,
+            order: insertIndex + 1,
+            _id: generateObjectId(),
+          };
+
+          // Insertar el nuevo item
+          items.splice(insertIndex, 0, itemWithOrder);
+
+          // Reordenar todos los items
+          const reorderedItems = items.map((item, index) => ({
+            ...item,
+            order: index + 1,
+          }));
+
+          return {
+            ...day,
+            items: reorderedItems,
+          };
+        }
+        return day;
+      });
+
+      const newTotalPrice = updatedDays.reduce((total, day) => {
+        return (
+          total + day.items.reduce((dayTotal, item) => dayTotal + item.price, 0)
+        );
+      }, 0);
+
+      const updatedItinerary: ItineraryData = {
+        ...itinerary,
+        days: updatedDays,
+        totalPrice: Math.round(newTotalPrice),
+        updatedAt: new Date(),
+      };
+
+      setItinerary(updatedItinerary);
+
+      if (itinerary._id) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { _id: itineraryId, ...updates } = updatedItinerary;
+        const success = await updateItinerary(itinerary._id, updates);
+
+        if (!success) {
+          console.error("❌ Error al actualizar en BD");
+          setItinerary(itinerary);
+          return false;
+        }
+      }
+
+      console.log(
+        `✅ Item añadido ${
+          position === "before" ? "antes" : "después"
+        } exitosamente`
+      );
+      return true;
+    } catch (err) {
+      console.error("❌ Error añadiendo item en posición:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Error desconocido al añadir item en posición"
+      );
+      return false;
     }
   };
 
@@ -660,6 +1010,10 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
     loadPublicItineraries,
     clearItinerary,
     addItemToDay,
+    deleteItemFromDay,
+    moveItemInDay,
+    addItemToPosition,
+    replaceItemInDay,
   };
 
   return (

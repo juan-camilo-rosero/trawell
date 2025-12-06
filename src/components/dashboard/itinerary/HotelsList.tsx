@@ -8,27 +8,49 @@ import { addMinutesToTime } from "@/lib/helpers/itinerary.helpers";
 interface HotelsListProps {
   dayNumber: number;
   onSuccess?: () => void;
+  insertPosition?: "before" | "after" | "end";
+  relativeToItemId?: string;
 }
 
-function HotelsList({ dayNumber, onSuccess }: HotelsListProps) {
-  const { availableHotels, itinerary, addItemToDay } = useItinerary();
+function HotelsList({
+  dayNumber,
+  onSuccess,
+  insertPosition = "end",
+  relativeToItemId,
+}: HotelsListProps) {
+  const { availableHotels, itinerary, addItemToDay, addItemToPosition } =
+    useItinerary();
   const [isAdding, setIsAdding] = useState(false);
 
   const handleSelectHotel = async (hotelIndex: number) => {
     if (!itinerary || isAdding) return;
-
     setIsAdding(true);
+
     try {
       const hotel = availableHotels[hotelIndex];
       const day = itinerary.days.find((d) => d.dayNumber === dayNumber);
-
       if (!day) {
         console.error("Día no encontrado");
         return;
       }
 
-      const lastItem = day.items[day.items.length - 1];
-      const newTime = lastItem ? addMinutesToTime(lastItem.time, 30) : "22:00";
+      let newTime = "22:00";
+
+      if (insertPosition === "end") {
+        const lastItem = day.items[day.items.length - 1];
+        newTime = lastItem ? addMinutesToTime(lastItem.time, 30) : "22:00";
+      } else if (relativeToItemId) {
+        const relativeItem = day.items.find(
+          (item) => item.itemId === relativeToItemId
+        );
+        if (relativeItem) {
+          if (insertPosition === "before") {
+            newTime = addMinutesToTime(relativeItem.time, -30);
+          } else {
+            newTime = addMinutesToTime(relativeItem.time, 30);
+          }
+        }
+      }
 
       const totalTravelers =
         itinerary.searchParams.travelers.adults +
@@ -45,7 +67,18 @@ function HotelsList({ dayNumber, onSuccess }: HotelsListProps) {
         dayNumber
       );
 
-      const success = await addItemToDay(dayNumber, newItem);
+      let success = false;
+
+      if (insertPosition === "end") {
+        success = await addItemToDay(dayNumber, newItem);
+      } else if (relativeToItemId) {
+        success = await addItemToPosition(
+          dayNumber,
+          newItem,
+          insertPosition,
+          relativeToItemId
+        );
+      }
 
       if (success) {
         console.log("✅ Hotel añadido exitosamente");

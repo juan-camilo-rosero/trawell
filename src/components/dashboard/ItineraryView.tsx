@@ -113,17 +113,28 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
     return `${dayName}, ${day} de ${month}`;
   };
 
-  const renderItem = (item: IItineraryItem) => {
+  const renderItem = (
+    item: IItineraryItem,
+    dayNumber: number,
+    itemIndex: number,
+    totalItems: number
+  ) => {
+    const isFirst = itemIndex === 0;
+    const isLast = itemIndex === totalItems - 1;
+
     switch (item.type) {
       case "flight":
         if (!item.flightDetails) return null;
         return (
           <FlightItem
             key={item.itemId}
+            itemId={item.itemId}
+            dayNumber={dayNumber}
             title={item.title}
             flightDetails={item.flightDetails}
             price={item.price}
-            isLast={false}
+            isLast={isLast}
+            isFirst={isFirst}
           />
         );
       case "accommodation":
@@ -131,12 +142,15 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
         return (
           <HotelItem
             key={item.itemId}
+            itemId={item.itemId}
+            dayNumber={dayNumber}
             title={item.title}
             accommodationDetails={item.accommodationDetails}
             location={item.location}
             price={item.price}
             stars={4}
-            isLast={false}
+            isLast={isLast}
+            isFirst={isFirst}
           />
         );
       case "food":
@@ -144,10 +158,13 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
         return (
           <RestaurantItem
             key={item.itemId}
+            itemId={item.itemId}
+            dayNumber={dayNumber}
             title={item.title}
             foodDetails={item.foodDetails}
             location={item.location}
-            isLast={false}
+            isLast={isLast}
+            isFirst={isFirst}
           />
         );
       case "tourist_site":
@@ -155,12 +172,15 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
         return (
           <TouristSiteItem
             key={item.itemId}
+            itemId={item.itemId}
+            dayNumber={dayNumber}
             title={item.title}
             description={item.description}
             touristSiteDetails={item.touristSiteDetails}
             location={item.location}
             price={item.price}
-            isLast={false}
+            isLast={isLast}
+            isFirst={isFirst}
           />
         );
       default:
@@ -259,8 +279,10 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
               </div>
 
               <div className="flex flex-col">
-                {day.items.map((item) => renderItem(item))}
-                <AddItem dayNumber={day.dayNumber}/>
+                {day.items.map((item, itemIndex) =>
+                  renderItem(item, day.dayNumber, itemIndex, day.items.length)
+                )}
+                <AddItem dayNumber={day.dayNumber} />
               </div>
             </div>
           ))}

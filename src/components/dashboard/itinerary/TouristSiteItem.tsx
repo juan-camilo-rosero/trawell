@@ -2,6 +2,8 @@
 import React from "react";
 import { FaLandmark, FaMonument, FaTree, FaUniversity } from "react-icons/fa";
 import { MdPlace } from "react-icons/md";
+import ItemMenu from "./ItemMenu";
+import { useItinerary } from "@/contexts/ItineraryContext";
 
 interface TouristSiteDetails {
   siteName: string;
@@ -13,22 +15,30 @@ interface Location {
 }
 
 interface TouristSiteItemProps {
+  itemId: string;
+  dayNumber: number;
   title: string;
   description: string;
   touristSiteDetails: TouristSiteDetails;
   location: Location;
   price: number;
   isLast: boolean;
+  isFirst: boolean;
 }
 
 const TouristSiteItem: React.FC<TouristSiteItemProps> = ({
+  itemId,
+  dayNumber,
   title,
   description,
   touristSiteDetails,
   location,
   price,
   isLast,
+  isFirst,
 }) => {
+  const { deleteItemFromDay, moveItemInDay } = useItinerary();
+
   const formatPrice = (price: number): string => {
     if (price === 0) return "Entrada gratuita";
     return `COP $${price.toLocaleString("es-CO")}`;
@@ -38,7 +48,6 @@ const TouristSiteItem: React.FC<TouristSiteItemProps> = ({
     const iconProps = {
       className: "text-secondary-100 text-2xl",
     };
-
     switch (touristSiteDetails.category) {
       case "museum":
         return <FaUniversity {...iconProps} />;
@@ -53,14 +62,39 @@ const TouristSiteItem: React.FC<TouristSiteItemProps> = ({
     }
   };
 
+  const handleDelete = async () => {
+    await deleteItemFromDay(dayNumber, itemId);
+  };
+
+  const handleMoveUp = async () => {
+    await moveItemInDay(dayNumber, itemId, "up");
+  };
+
+  const handleMoveDown = async () => {
+    await moveItemInDay(dayNumber, itemId, "down");
+  };
+
   return (
-    <div className="flex gap-4">
+    <div className="flex gap-4 relative">
+      <ItemMenu
+        itemId={itemId}
+        dayNumber={dayNumber}
+        isFirst={isFirst}
+        isLast={isLast}
+        onDelete={handleDelete}
+        onMoveUp={handleMoveUp}
+        onMoveDown={handleMoveDown}
+        onAddBefore={() => {}}
+        onAddAfter={() => {}}
+        itemType="touristic_site"
+      />
+
       <div className="flex flex-col items-center">
         <div className="itinerary-icon-circle">{getCategoryIcon()}</div>
-        {!isLast && <div className="itinerary-connector-line flex-1" />}
+        <div className="itinerary-connector-line flex-1" />
       </div>
 
-      <div className="flex-1 pb-10">
+      <div className="flex-1 pb-10 pr-8">
         <div className="flex items-center gap-2 mb-1">
           <h3 className="itinerary-item-title">{title}</h3>
         </div>
