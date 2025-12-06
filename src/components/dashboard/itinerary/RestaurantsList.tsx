@@ -8,7 +8,7 @@ import { addMinutesToTime } from "@/lib/helpers/itinerary.helpers";
 interface RestaurantsListProps {
   dayNumber: number;
   onSuccess?: () => void;
-  insertPosition?: "before" | "after" | "end";
+  insertPosition?: "before" | "after" | "end" | "replace";
   relativeToItemId?: string;
 }
 
@@ -18,7 +18,7 @@ function RestaurantsList({
   insertPosition = "end",
   relativeToItemId,
 }: RestaurantsListProps) {
-  const { availableRestaurants, itinerary, addItemToDay, addItemToPosition } =
+  const { availableRestaurants, itinerary, addItemToDay, addItemToPosition, replaceItemInDay } =
     useItinerary();
   const [isAdding, setIsAdding] = useState(false);
 
@@ -46,8 +46,10 @@ function RestaurantsList({
         if (relativeItem) {
           if (insertPosition === "before") {
             newTime = addMinutesToTime(relativeItem.time, -30);
-          } else {
+          } else if (insertPosition === "after") {
             newTime = addMinutesToTime(relativeItem.time, 30);
+          } else if (insertPosition === "replace") {
+            newTime = relativeItem.time;
           }
         }
       }
@@ -74,7 +76,9 @@ function RestaurantsList({
 
       if (insertPosition === "end") {
         success = await addItemToDay(dayNumber, newItem);
-      } else if (relativeToItemId) {
+      } else if (insertPosition === "replace" && relativeToItemId) {
+        success = await replaceItemInDay(dayNumber, relativeToItemId, newItem);
+      } else if (relativeToItemId && (insertPosition === "before" || insertPosition === "after")) {
         success = await addItemToPosition(
           dayNumber,
           newItem,
