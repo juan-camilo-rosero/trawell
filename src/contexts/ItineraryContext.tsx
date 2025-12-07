@@ -257,10 +257,10 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
 
       setItinerary(itineraryData);
 
-      setAvailableHotels(((result as any).availableHotels as any) || []);
-      setAvailableRestaurants(((result as any).availableRestaurants as any) || []);
-      setAvailableTouristSites(((result as any).availableTouristSites as any) || []);
-      setAvailableFlights(((result as any).availableFlights as any) || []);
+      setAvailableHotels([]);
+      setAvailableRestaurants([]);
+      setAvailableTouristSites([]);
+      setAvailableFlights([]);
 
       if (itinerary?._id) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars

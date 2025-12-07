@@ -570,7 +570,6 @@ class ItineraryGeneratorService {
 
       const items: IItineraryItem[] = [];
       let currentTime = "08:00";
-      let hotelAddedForDay = false;
       let orderCounter = 1;
 
       console.log(
@@ -608,11 +607,9 @@ class ItineraryGeneratorService {
           this.createHotelArrivalItem(
             hotel,
             orderCounter++,
-            currentTime,
-            totalTravelers
+            currentTime
           )
         );
-        hotelAddedForDay = true;
 
         // Añadir un tiempo para realizar el check-in y prepararse antes de otras actividades
         currentTime = addMinutesToTime(currentTime, 60);
@@ -1072,8 +1069,7 @@ class ItineraryGeneratorService {
   private createHotelArrivalItem(
     hotel: HotelResponse,
     order: number,
-    time: string,
-    totalTravelers: number
+    time: string
   ): IItineraryItem {
     // Arrival/check-in marker: do NOT include accommodationDetails because
     // the DB schema requires `nights >= 1` when accommodationDetails is present.
@@ -1322,17 +1318,16 @@ class ItineraryGeneratorService {
       const selectedFlight = sortedFlights[i] || sortedFlights[0];
       const selectedHotel = sortedHotels[i] || sortedHotels[0];
 
-      // Rotar restaurantes para variantes
-      const rotate = (arr: any[]) =>
+      const rotate = (arr: unknown[]) =>
         arr.length === 0 ? arr : arr.slice(i).concat(arr.slice(0, i));
 
       const restaurantsVariant = {
-        breakfast: rotate(organized.breakfast),
-        lunch: rotate(organized.lunch),
-        dinner: rotate(organized.dinner),
+        breakfast: rotate(organized.breakfast) as RestaurantResponse[],
+        lunch: rotate(organized.lunch) as RestaurantResponse[],
+        dinner: rotate(organized.dinner) as RestaurantResponse[],
       };
 
-      const touristSitesVariant = rotate(touristSites);
+      const touristSitesVariant = rotate(touristSites) as TouristSiteResponse[];
 
       const days = this.generateDays(
         request,

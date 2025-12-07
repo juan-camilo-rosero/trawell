@@ -1,6 +1,8 @@
 "use client";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useItinerary } from "@/contexts/ItineraryContext";
+import type { ItineraryData, GenerateItineraryParams } from "@/contexts/ItineraryContext";
+import type { RestaurantCategory } from "@/models/types";
 import FlightItem from "./itinerary/FlightItem";
 import HotelItem from "./itinerary/HotelItem";
 import RestaurantItem from "./itinerary/RestaurantItem";
@@ -25,13 +27,11 @@ interface ItineraryViewProps {
 }
 
 function VariantDropdown({
-  itinerary,
   variants,
   onGenerate,
   onSelect,
 }: {
-  itinerary: any;
-  variants: any[];
+  variants: ItineraryData[];
   onGenerate: () => void;
   onSelect: (idx: number) => void;
 }) {
@@ -323,7 +323,6 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
           <h2 className="text-2xl font-semibold">{itinerary.title}</h2>
           <div className="relative">
             <VariantDropdown
-              itinerary={itinerary}
               variants={itineraryVariants}
               onGenerate={() => {
                 const params = {
@@ -338,12 +337,18 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
                   adults: itinerary.searchParams.travelers.adults,
                   children: itinerary.searchParams.travelers.children || 0,
                   babies: itinerary.searchParams.travelers.babies || 0,
-                  travelType: itinerary.searchParams.travelType,
-                  foodPreferences: ["all" as any],
+                  travelType: itinerary.searchParams.travelType as
+                    | "relaxation"
+                    | "luxury"
+                    | "cultural"
+                    | "adventure"
+                    | "gastronomic"
+                    | "spiritual",
+                  foodPreferences: ["all" as const] as RestaurantCategory[],
                   currency: itinerary.currency,
                 };
 
-                generateItineraries(params as any, 3);
+                generateItineraries(params as GenerateItineraryParams, 3);
               }}
               onSelect={(idx: number) => selectItineraryVariant(idx)}
             />
