@@ -53,11 +53,17 @@ interface ItineraryContextType {
   availableTouristSites: TouristSiteResponse[];
   availableFlights: FlightResponse[];
   generateItinerary: (params: GenerateItineraryParams) => Promise<void>;
+  generateItineraries: (
+    params: GenerateItineraryParams,
+    variants?: number
+  ) => Promise<void>;
   saveItinerary: (userId: string) => Promise<boolean>;
   updateItinerary: (
     id: string,
     updates: Partial<ItineraryData>
   ) => Promise<boolean>;
+  itineraryVariants: ItineraryData[];
+  selectItineraryVariant: (index: number) => boolean;
   deleteItinerary: (id: string) => Promise<boolean>;
   loadItinerary: (id: string) => Promise<void>;
   loadUserItineraries: () => Promise<void>;
@@ -110,6 +116,7 @@ export interface GenerateItineraryParams {
   hotelBudgetPerNight?: number;
   preferredHotelChains?: string[];
   currency?: string;
+  
 }
 
 const ItineraryContext = createContext<ItineraryContextType | undefined>(
@@ -135,6 +142,7 @@ const API_BASE_URL =
 export function ItineraryProvider({ children }: { children: ReactNode }) {
   const [itinerary, setItinerary] = useState<ItineraryData | null>(null);
   const [itineraries, setItineraries] = useState<ItineraryData[]>([]);
+  
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [mapMarkers, setMapMarkers] = useState<MapMarker[]>([]);
@@ -149,6 +157,8 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
   const [availableFlights, setAvailableFlights] = useState<FlightResponse[]>(
     []
   );
+
+  const [itineraryVariants, setItineraryVariants] = useState<ItineraryData[]>([]);
 
   const router = useRouter();
 
@@ -221,6 +231,8 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
         ...params,
       } as GenerateItineraryRequest;
 
+      
+
       const result: GenerateItineraryResponse =
         await itineraryGeneratorService.generateItinerary(request);
 
@@ -245,10 +257,10 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
 
       setItinerary(itineraryData);
 
-      setAvailableHotels(result.availableHotels || []);
-      setAvailableRestaurants(result.availableRestaurants || []);
-      setAvailableTouristSites(result.availableTouristSites || []);
-      setAvailableFlights(result.availableFlights || []);
+      setAvailableHotels(((result as any).availableHotels as any) || []);
+      setAvailableRestaurants(((result as any).availableRestaurants as any) || []);
+      setAvailableTouristSites(((result as any).availableTouristSites as any) || []);
+      setAvailableFlights(((result as any).availableFlights as any) || []);
 
       if (itinerary?._id) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -262,6 +274,55 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
           ? err.message
           : "Error desconocido al generar itinerario"
       );
+      setItinerary(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const generateItineraries = async (
+    params: GenerateItineraryParams,
+    variants: number = 3
+  ) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const request: GenerateItineraryRequest = {
+        ...params,
+      } as GenerateItineraryRequest;
+
+      const results = await itineraryGeneratorService.generateItineraries(
+        request,
+        variants
+      );
+
+      const mappedVariants: ItineraryData[] = results.map((res) => ({
+        userId: "temp-user-id",
+        _id: itinerary?._id,
+        searchParams: res.searchParams,
+        title: res.title,
+        totalPrice: res.totalPrice,
+        currency: res.currency,
+        isPublic: false,
+        days: res.days,
+        createdAt: itinerary?.createdAt || new Date(),
+        updatedAt: new Date(),
+      }));
+
+      setItineraryVariants(mappedVariants);
+
+      const first = mappedVariants[0] || null;
+      setItinerary(first);
+
+      // Clear available lists (variants may not include them)
+      setAvailableHotels([]);
+      setAvailableRestaurants([]);
+      setAvailableTouristSites([]);
+      setAvailableFlights([]);
+    } catch (err) {
+      console.error("❌ Error generando variantes:", err);
+      setError(err instanceof Error ? err.message : "Error desconocido");
       setItinerary(null);
     } finally {
       setIsLoading(false);
@@ -438,19 +499,23 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
         return false;
       }
 
+      const payload = {
+        ...itinerary,
+        userId,
+        _id: undefined,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      console.log("📤 Payload enviado a POST /api/itineraries:", payload);
+
       const response = await fetch(`${API_BASE_URL}/itineraries`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          ...itinerary,
-          userId,
-          _id: undefined,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }),
+        body: JSON.stringify(payload),
       });
 
       const contentType = response.headers.get("content-type");
@@ -465,7 +530,9 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || `Error HTTP: ${response.status}`);
+        const serverMsg = data.error || `Error HTTP: ${response.status}`;
+        const details = data.details ? ` - ${data.details}` : "";
+        throw new Error(serverMsg + details);
       }
 
       setItinerary({
@@ -991,6 +1058,27 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
     setAvailableFlights([]);
   };
 
+  const selectItineraryVariant = (index: number): boolean => {
+    if (index < 0 || index >= itineraryVariants.length) {
+      setError("Variante no encontrada");
+      return false;
+    }
+
+    const variant = itineraryVariants[index];
+    setItinerary(variant);
+
+    // Clear available lists when switching
+    setAvailableHotels([]);
+    setAvailableRestaurants([]);
+    setAvailableTouristSites([]);
+    setAvailableFlights([]);
+
+    setError(null);
+    return true;
+  };
+
+  
+
   const value: ItineraryContextType = {
     itinerary,
     itineraries,
@@ -1002,6 +1090,9 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
     availableTouristSites,
     availableFlights,
     generateItinerary,
+    generateItineraries,
+    itineraryVariants,
+    selectItineraryVariant,
     saveItinerary,
     updateItinerary,
     deleteItinerary,

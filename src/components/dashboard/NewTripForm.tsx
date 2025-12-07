@@ -67,6 +67,7 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
   const [itineraryGenerated, setItineraryGenerated] = useState<boolean>(false);
   const [showItineraryView, setShowItineraryView] = useState<boolean>(false);
   const [isLoadingItinerary, setIsLoadingItinerary] = useState<boolean>(false);
+  
 
   const [savedDestination, setSavedDestination] = useState<string>("");
   const [savedDestinationData, setSavedDestinationData] = useState<
@@ -303,6 +304,7 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
           | "spiritual",
         foodPreferences,
         currency: "COP",
+        
       });
 
 
@@ -458,6 +460,8 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
           </div>
 
           <div className="w-full h-px bg-muted-300 my-6"></div>
+
+          
 
           <div className="space-y-6">
             <PassengerCounter
