@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "Trawell | planea tu proximo viaje en segundos",
@@ -11,12 +12,22 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const mapsApiKey = process.env.NEXT_PUBLIC_MAPS_API_KEY;
+
   return (
     <html lang="es">
       <body
         className={`antialiased`}
       >
         {children}
+        {mapsApiKey && (
+          <Script
+            src={`https://maps.googleapis.com/maps/api/js?key=${mapsApiKey}&libraries=places`}
+            strategy="afterInteractive"
+            async
+            defer
+          />
+        )}
       </body>
     </html>
   );
