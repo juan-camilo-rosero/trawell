@@ -96,7 +96,7 @@ export function DeleteAccount({ email }: DeleteAccountProps) {
         variant="destructive"
         size="sm"
         onClick={() => setIsOpen(true)}
-        className="bg-red-600 hover:bg-red-700"
+        className="bg-primary hover:bg-primary text-white"
       >
         Eliminar mi cuenta
       </Button>

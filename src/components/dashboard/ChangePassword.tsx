@@ -119,7 +119,7 @@ export function ChangePassword({ email }: ChangePasswordProps) {
     <>
       <Button
         onClick={() => setIsOpen(true)}
-        className="bg-orange-500 hover:bg-orange-600 text-white"
+        className="bg-primary hover:bg-primary text-white"
       >
         Cambiar contraseña
       </Button>
