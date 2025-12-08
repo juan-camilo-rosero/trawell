@@ -75,7 +75,7 @@ export function SettingsMenu() {
               className="w-4 h-4 orange-checkbox"
             />
           </div>
-          <Button size="sm" className="mt-4">
+          <Button variant="outline" size="sm" className="mt-4">
             Guardar cambios
           </Button>
         </div>
@@ -124,7 +124,7 @@ export function SettingsMenu() {
       >
         <div className="space-y-4">
           <div className="p-4 bg-secondary-100 rounded-lg">
-            <p className="text-sm text-orange-800">
+            <p className="text-sm text-primary">
               Para cambiar tu contraseña, ingresa tu contraseña actual y la nueva contraseña que deseas utilizar.
             </p>
           </div>
@@ -139,11 +139,11 @@ export function SettingsMenu() {
       <SettingsSection
         title="Eliminar cuenta"
         description="Esta acción es permanente y no puede revertirse"
-        icon={<Trash2 className="w-6 h-6 text-red-600" />}
+        icon={<Trash2 className="w-6 h-6 text-primary" />}
       >
         <div className="space-y-4">
           <div className="p-4 bg-secondary-100 rounded-lg">
-            <p className="text-sm text-red-800">
+            <p className="text-sm text-primary">
               Al eliminar tu cuenta, se borrarán permanentemente todos tus datos, viajes y preferencias.
             </p>
           </div>

@@ -207,6 +207,7 @@ export default function ProfileSettings({ onSaved }: ProfileSettingsProps) {
             onClick={handleSaveProfile}
             disabled={!isChanged || isLoading || contextLoading}
             className="gap-2"
+            variant="outline"
           >
             {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
             {isLoading ? 'Guardando...' : 'Guardar Cambios'}
