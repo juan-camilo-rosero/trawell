@@ -5,6 +5,8 @@ import { Settings, Bell, Lock, Trash2 } from 'lucide-react';
 import { ChangePassword } from '@/components/dashboard/ChangePassword';
 import { DeleteAccount } from '@/components/dashboard/DeleteAccount';
 import { useUser } from '@/contexts/UserContext';
+import { useNotifications } from '@/contexts/NotificationContext';
+import { useState, useEffect } from 'react';
 
 interface SettingsSectionProps {
   title: string;
@@ -32,6 +34,29 @@ function SettingsSection({ title, description, children, icon }: SettingsSection
 
 export function SettingsMenu() {
   const { userData } = useUser();
+  const { settings, updateSettings, showNotification } = useNotifications();
+  
+  // Estados locales para los checkboxes
+  const [localSettings, setLocalSettings] = useState(settings);
+
+  // Sincronizar con el contexto cuando cambie
+  useEffect(() => {
+    setLocalSettings(settings);
+  }, [settings]);
+
+  const handleCheckboxChange = (key: keyof typeof settings) => {
+    const newValue = !localSettings[key];
+    setLocalSettings((prev) => ({ ...prev, [key]: newValue }));
+  };
+
+  const handleSaveNotifications = () => {
+    updateSettings(localSettings);
+    showNotification(
+      'success',
+      'Configuración guardada',
+      'Tus preferencias de notificaciones han sido actualizadas.'
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -49,7 +74,8 @@ export function SettingsMenu() {
             <input
               type="checkbox"
               id="email-notifications"
-              defaultChecked
+              checked={localSettings.emailNotifications}
+              onChange={() => handleCheckboxChange('emailNotifications')}
               className="w-4 h-4 orange-checkbox"
             />
           </div>
@@ -60,7 +86,8 @@ export function SettingsMenu() {
             <input
               type="checkbox"
               id="trip-updates"
-              defaultChecked
+              checked={localSettings.tripUpdates}
+              onChange={() => handleCheckboxChange('tripUpdates')}
               className="w-4 h-4 orange-checkbox"
             />
           </div>
@@ -71,48 +98,19 @@ export function SettingsMenu() {
             <input
               type="checkbox"
               id="recommendations"
-              defaultChecked
+              checked={localSettings.recommendations}
+              onChange={() => handleCheckboxChange('recommendations')}
               className="w-4 h-4 orange-checkbox"
             />
           </div>
-          <Button variant="outline" size="sm" className="mt-4">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="mt-4"
+            onClick={handleSaveNotifications}
+          >
             Guardar cambios
           </Button>
-        </div>
-      </SettingsSection>
-
-      {/* Privacidad */}
-      <SettingsSection
-        title="Privacidad"
-        description="Gestiona tu privacidad y datos personales"
-        icon={<Lock className="w-6 h-6" />}
-      >
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <label htmlFor="profile-public" className="text-sm text-gray-700">
-              Perfil público
-            </label>
-            <input
-              type="checkbox"
-              id="profile-public"
-              className="w-4 h-4 orange-checkbox"
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <label htmlFor="show-trips" className="text-sm text-gray-700">
-              Mostrar mis viajes a otros usuarios
-            </label>
-            <input
-              type="checkbox"
-              id="show-trips"
-              className="w-4 h-4 orange-checkbox"
-            />
-          </div>
-          <div className="pt-4">
-            <Button variant="outline" size="sm">
-              Descargar mis datos
-            </Button>
-          </div>
         </div>
       </SettingsSection>
 
@@ -129,9 +127,7 @@ export function SettingsMenu() {
             </p>
           </div>
           <ChangePassword email={userData?.email} />
-          <Button variant="outline" size="sm">
-            Ver historial de inicio de sesión
-          </Button>
+
         </div>
       </SettingsSection>
 

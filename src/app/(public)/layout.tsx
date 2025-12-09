@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Script from "next/script";
+import { UserProvider } from "@/contexts/UserContext";
+import { NotificationProvider } from "@/contexts/NotificationContext";
+import { ToastProvider } from "@/components/ui/toast-provider";
 
 export const metadata: Metadata = {
   title: "Trawell | planea tu proximo viaje en segundos",
@@ -16,10 +19,13 @@ export default function RootLayout({
 
   return (
     <html lang="es">
-      <body
-        className={`antialiased`}
-      >
-        {children}
+      <body className={`antialiased`}>
+        <UserProvider>
+          <NotificationProvider>
+            {children}
+            <ToastProvider />
+          </NotificationProvider>
+        </UserProvider>
         {mapsApiKey && (
           <Script
             src={`https://maps.googleapis.com/maps/api/js?key=${mapsApiKey}&libraries=places`}

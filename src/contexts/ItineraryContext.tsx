@@ -27,6 +27,7 @@ import { RestaurantCategory } from "@/models/types";
 import { MapMarker } from "@/models/types/map.types";
 import { getAuth } from "firebase/auth";
 import { useRouter } from "next/navigation";
+import { useNotifications } from "@/contexts/NotificationContext";
 
 export interface ItineraryData {
   _id?: string;
@@ -161,6 +162,7 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
   const [itineraryVariants, setItineraryVariants] = useState<ItineraryData[]>([]);
 
   const router = useRouter();
+  const { showItinerarySaved, showNotification } = useNotifications();
 
   const getFirebaseToken = async (): Promise<string | null> => {
     try {
@@ -230,8 +232,6 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
       const request: GenerateItineraryRequest = {
         ...params,
       } as GenerateItineraryRequest;
-
-      
 
       const result: GenerateItineraryResponse =
         await itineraryGeneratorService.generateItinerary(request);
@@ -315,7 +315,6 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
       const first = mappedVariants[0] || null;
       setItinerary(first);
 
-      // Clear available lists (variants may not include them)
       setAvailableHotels([]);
       setAvailableRestaurants([]);
       setAvailableTouristSites([]);
@@ -430,7 +429,6 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
             _id: generateObjectId(),
           };
 
-          // Reemplazar el item
           items[replaceIndex] = itemWithOrderAndTime;
 
           return {
@@ -496,6 +494,7 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
       const token = await getFirebaseToken();
       if (!token) {
         setError("No se pudo obtener el token de autenticación");
+        showNotification('error', 'Error de autenticación', 'No se pudo verificar tu sesión');
         return false;
       }
 
@@ -546,16 +545,23 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
         data.data.itinerary._id
       );
 
+      const destinationCity = itinerary.searchParams?.destinationCity?.name || 'tu destino';
+      showItinerarySaved(destinationCity);
+
       router.push("/dashboard/my-trips");
 
       return true;
     } catch (err) {
       console.error("❌ Error guardando itinerario:", err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Error desconocido al guardar itinerario"
+      const errorMessage = err instanceof Error ? err.message : "Error desconocido al guardar itinerario";
+      setError(errorMessage);
+      
+      showNotification(
+        'error',
+        'Error al guardar el itinerario',
+        errorMessage
       );
+      
       return false;
     } finally {
       setIsLoading(false);
@@ -637,7 +643,6 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
             (item) => item.itemId !== itemId
           );
 
-          // Reordenar los items restantes
           const reorderedItems = filteredItems.map((item, index) => ({
             ...item,
             order: index + 1,
@@ -720,18 +725,15 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
             throw new Error("Movimiento inválido");
           }
 
-          // Intercambiar items
           [items[currentIndex], items[targetIndex]] = [
             items[targetIndex],
             items[currentIndex],
           ];
 
-          // Intercambiar order
           const tempOrder = items[currentIndex].order;
           items[currentIndex].order = items[targetIndex].order;
           items[targetIndex].order = tempOrder;
 
-          // Intercambiar times también (opcional, pero mantiene lógica temporal)
           const tempTime = items[currentIndex].time;
           items[currentIndex].time = items[targetIndex].time;
           items[targetIndex].time = tempTime;
@@ -811,10 +813,8 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
             _id: generateObjectId(),
           };
 
-          // Insertar el nuevo item
           items.splice(insertIndex, 0, itemWithOrder);
 
-          // Reordenar todos los items
           const reorderedItems = items.map((item, index) => ({
             ...item,
             order: index + 1,
@@ -1067,7 +1067,6 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
     const variant = itineraryVariants[index];
     setItinerary(variant);
 
-    // Clear available lists when switching
     setAvailableHotels([]);
     setAvailableRestaurants([]);
     setAvailableTouristSites([]);
@@ -1076,8 +1075,6 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
     setError(null);
     return true;
   };
-
-  
 
   const value: ItineraryContextType = {
     itinerary,
