@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Settings, Bell, Lock, Trash2 } from 'lucide-react';
+import { Settings, Bell,  Trash2 } from 'lucide-react';
 import { ChangePassword } from '@/components/dashboard/ChangePassword';
 import { DeleteAccount } from '@/components/dashboard/DeleteAccount';
 import { useUser } from '@/contexts/UserContext';
