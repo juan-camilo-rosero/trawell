@@ -1,3 +1,4 @@
+// src/contexts/NotificationContext.tsx
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
@@ -64,10 +65,6 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
     const content = (
       <div className="flex items-start gap-3">
-        {type === 'success' && <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />}
-        {type === 'error' && <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />}
-        {type === 'info' && <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />}
-        {type === 'warning' && <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />}
         <div className="flex-1">
           <p className="font-semibold text-sm">{message}</p>
           {description && (
@@ -77,18 +74,62 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       </div>
     );
 
+    const options = {
+      duration: 4000,
+      style: {
+        background: '#fff',
+        color: '#374151',
+        padding: '16px',
+        borderRadius: '8px',
+        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+        border: '1px solid #e5e7eb',
+      },
+    };
+
     switch (type) {
       case 'success':
-        toast.success(content, { duration: 4000 });
+        toast.success(content, {
+          ...options,
+          icon: <CheckCircle2 className="w-5 h-5 text-green-600" />,
+          style: {
+            ...options.style,
+            background: '#fef3e2',
+            border: '1px solid #f59e0b',
+          },
+        });
         break;
       case 'error':
-        toast.error(content, { duration: 5000 });
+        toast.error(content, {
+          ...options,
+          icon: <XCircle className="w-5 h-5 text-red-600" />,
+          style: {
+            ...options.style,
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+          },
+        });
         break;
       case 'info':
-        toast(content, { duration: 4000, icon: '💡' });
+        toast(content, {
+          ...options,
+          icon: <Info className="w-5 h-5 text-blue-600" />,
+          style: {
+            ...options.style,
+            background: '#eff6ff',
+            border: '1px solid #bfdbfe',
+          },
+        });
         break;
       case 'warning':
-        toast(content, { duration: 4000, icon: '⚠️' });
+        toast(content, {
+          ...options,
+          icon: <AlertTriangle className="w-5 h-5 text-yellow-600" />,
+          style: {
+            ...options.style,
+            background: '#fefce8',
+            border: '1px solid #fde047',
+          },
+        });
         break;
     }
   };
@@ -99,7 +140,6 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     toast.success(
       (t) => (
         <div className="flex items-start gap-3">
-          <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
             <p className="font-semibold text-sm">¡Itinerario guardado exitosamente!</p>
             <p className="text-xs text-gray-600 mt-1">
@@ -119,6 +159,15 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       ),
       {
         duration: 6000,
+        icon: <CheckCircle2 className="w-5 h-5 text-green-600" />,
+        style: {
+          background: '#fef3e2',
+          color: '#374151',
+          padding: '16px',
+          borderRadius: '8px',
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+          border: '1px solid #f59e0b',
+        },
       }
     );
   };
