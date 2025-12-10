@@ -36,27 +36,23 @@ export function SettingsMenu() {
   const { userData } = useUser();
   const { settings, updateSettings, showNotification } = useNotifications();
   
-  const [localSettings, setLocalSettings] = useState(settings);
+  const [tripUpdatesLocal, setTripUpdatesLocal] = useState(settings.tripUpdates);
   const [hasChanges, setHasChanges] = useState(false);
 
-  // Sincronizar con el contexto cuando cambie
+  // Sincronizar con el contexto
   useEffect(() => {
-    setLocalSettings(settings);
+    setTripUpdatesLocal(settings.tripUpdates);
     setHasChanges(false);
   }, [settings]);
 
-  const handleCheckboxChange = (key: keyof typeof settings) => {
-    const newValue = !localSettings[key];
-    setLocalSettings((prev) => ({ ...prev, [key]: newValue }));
+  const handleTripUpdatesChange = () => {
+    const newValue = !tripUpdatesLocal;
+    setTripUpdatesLocal(newValue);
     setHasChanges(true);
-    
-    // OPICIÓN 1: Guardado automático (descomentar si prefieres efecto inmediato)
-    // updateSettings({ ...localSettings, [key]: newValue });
-    // showNotification('info', 'Configuración actualizada', 'La configuración de notificaciones se ha aplicado.');
   };
 
-  const handleSaveNotifications = () => {
-    updateSettings(localSettings);
+  const handleSave = () => {
+    updateSettings({ ...settings, tripUpdates: tripUpdatesLocal });
     setHasChanges(false);
     showNotification(
       'success',
@@ -64,9 +60,6 @@ export function SettingsMenu() {
       'Tus preferencias de notificaciones han sido actualizadas.'
     );
   };
-
-  // Indicador visual cuando las notificaciones están deshabilitadas
-  const showDisabledWarning = !settings.tripUpdates;
 
   return (
     <div className="space-y-6">
@@ -78,7 +71,7 @@ export function SettingsMenu() {
       >
         <div className="space-y-4">
           {/* Banner de advertencia cuando las notificaciones están desactivadas */}
-          {showDisabledWarning && (
+          {!settings.tripUpdates && (
             <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
               <Info className="w-4 h-4" />
               <span>Has desactivado las notificaciones emergentes. No recibirás alertas en la app.</span>
@@ -86,41 +79,15 @@ export function SettingsMenu() {
           )}
 
           <div className="flex items-center justify-between">
-            <label htmlFor="email-notifications" className="text-sm text-gray-700">
-              Notificaciones por correo electrónico
-            </label>
-            <input
-              type="checkbox"
-              id="email-notifications"
-              checked={localSettings.emailNotifications}
-              onChange={() => handleCheckboxChange('emailNotifications')}
-              className="w-4 h-4 orange-checkbox"
-            />
-          </div>
-          
-          <div className="flex items-center justify-between">
             <label htmlFor="trip-updates" className="text-sm text-gray-700">
               <div>Actualizaciones de viajes</div>
-              <div className="text-xs text-gray-500">Controla las notificaciones emergentes en la app</div>
+              <div className="text-xs text-gray-500 mt-1">Controla las notificaciones emergentes en la app</div>
             </label>
             <input
               type="checkbox"
               id="trip-updates"
-              checked={localSettings.tripUpdates}
-              onChange={() => handleCheckboxChange('tripUpdates')}
-              className="w-4 h-4 orange-checkbox"
-            />
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <label htmlFor="recommendations" className="text-sm text-gray-700">
-              Recomendaciones personalizadas
-            </label>
-            <input
-              type="checkbox"
-              id="recommendations"
-              checked={localSettings.recommendations}
-              onChange={() => handleCheckboxChange('recommendations')}
+              checked={tripUpdatesLocal}
+              onChange={handleTripUpdatesChange}
               className="w-4 h-4 orange-checkbox"
             />
           </div>
@@ -129,7 +96,7 @@ export function SettingsMenu() {
             variant="outline" 
             size="sm" 
             className="mt-4"
-            onClick={handleSaveNotifications}
+            onClick={handleSave}
             disabled={!hasChanges}
           >
             {hasChanges ? 'Guardar cambios' : 'Guardado'}
@@ -137,7 +104,6 @@ export function SettingsMenu() {
         </div>
       </SettingsSection>
 
-      {/* Resto del código sigue igual... */}
       {/* Cuenta */}
       <SettingsSection
         title="Cuenta"
