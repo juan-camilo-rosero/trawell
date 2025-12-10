@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Settings, Bell,  Trash2 } from 'lucide-react';
+import { Settings, Bell, Trash2, Info } from 'lucide-react';
 import { ChangePassword } from '@/components/dashboard/ChangePassword';
 import { DeleteAccount } from '@/components/dashboard/DeleteAccount';
 import { useUser } from '@/contexts/UserContext';
@@ -36,27 +36,37 @@ export function SettingsMenu() {
   const { userData } = useUser();
   const { settings, updateSettings, showNotification } = useNotifications();
   
-  // Estados locales para los checkboxes
   const [localSettings, setLocalSettings] = useState(settings);
+  const [hasChanges, setHasChanges] = useState(false);
 
   // Sincronizar con el contexto cuando cambie
   useEffect(() => {
     setLocalSettings(settings);
+    setHasChanges(false);
   }, [settings]);
 
   const handleCheckboxChange = (key: keyof typeof settings) => {
     const newValue = !localSettings[key];
     setLocalSettings((prev) => ({ ...prev, [key]: newValue }));
+    setHasChanges(true);
+    
+    // OPICIÓN 1: Guardado automático (descomentar si prefieres efecto inmediato)
+    // updateSettings({ ...localSettings, [key]: newValue });
+    // showNotification('info', 'Configuración actualizada', 'La configuración de notificaciones se ha aplicado.');
   };
 
   const handleSaveNotifications = () => {
     updateSettings(localSettings);
+    setHasChanges(false);
     showNotification(
       'success',
       'Configuración guardada',
       'Tus preferencias de notificaciones han sido actualizadas.'
     );
   };
+
+  // Indicador visual cuando las notificaciones están deshabilitadas
+  const showDisabledWarning = !settings.tripUpdates;
 
   return (
     <div className="space-y-6">
@@ -67,6 +77,14 @@ export function SettingsMenu() {
         icon={<Bell className="w-6 h-6" />}
       >
         <div className="space-y-4">
+          {/* Banner de advertencia cuando las notificaciones están desactivadas */}
+          {showDisabledWarning && (
+            <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+              <Info className="w-4 h-4" />
+              <span>Has desactivado las notificaciones emergentes. No recibirás alertas en la app.</span>
+            </div>
+          )}
+
           <div className="flex items-center justify-between">
             <label htmlFor="email-notifications" className="text-sm text-gray-700">
               Notificaciones por correo electrónico
@@ -79,9 +97,11 @@ export function SettingsMenu() {
               className="w-4 h-4 orange-checkbox"
             />
           </div>
+          
           <div className="flex items-center justify-between">
             <label htmlFor="trip-updates" className="text-sm text-gray-700">
-              Actualizaciones de viajes
+              <div>Actualizaciones de viajes</div>
+              <div className="text-xs text-gray-500">Controla las notificaciones emergentes en la app</div>
             </label>
             <input
               type="checkbox"
@@ -91,6 +111,7 @@ export function SettingsMenu() {
               className="w-4 h-4 orange-checkbox"
             />
           </div>
+          
           <div className="flex items-center justify-between">
             <label htmlFor="recommendations" className="text-sm text-gray-700">
               Recomendaciones personalizadas
@@ -103,17 +124,20 @@ export function SettingsMenu() {
               className="w-4 h-4 orange-checkbox"
             />
           </div>
+          
           <Button 
             variant="outline" 
             size="sm" 
             className="mt-4"
             onClick={handleSaveNotifications}
+            disabled={!hasChanges}
           >
-            Guardar cambios
+            {hasChanges ? 'Guardar cambios' : 'Guardado'}
           </Button>
         </div>
       </SettingsSection>
 
+      {/* Resto del código sigue igual... */}
       {/* Cuenta */}
       <SettingsSection
         title="Cuenta"
@@ -127,7 +151,6 @@ export function SettingsMenu() {
             </p>
           </div>
           <ChangePassword email={userData?.email} />
-
         </div>
       </SettingsSection>
 
