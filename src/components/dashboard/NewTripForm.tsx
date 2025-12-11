@@ -32,6 +32,7 @@ interface ValidationErrors {
   passengers?: string;
   tripType?: string;
   foodPreferences?: string;
+  budget?: string;
 }
 
 interface NewTripFormProps {

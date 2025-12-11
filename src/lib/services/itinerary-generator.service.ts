@@ -336,7 +336,7 @@ class ItineraryGeneratorService {
       );
        if (request.budget) {
              restaurants = restaurants.filter(
-               (r) => (r.priceLevel ?? 2) <= 2 // 1 = barato, 2 = medio
+               (r: RestaurantResponse) => (r.priceLevel ?? 2) <= 2
              );
              console.log(
                `[searchRestaurants] Filtrados por presupuesto: ${restaurants.length}`
