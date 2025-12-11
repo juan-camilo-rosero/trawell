@@ -222,7 +222,7 @@ export default function ProfileSettings({ onSaved }: ProfileSettingsProps) {
             onClick={() => {
               setName(userData?.name || '');
               setProfileImage(userData?.profileImage || '');
-              setOriginCity(userData?.originCity ||  undefined);
+              setOriginCity(userData?.originCity || null);
               setError(null);
             }}
             disabled={!isChanged || isLoading}

@@ -60,7 +60,7 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     console.error('Error updating user profile:', error);
     return NextResponse.json(
-      { message: 'Error al actualizar el perfil del usuario', error: error?.message },
+      { message: 'Error al actualizar el perfil del usuario'},
       { status: 500 }
     );
   }
