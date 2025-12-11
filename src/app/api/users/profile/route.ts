@@ -8,7 +8,8 @@ export const dynamic = 'force-dynamic';
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { firebaseUid, name, profileImage } = body;
+
+    const { firebaseUid, name, profileImage, originCity } = body;
 
     // Validaciones básicas
     if (!firebaseUid) {
@@ -25,11 +26,9 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Conectar a la base de datos
     await connectDB();
 
-    // Preparar los datos a actualizar
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // Construir el objeto con los campos actualizables
     const updateData: any = {
       name: name.trim(),
     };
@@ -38,8 +37,12 @@ export async function PUT(request: NextRequest) {
       updateData.profileImage = profileImage || null;
     }
 
-    // Actualizar el usuario en la base de datos
-    const updatedUser = await User.findOneAndUpdate(
+    if (originCity !== undefined) {
+      updateData.originCity = originCity;
+    }
+
+    // Actualizar usuario
+    const updatedUser   = await User.findOneAndUpdate(
       { firebaseUid },
       updateData,
       { new: true, runValidators: true }
@@ -52,20 +55,12 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return NextResponse.json(updatedUser as any, { status: 200 });
+    return NextResponse.json(updatedUser, { status: 200 });
+
   } catch (error) {
     console.error('Error updating user profile:', error);
-
-    if (error instanceof SyntaxError) {
-      return NextResponse.json(
-        { message: 'JSON inválido en el cuerpo de la solicitud' },
-        { status: 400 }
-      );
-    }
-
     return NextResponse.json(
-      { message: 'Error al actualizar el perfil del usuario' },
+      { message: 'Error al actualizar el perfil del usuario', error: error?.message },
       { status: 500 }
     );
   }

@@ -3,6 +3,11 @@ import { IUser } from '@/models/user/User';
 export interface UpdateProfileData {
   name?: string;
   profileImage?: string;
+  originCity?: {
+    name: string;
+    coordinates: { lat: number; lng: number };
+    placeId?: string;
+  } | null;
 }
 
 /**

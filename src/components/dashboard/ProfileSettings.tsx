@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import CityAutocomplete from '@/components/ui/CityAutocomplete';
 import {
   updateUserProfile,
   imageToBase64,
@@ -19,6 +20,10 @@ interface ProfileSettingsProps {
 export default function ProfileSettings({ onSaved }: ProfileSettingsProps) {
   const { userData, setUserData, isLoading: contextLoading } = useUser();
   const [name, setName] = useState(userData?.name || '');
+  const [originCity, setOriginCity] = useState(userData?.originCity || null);
+  const [originCityInput, setOriginCityInput] = useState(
+    userData?.originCity?.name || ""
+  );
   const [profileImage, setProfileImage] = useState<string>(
     userData?.profileImage || ''
   );
@@ -70,10 +75,11 @@ export default function ProfileSettings({ onSaved }: ProfileSettingsProps) {
     setSuccess(false);
 
     try {
-      const updatedUser = await updateUserProfile(userData.firebaseUid, {
-        name: name.trim(),
-        profileImage: profileImage || undefined,
-      });
+     const updatedUser = await updateUserProfile(userData.firebaseUid, {
+       name: name.trim(),
+       profileImage: profileImage || undefined,
+       originCity,
+     });
 
       // Actualizar el contexto con los nuevos datos
       if (setUserData) {
@@ -172,6 +178,25 @@ export default function ProfileSettings({ onSaved }: ProfileSettingsProps) {
             className="w-full bg-gray-50 cursor-not-allowed"
           />
         </div>
+        {/* Origin city*/}
+       <div className="mb-6">
+         <label className="block text-sm font-medium text-gray-700 mb-2">
+           Ciudad de Origen
+         </label>
+         <CityAutocomplete
+           value={originCityInput}
+             onChange={(value, cityData) => {
+               setOriginCityInput(value);
+             if (cityData) {
+               setOriginCity(cityData);
+             } else {
+               setOriginCity(null);
+             }
+           }}
+           showMapIcon
+           showClearIcon
+         />
+       </div>
 
         {/* Error Message */}
         {error && (
@@ -197,6 +222,7 @@ export default function ProfileSettings({ onSaved }: ProfileSettingsProps) {
             onClick={() => {
               setName(userData?.name || '');
               setProfileImage(userData?.profileImage || '');
+              setOriginCity(userData?.originCity ||  undefined);
               setError(null);
             }}
             disabled={!isChanged || isLoading}
