@@ -29,17 +29,15 @@ export async function PUT(request: NextRequest) {
     await connectDB();
 
     // Construir el objeto con los campos actualizables
-    const updateData: any = {
-      name: name.trim(),
-    };
+    const updateData: Record<string, unknown> = {};
 
-    if (profileImage !== undefined) {
+    if (name) updateData.name = name.trim();
+
+    if (profileImage !== undefined)
       updateData.profileImage = profileImage || null;
-    }
 
-    if (originCity !== undefined) {
-      updateData.originCity = originCity;
-    }
+    if (originCity !== undefined)
+      updateData.originCity = originCity || null;
 
     // Actualizar usuario
     const updatedUser   = await User.findOneAndUpdate(
