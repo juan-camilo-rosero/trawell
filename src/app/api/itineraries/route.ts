@@ -10,14 +10,14 @@ const CORS_HEADERS = {
   "Access-Control-Max-Age": "86400",
 };
 
-type ConvertibleValue = 
-  | string 
-  | number 
-  | boolean 
-  | null 
-  | undefined 
+type ConvertibleValue =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
   | mongoose.Types.ObjectId
-  | ConvertibleObject 
+  | ConvertibleObject
   | ConvertibleArray;
 
 type ConvertibleObject = { [key: string]: ConvertibleValue };
@@ -129,15 +129,15 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error("❌ POST /api/itineraries error:", error);
-    
+
     if (error instanceof Error) {
       console.error("Error message:", error.message);
       console.error("Error stack:", error.stack);
     }
 
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: "Error al crear itinerario",
         details: error instanceof Error ? error.message : "Error desconocido"
       },

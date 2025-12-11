@@ -54,6 +54,7 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
   const [destinationData, setDestinationData] = useState<
     CityData | undefined
   >();
+  const [budget, setBudget] = useState<number | undefined>(undefined);
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
   const [adults, setAdults] = useState<number>(0);
@@ -67,7 +68,7 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
   const [itineraryGenerated, setItineraryGenerated] = useState<boolean>(false);
   const [showItineraryView, setShowItineraryView] = useState<boolean>(false);
   const [isLoadingItinerary, setIsLoadingItinerary] = useState<boolean>(false);
-  
+
 
   const [savedDestination, setSavedDestination] = useState<string>("");
   const [savedDestinationData, setSavedDestinationData] = useState<
@@ -266,6 +267,10 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
       validationErrors.foodPreferences = "Selecciona al menos una preferencia";
     }
 
+    if (budget !== undefined && budget <= 0) {
+      validationErrors.budget = "El presupuesto debe ser mayor a 0";
+    }
+
     return validationErrors;
   };
 
@@ -304,7 +309,7 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
           | "spiritual",
         foodPreferences,
         currency: "COP",
-        
+         ...(budget ? { budget } : {}),
       });
 
 
@@ -461,7 +466,7 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
 
           <div className="w-full h-px bg-muted-300 my-6"></div>
 
-          
+
 
           <div className="space-y-6">
             <PassengerCounter
@@ -509,6 +514,27 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
               <p className="text-red-500 text-xs mt-1">{errors.tripType}</p>
             )}
           </div>
+<div className="w-full h-px bg-muted-300 my-6"></div>
+
+{/* Presupuesto opcional */}
+<div className="mb-4">
+  <label className="text-lg font-medium text-muted-900 mb-4">
+    Presupuesto (opcional)
+  </label>
+
+  <input
+    type="number"
+    min="0"
+    placeholder="Ej: 2000000"
+    value={budget ?? ""}
+    onChange={(e) => setBudget(e.target.value ? Number(e.target.value) : undefined)}
+    className="w-full px-4 py-2 border rounded-lg bg-white"
+  />
+
+  {errors.budget && (
+    <p className="text-red-500 text-xs mt-1">{errors.budget}</p>
+  )}
+</div>
 
           <div className="w-full h-px bg-muted-300 my-6"></div>
 

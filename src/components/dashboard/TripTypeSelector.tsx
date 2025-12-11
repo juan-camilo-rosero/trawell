@@ -1,8 +1,8 @@
 "use client";
-import { 
-  GiPalmTree, 
-  GiDiamondRing, 
-  GiGreekTemple, 
+import {
+  GiPalmTree,
+  GiDiamondRing,
+  GiGreekTemple,
   GiMountainClimbing,
   GiKnifeFork,
   GiLotusFlower

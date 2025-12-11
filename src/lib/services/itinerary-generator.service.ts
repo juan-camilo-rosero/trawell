@@ -124,7 +124,7 @@ class ItineraryGeneratorService {
     console.log(`Encontrados ${touristSites.length} sitios turísticos`);
 
     // 5. Seleccionar el mejor vuelo y hotel
-    const selectedFlight = this.selectBestFlight(flights);
+    const selectedFlight = this.selectBestFlight(flights, request);
     const selectedHotel = this.selectBestHotel(hotels);
 
     if (!selectedFlight) {
@@ -163,6 +163,16 @@ class ItineraryGeneratorService {
 
     // 9. Calcular precio total
     const totalPrice = this.calculateTotalPrice(days);
+
+    // Si hay presupuesto, validarlo
+    if (request.budget !== undefined) {
+      if (totalPrice > request.budget) {
+        throw new Error(
+          `El costo estimado del viaje (${totalPrice.toLocaleString()} ${request.currency || "COP"}) ` +
+          `supera tu presupuesto (${request.budget.toLocaleString()} ${request.currency || "COP"}).`
+        );
+      }
+    }
 
     // 10. Crear searchParams
     const searchParams: ISearchParams = {
@@ -319,12 +329,19 @@ class ItineraryGeneratorService {
       });
 
       const data = await response.json();
-      const restaurants = data.success ? data.data.restaurants : [];
+      let restaurants = data.success ? data.data.restaurants : [];
 
       console.log(
         `[searchRestaurants] Total restaurantes encontrados: ${restaurants.length}`
       );
-
+       if (request.budget) {
+             restaurants = restaurants.filter(
+               (r) => (r.priceLevel ?? 2) <= 2 // 1 = barato, 2 = medio
+             );
+             console.log(
+               `[searchRestaurants] Filtrados por presupuesto: ${restaurants.length}`
+             );
+           }
       return restaurants;
     } catch (error) {
       console.error("Error buscando restaurantes:", error);
@@ -366,24 +383,25 @@ class ItineraryGeneratorService {
   /**
    * Selecciona el mejor vuelo basado en precio, duración y escalas
    */
-  private selectBestFlight(flights: FlightResponse[]): FlightResponse | null {
+  private selectBestFlight(
+    flights: FlightResponse[],
+    request: GenerateItineraryRequest
+  ): FlightResponse | null {
     if (flights.length === 0) return null;
+
+    if (request.budget) {
+      const sorted = flights.sort((a, b) => a.price.grandTotal - b.price.grandTotal);
+      return sorted[0]; // vuelo más barato
+    }
 
     // Ordenar por: menos escalas > menor precio > menor duración
     const sorted = [...flights].sort((a, b) => {
-      const stopsA = a.outbound.segments.reduce(
-        (sum, s) => sum + s.numberOfStops,
-        0
-      );
-      const stopsB = b.outbound.segments.reduce(
-        (sum, s) => sum + s.numberOfStops,
-        0
-      );
+      const stopsA = a.outbound.segments.reduce((sum, s) => sum + s.numberOfStops, 0);
+      const stopsB = b.outbound.segments.reduce((sum, s) => sum + s.numberOfStops, 0);
 
       if (stopsA !== stopsB) return stopsA - stopsB;
-      if (a.price.grandTotal !== b.price.grandTotal) {
+      if (a.price.grandTotal !== b.price.grandTotal)
         return a.price.grandTotal - b.price.grandTotal;
-      }
 
       const durationA = parseDurationToMinutes(a.outbound.duration);
       const durationB = parseDurationToMinutes(b.outbound.duration);
@@ -549,8 +567,13 @@ class ItineraryGeneratorService {
       request.departureDate,
       request.returnDate
     );
-    const activitiesPerDay = getActivitiesPerDayForTripType(request.travelType);
-
+    let activitiesPerDay = getActivitiesPerDayForTripType(request.travelType);
+    // Ajustar actividades según presupuesto (opcional)
+    if (request.budget && request.budget < 1500000) {
+      activitiesPerDay = 1; // muy bajo presupuesto → pocas actividades
+    } else if (request.budget && request.budget < 3000000) {
+      activitiesPerDay = Math.max(activitiesPerDay - 1, 1); // reduce 1 actividad
+    }
     const restaurantIndexes = {
       // Cambiado a const
       breakfast: 0,
@@ -768,6 +791,24 @@ class ItineraryGeneratorService {
         }
 
         // Vuelo de vuelta
+        currentTime = this.ensureTimeIsAtLeast(currentTime, "15:00"); // ejemplo
+
+        items.push({
+          _id: new Types.ObjectId(),
+          itemId: `hotel-pickup-${orderCounter}`,
+          type: "accommodation",
+          order: orderCounter++,
+          time: currentTime,
+          title: `Recoger equipaje en ${hotel.name}`,
+          description: `Regreso al hotel para recoger tus pertenencias antes del vuelo`,
+          price: 0,
+          location: {
+            name: hotel.name,
+            address: hotel.address || hotel.name,
+            coordinates: hotel.coordinates,
+            placeId: undefined,
+          },
+        });
         items.push(
           this.createFlightItem(
             flight,
@@ -963,17 +1004,14 @@ class ItineraryGeneratorService {
 
     const title =
       direction === "outbound"
-        ? `Vuelo ${flight.origin.cityName} - ${flight.destination.cityName}`
-        : `Vuelo ${flight.destination.cityName} - ${flight.origin.cityName}`;
+        ? `Vuelo ${flight.origin.cityName} → ${flight.destination.cityName} (${flightDetails.departureTime})`
+        : `Vuelo ${flight.destination.cityName} → ${flight.origin.cityName} (${flightDetails.departureTime})`;
 
-    const description =
-      direction === "outbound"
-        ? `Vuelo de ida operado por ${
-            segment.carrierName || segment.carrierCode
-          }`
-        : `Vuelo de regreso operado por ${
-            segment.carrierName || segment.carrierCode
-          }`;
+   const description =
+     `${segment.carrierName || segment.carrierCode}
+     • Salida: ${flightDetails.departureTime}
+     • Llegada: ${flightDetails.arrivalTime}
+     • Duración: ${itinerary.duration}`;
 
     return {
       _id: new Types.ObjectId(), // Usar Types.ObjectId()
