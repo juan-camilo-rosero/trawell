@@ -16,7 +16,7 @@ import {
   formatDateToYYYYMMDD,
   getCurrencyForCountry,
 } from '@/lib/helpers/itinerary.helpers';
-import { ICoordinates, TouristSiteCategory, RestaurantCategory } from '@/models/types';
+import { ICoordinates,  RestaurantCategory } from '@/models/types';
 
 describe('Itinerary Helpers', () => {
   describe('calculateDistance', () => {

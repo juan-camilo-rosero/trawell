@@ -11,7 +11,7 @@ import {
   itineraryGeneratorService, 
   GenerateItineraryRequest,
 } from '@/lib/services/itinerary-generator.service';
-import { SelectorService } from '@/lib/services/itinerary-generator/selectors.service';
+// ==== ELIMINADO: SelectorService no se usa directamente en este test ====
 
 jest.mock('@/lib/services/itinerary-generator/selectors.service', () => ({
   SelectorService: jest.fn().mockImplementation(() => ({
@@ -203,7 +203,7 @@ describe('ItineraryGeneratorService', () => {
 
       expect(result).toBeDefined();
       expect(result.title).toContain('Cultural');
-      expect(result.days).toHaveLength(1); // Ajusta según tu mock
+      expect(result.days).toHaveLength(1);
       expect(result.currency).toBe('COP');
       expect(result.totalPrice).toBeGreaterThan(0);
     });

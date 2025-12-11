@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ItineraryLean } from '@/models/itinerary/Itinerary';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://trawell-yuxn.vercel.app';
@@ -27,7 +27,7 @@ export function useItineraries(
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
 
-  const fetchItineraries = async (page: number = 0) => {
+  const fetchItineraries = useCallback(async (page: number = 0) => {
     if (!userId) {
       setIsLoading(false);
       return;
@@ -51,7 +51,6 @@ export function useItineraries(
       const data = await response.json();
       
       if (data.success) {
-        console.log('Itinerarios completos:', data.data.itineraries);
         setItineraries(data.data.itineraries);
         setPagination(data.data.pagination);
       } else {
@@ -63,11 +62,10 @@ export function useItineraries(
     } finally {
       setIsLoading(false);
     }
-  };
-
+  }, [userId, initialLimit]); 
   useEffect(() => {
     fetchItineraries(0);
-  }, [userId]);
+  }, [fetchItineraries]); 
 
   return {
     itineraries,
