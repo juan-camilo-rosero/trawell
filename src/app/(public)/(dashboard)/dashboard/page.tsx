@@ -73,7 +73,7 @@ export default function Page() {
         {!isLoading && !error && itineraries.length === 0 && (
           <div className="bg-secondary-200 border border-gray-200 rounded-lg p-12 text-center">
             <p className="text-gray-600 mb-6">
-              You don't have any itineraries yet. Start planning your next adventure.
+              {"You don't have any itineraries yet. Start planning your next adventure."}
             </p>
             <Link className="primary-btn" href="/dashboard/new-trip">Create itinerary</Link>
           </div>
