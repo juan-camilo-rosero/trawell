@@ -12,9 +12,7 @@ export default function Hero() {
             Plan your next trip in <b className="font-semibold">seconds</b>
           </h1>
           <p className="mt-6 max-w-[60ch] sm:text-lg text-foreground/80">
-            Explore a collection of Shadcn UI blocks and components, ready to
-            preview and copy. Streamline your development workflow with
-            easy-to-implement examples.
+            Your itinerary is just a few clicks away
           </p>
           <div className="mt-12 flex items-center gap-4">
             <Link
