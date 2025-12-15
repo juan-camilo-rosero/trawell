@@ -39,7 +39,12 @@ const HotelItem: React.FC<HotelItemProps> = ({
   const { deleteItemFromDay, moveItemInDay } = useItinerary();
 
   const formatPrice = (price: number): string => {
-    return `COP $${price.toLocaleString("es-CO")}`;
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(price);
   };
 
   const renderStars = (count: number) => {

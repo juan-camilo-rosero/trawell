@@ -41,7 +41,12 @@ const TouristSiteItem: React.FC<TouristSiteItemProps> = ({
 
   const formatPrice = (price: number): string => {
     if (price === 0) return "Free entry";
-    return `COP $${price.toLocaleString("es-CO")}`;
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(price);
   };
 
   const getCategoryIcon = () => {

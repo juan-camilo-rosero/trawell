@@ -33,15 +33,29 @@ const FlightItem: React.FC<FlightItemProps> = ({
   const { deleteItemFromDay, moveItemInDay } = useItinerary();
 
   const parseDuration = (duration: string): string => {
-    const match = duration.match(/PT(\d+)H(\d+)M/);
-    if (match) {
-      return `${match[1]}h ${match[2]}m`;
-    }
-    return duration;
+    // Manejo robusto de duración ISO 8601 (e.g., PT2H, PT2H30M, PT45M)
+    const hoursMatch = duration.match(/(\d+)H/);
+    const minutesMatch = duration.match(/(\d+)M/);
+
+    const hours = hoursMatch ? parseInt(hoursMatch[1]) : 0;
+    const minutes = minutesMatch ? parseInt(minutesMatch[1]) : 0;
+
+    if (hours === 0 && minutes === 0) return duration;
+
+    const parts = [];
+    if (hours > 0) parts.push(`${hours}h`);
+    if (minutes > 0) parts.push(`${minutes}m`);
+
+    return parts.join(" ");
   };
 
   const formatPrice = (price: number): string => {
-    return `COP $${price.toLocaleString("es-CO")}`;
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(price);
   };
 
   const handleDelete = async () => {

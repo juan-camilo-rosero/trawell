@@ -45,9 +45,9 @@ export function ItineraryCard({ itinerary, onDelete }: ItineraryCardProps) {
     itinerary.searchParams.travelers.children +
     itinerary.searchParams.travelers.babies;
 
-  const formattedPrice = new Intl.NumberFormat("es-CO", {
+  const formattedPrice = new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: itinerary.currency || "COP",
+    currency: itinerary.currency || "USD",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(itinerary.totalPrice);
