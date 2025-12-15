@@ -33,7 +33,7 @@ export default function CityAutocomplete({
   value, 
   onChange, 
   className = '', 
-  placeholder = 'Buscar ciudad',
+  placeholder = 'Search city',
   label,
   showMapIcon = false,
   showClearIcon = false
@@ -255,7 +255,7 @@ export default function CityAutocomplete({
             type="button"
             onClick={handleClear}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-            aria-label="Limpiar"
+            aria-label="Clear"
             tabIndex={-1}
           >
             <RiCloseCircleFill size={18} />

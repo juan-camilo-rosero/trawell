@@ -39,7 +39,7 @@ function Page() {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-2xl md:text-4xl font-semibold text-gray-900 mb-2">
-          Historial de itinerarios
+          Itinerary History
         </h1>
       </div>
 
@@ -56,7 +56,7 @@ function Page() {
           <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
           <div>
             <h3 className="text-lg font-semibold text-red-900 mb-1">
-              Error al cargar itinerarios
+              Error loading itineraries
             </h3>
             <p className="text-red-700">{error}</p>
             <Button
@@ -64,7 +64,7 @@ function Page() {
               className="mt-4"
               variant="outline"
             >
-              Intentar nuevamente
+              Try again
             </Button>
           </div>
         </div>
@@ -74,13 +74,12 @@ function Page() {
         <div className="bg-secondary-200 border border-gray-200 rounded-lg p-12 text-center">
           <Plane className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            No tienes itinerarios aún
+            You don't have any itineraries yet
           </h3>
           <p className="text-gray-600 mb-6">
-            Comienza a planificar tu próxima aventura creando tu primer
-            itinerario
+            Start planning your next adventure by creating your first itinerary
           </p>
-          <Button className="primary-btn">Crear itinerario</Button>
+          <Button className="primary-btn">Create itinerary</Button>
         </div>
       )}
 
@@ -103,16 +102,16 @@ function Page() {
                 disabled={currentPage === 0}
                 variant="outline"
               >
-                Anterior
+                Previous
               </Button>
 
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600">
-                  Página {currentPage + 1} de {totalPages}
+                  Page {currentPage + 1} of {totalPages}
                 </span>
                 <span className="text-xs text-gray-400">
                   ({pagination.total}{" "}
-                  {pagination.total === 1 ? "itinerario" : "itinerarios"})
+                  {pagination.total === 1 ? "itinerary" : "itineraries"})
                 </span>
               </div>
 
@@ -121,7 +120,7 @@ function Page() {
                 disabled={!pagination.hasMore}
                 variant="outline"
               >
-                Siguiente
+                Next
               </Button>
             </div>
           )}

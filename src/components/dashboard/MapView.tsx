@@ -189,7 +189,7 @@ function MapView({ markers, center, zoom = 13, showSaveButton = false }: MapView
 
   const handleSaveItinerary = async () => {
     if (!userData?.firebaseUid) {
-      setSaveError('Debes iniciar sesión para guardar el itinerario')
+      setSaveError('You must log in to save the itinerary')
       return
     }
 
@@ -199,7 +199,7 @@ function MapView({ markers, center, zoom = 13, showSaveButton = false }: MapView
     if (success) {
       router.push('/dashboard/my-trips')
     } else {
-      setSaveError('Error al guardar el itinerario. Intenta nuevamente.')
+      setSaveError('Error saving itinerary. Please try again.')
     }
   }
 
@@ -208,7 +208,7 @@ function MapView({ markers, center, zoom = 13, showSaveButton = false }: MapView
       <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-lg">
         <div className="flex flex-col items-center gap-2">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
-          <p className="text-sm text-gray-600">Cargando mapa...</p>
+          <p className="text-sm text-gray-600">Loading map...</p>
         </div>
       </div>
     )
@@ -272,7 +272,7 @@ function MapView({ markers, center, zoom = 13, showSaveButton = false }: MapView
             disabled={isSavingItinerary}
             className="w-full primary-btn py-3 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSavingItinerary ? 'Guardando...' : 'Guardar itinerario'}
+            {isSavingItinerary ? 'Saving...' : 'Save itinerary'}
           </button>
         </div>
       )}

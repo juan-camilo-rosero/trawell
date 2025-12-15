@@ -47,14 +47,14 @@ export function OnboardingForm({
       {showTitle && (
         <div className="w-full">
           <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
-            ¡Bienvenido!
+            Welcome!
           </h2>
           <p className="text-base lg:text-lg text-gray-600">
-            Cuéntanos un poco sobre ti para personalizar tu experiencia
+            Tell us a little about yourself to customize your experience
           </p>
         </div>
       )}
-      <h3 className="text-xl font-semibold text-muted-900 w-full text-center">Ingresa tus datos</h3>
+      <h3 className="text-xl font-semibold text-muted-900 w-full text-center">Enter your details</h3>
       
       {apiError && (
         <div className="w-full p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -67,7 +67,7 @@ export function OnboardingForm({
           <TextInput
             value={name}
             onChange={onNameChange}
-            placeholder="Ingresa tu nombre"
+            placeholder="Enter your name"
             showClearButton={true}
             error={errors.name}
           />
@@ -79,8 +79,8 @@ export function OnboardingForm({
           <CityAutocomplete
             value={city}
             onChange={onCityChange}
-            label="¿De qué ciudad eres?"
-            placeholder="Buscar ciudad"
+            label="Where are you from?"
+            placeholder="Search city"
             showMapIcon={true}
             showClearIcon={true}
           />
@@ -94,7 +94,7 @@ export function OnboardingForm({
         className="primary-btn w-full"
         disabled={!isValid || isLoading}
       >
-        {isLoading ? "Completando..." : "Continuar"}
+        {isLoading ? "Completing..." : "Continue"}
       </Button>
     </div>
   )

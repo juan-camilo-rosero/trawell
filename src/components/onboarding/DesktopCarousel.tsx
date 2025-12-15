@@ -82,7 +82,7 @@ export function DesktopCarousel({ slides }: DesktopCarouselProps) {
           <button
             onClick={handlePrevious}
             className="p-1.5 rounded-full bg-white/70 hover:bg-white/90 shadow-sm transition-colors"
-            aria-label="Slide anterior"
+            aria-label="Previous slide"
           >
             <IoChevronBack className="w-4 h-4 text-gray-600" />
           </button>
@@ -96,7 +96,7 @@ export function DesktopCarousel({ slides }: DesktopCarouselProps) {
                 className={`h-1.5 rounded-full transition-all ${
                   currentSlide === index ? 'bg-primary w-6' : 'bg-gray-300 w-1.5'
                 }`}
-                aria-label={`Ir a slide ${index + 1}`}
+                aria-label={`Go to slide ${index + 1}`}
               />
             ))}
           </div>
@@ -104,7 +104,7 @@ export function DesktopCarousel({ slides }: DesktopCarouselProps) {
           <button
             onClick={handleNext}
             className="p-1.5 rounded-full bg-white/70 hover:bg-white/90 shadow-sm transition-colors"
-            aria-label="Siguiente slide"
+            aria-label="Next slide"
           >
             <IoChevronForward className="w-4 h-4 text-gray-600" />
           </button>

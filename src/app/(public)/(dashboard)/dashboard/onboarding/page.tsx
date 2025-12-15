@@ -30,30 +30,30 @@ interface OnboardingSlideData {
 const ONBOARDING_SLIDES: OnboardingSlideData[] = [
   {
     image: "https://upload.wikimedia.org/wikipedia/en/5/53/Snoopy_Peanuts.png",
-    title: "Planea tu próximo viaje en segundos",
+    title: "Plan your next trip in seconds",
     subtitle:
-      "Creamos al instante un itinerario completo para que solo debas preocuparte por disfrutar",
+      "We instantly create a complete itinerary so you only have to worry about enjoying yourself",
   },
   {
     image:
       "https://logoeps.com/wp-content/uploads/2013/05/snoopy-character-vector.png",
-    title: "Pensamos cada detalle de tu experiencia",
+    title: "We think of every detail of your experience",
     subtitle:
-      "Buscamos entre cientos de miles de alojamientos, restaurantes, sitios de interés y vuelos para darte lo mejor",
+      "We search hundreds of thousands of accommodations, restaurants, sights, and flights to give you the best",
   },
   {
     image:
       "https://images.fineartamerica.com/images/artworkimages/medium/3/snoopy-love-jennifer-s-payne-transparent.png",
-    title: "Nos adaptamos a tu propio estilo",
+    title: "We adapt to your own style",
     subtitle:
-      "Desde tu forma de viajar hasta tus preferencias al comer, nos adaptamos a lo que estás buscando",
+      "From how you travel to your dining preferences, we adapt to what you're looking for",
   },
   {
     image:
       "https://img2.clipart-library.com/27/snoopy-woodstock-clip-art/snoopy-woodstock-clip-art-19.gif",
-    title: "¡Comencemos!",
+    title: "Let's start!",
     subtitle:
-      "Cuéntanos un poco sobre ti para personalizar tu experiencia desde el primer momento",
+      "Tell us a little about yourself to personalize your experience from the very first moment",
   },
 ];
 
@@ -75,7 +75,7 @@ function Page() {
   // Validaciones
   const validateName = (): boolean => {
     if (!name.trim()) {
-      setErrors((prev) => ({ ...prev, name: "Por favor ingresa tu nombre" }));
+      setErrors((prev) => ({ ...prev, name: "Please enter your name" }));
       return false;
     }
     setErrors((prev) => ({ ...prev, name: "" }));
@@ -86,7 +86,7 @@ function Page() {
     if (!city.trim() || !cityData) {
       setErrors((prev) => ({
         ...prev,
-        city: "Por favor selecciona tu ciudad de origen del listado",
+        city: "Please select your city of origin from the list",
       }));
       return false;
     }
@@ -130,7 +130,7 @@ function Page() {
     // Obtener Firebase UID
     const user = auth.currentUser;
     if (!user) {
-      setApiError("No se pudo obtener la información del usuario. Por favor, inicia sesión nuevamente.");
+      setApiError("Could not retrieve user information. Please log in again.");
       return;
     }
 
@@ -162,7 +162,7 @@ function Page() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Error al completar el onboarding");
+        throw new Error(data.error || "Error completing onboarding");
       }
 
       console.log("Onboarding completado exitosamente:", data);
@@ -178,7 +178,7 @@ function Page() {
       setApiError(
         error instanceof Error
           ? error.message
-          : "Ocurrió un error al completar el onboarding. Por favor, intenta nuevamente."
+          : "An error occurred while completing onboarding. Please try again."
       );
     } finally {
       setIsLoading(false);
@@ -242,7 +242,7 @@ function Page() {
                 onClick={handleContinue}
                 className="primary-btn text-xl w-full mt-6 !py-6"
               >
-                Continuar
+                Continue
               </Button>
             </div>
           </>
