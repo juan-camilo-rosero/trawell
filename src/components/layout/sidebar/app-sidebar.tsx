@@ -23,22 +23,22 @@ import {
 const data = {
   projects: [
     {
-      name: "Inicio",
+      name: "Home",
       url: "/dashboard",
       icon: HomeIcon,
     },
     {
-      name: "Nuevo viaje",
+      name: "New Trip",
       url: "/dashboard/new-trip",
       icon: Briefcase,
     },
     {
-      name: "Mis viajes",
+      name: "My Trips",
       url: "/dashboard/my-trips",
       icon: Calendar,
     },
     {
-      name: "Configuración",
+      name: "Settings",
       url: "/dashboard/settings",
       icon: Settings,
     },

@@ -26,7 +26,7 @@ function FlightsList({
       const flight = availableFlights[flightIndex];
       const day = itinerary.days.find((d) => d.dayNumber === dayNumber);
       if (!day) {
-        console.error("Día no encontrado");
+        console.error("Day not found");
         return;
       }
 
@@ -34,7 +34,7 @@ function FlightsList({
         (item) => item.itemId === relativeToItemId
       );
       if (!relativeItem) {
-        console.error("Item a reemplazar no encontrado");
+        console.error("Item to replace not found");
         return;
       }
 
@@ -55,7 +55,7 @@ function FlightsList({
       const success = await replaceItemInDay(dayNumber, relativeToItemId, newItem);
 
       if (success) {
-        console.log("✅ Vuelo reemplazado exitosamente");
+        console.log("✅ Flight replaced successfully");
         if (onSuccess) {
           setTimeout(() => {
             onSuccess();
@@ -63,7 +63,7 @@ function FlightsList({
         }
       }
     } catch (error) {
-      console.error("Error reemplazando vuelo:", error);
+      console.error("Error replacing flight:", error);
     } finally {
       setIsAdding(false);
     }
@@ -73,7 +73,7 @@ function FlightsList({
     return (
       <div className="text-center py-8">
         <p className="text-muted-500">
-          No hay vuelos disponibles. Genera un itinerario primero.
+          No flights available. Generate an itinerary first.
         </p>
       </div>
     );
@@ -90,7 +90,7 @@ function FlightsList({
   return (
     <div className="space-y-3">
       <h3 className="text-lg font-semibold text-muted-900 mb-4">
-        Vuelos disponibles ({availableFlights.length})
+        Available Flights ({availableFlights.length})
       </h3>
       <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
         {availableFlights.map((flight, index) => {
@@ -104,15 +104,15 @@ function FlightsList({
 
           const details = [
             `${carrierName} - ${flight.origin.iataCode} → ${flight.destination.iataCode}`,
-            `Duración: ${parseDuration(flight.outbound.duration)}`,
-            `Escalas: ${totalStops}`,
-            `Salida: ${new Date(outboundSegment.departure.at).toLocaleString()}`,
+            `Duration: ${parseDuration(flight.outbound.duration)}`,
+            `Stops: ${totalStops}`,
+            `Departure: ${new Date(outboundSegment.departure.at).toLocaleString()}`,
           ];
 
           return (
             <ItemCard
               key={`${flight.id}-${index}`}
-              title={`Vuelo ${carrierName}`}
+              title={`Flight ${carrierName}`}
               subtitle={`${flight.origin.name} - ${flight.destination.name}`}
               price={`${flight.price.currency} ${flight.price.total.toLocaleString()}`}
               details={details}
@@ -124,7 +124,7 @@ function FlightsList({
       {isAdding && (
         <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-4 shadow-lg">
-            <p className="text-muted-700">Reemplazando vuelo...</p>
+            <p className="text-muted-700">Replacing flight...</p>
           </div>
         </div>
       )}

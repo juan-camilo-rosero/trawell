@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { useItinerary } from "@/contexts/ItineraryContext";
 import ItemTypeSelector, { ItemType } from "./ItemTypeSelector";
 import HotelsList from "./HotelsList";
 import RestaurantsList from "./RestaurantsList";
@@ -33,6 +34,15 @@ function CustomizeItinerary({
     setItemType(null);
   };
 
+  const {
+    availableHotels,
+    availableRestaurants,
+    availableTouristSites,
+    availableFlights,
+    refreshAvailableOptions,
+    isLoading,
+  } = useItinerary();
+
   React.useEffect(() => {
     if (insertPosition === "replace" && itemTypeToReplace && !itemType) {
       if (itemTypeToReplace === "accommodation") {
@@ -46,6 +56,30 @@ function CustomizeItinerary({
       }
     }
   }, [insertPosition, itemTypeToReplace, itemType]);
+
+  React.useEffect(() => {
+    if (isLoading) return;
+
+    const shouldRefresh =
+      (itemType === "hotel" && availableHotels.length === 0) ||
+      (itemType === "restaurant" && availableRestaurants.length === 0) ||
+      (itemType === "tourism" && availableTouristSites.length === 0) ||
+      (itemType === "flight" && availableFlights.length === 0);
+
+    if (shouldRefresh) {
+      refreshAvailableOptions();
+    }
+  }, [
+    itemType,
+    availableHotels.length,
+    availableRestaurants.length,
+    availableTouristSites.length,
+    availableFlights.length,
+    isLoading,
+    refreshAvailableOptions,
+    insertPosition, 
+    itemTypeToReplace
+  ]);
 
   if (itemType !== null) {
     return (
@@ -86,7 +120,7 @@ function CustomizeItinerary({
           type="button"
           onClick={handleBack}
         >
-          Volver
+          Back
         </button>
       </div>
     );
@@ -105,7 +139,7 @@ function CustomizeItinerary({
           type="button"
           onClick={onClose}
         >
-          Cerrar
+          Close
         </button>
       </div>
     );

@@ -30,7 +30,7 @@ function TouristSitesList({
       const site = availableTouristSites[siteIndex];
       const day = itinerary.days.find((d) => d.dayNumber === dayNumber);
       if (!day) {
-        console.error("Día no encontrado");
+        console.error("Day not found");
         return;
       }
 
@@ -82,7 +82,7 @@ function TouristSitesList({
       }
 
       if (success) {
-        console.log("✅ Sitio turístico añadido exitosamente");
+        console.log("✅ Tourist site added successfully");
         if (onSuccess) {
           setTimeout(() => {
             onSuccess();
@@ -90,7 +90,7 @@ function TouristSitesList({
         }
       }
     } catch (error) {
-      console.error("Error añadiendo sitio turístico:", error);
+      console.error("Error adding tourist site:", error);
     } finally {
       setIsAdding(false);
     }
@@ -100,7 +100,7 @@ function TouristSitesList({
     return (
       <div className="text-center py-8">
         <p className="text-muted-500">
-          No hay sitios turísticos disponibles. Genera un itinerario primero.
+          No tourist sites available. Generate an itinerary first.
         </p>
       </div>
     );
@@ -108,10 +108,10 @@ function TouristSitesList({
 
   const getCategoryText = (category: string) => {
     const categories: Record<string, string> = {
-      museum: "Museo",
-      park: "Parque",
-      monument: "Monumento",
-      historical: "Histórico",
+      museum: "Museum",
+      park: "Park",
+      monument: "Monument",
+      historical: "Historical",
     };
     return categories[category] || category;
   };
@@ -119,7 +119,7 @@ function TouristSitesList({
   return (
     <div className="space-y-3">
       <h3 className="text-lg font-semibold text-muted-900 mb-4">
-        Sitios turísticos disponibles ({availableTouristSites.length})
+        Available Tourist Sites ({availableTouristSites.length})
       </h3>
       <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
         {availableTouristSites.map((site, index) => {
@@ -127,12 +127,12 @@ function TouristSitesList({
           const details = [
             `Categoría: ${getCategoryText(site.category)}`,
             entryFee > 0
-              ? `Entrada: COP ${entryFee.toLocaleString()}`
-              : "Entrada gratuita",
+              ? `Entry fee: COP ${entryFee.toLocaleString()}`
+              : "Free entry",
           ];
           if (site.openingHours?.openNow !== undefined) {
             details.push(
-              site.openingHours.openNow ? "🟢 Abierto ahora" : "🔴 Cerrado"
+              site.openingHours.openNow ? "🟢 Open now" : "🔴 Closed"
             );
           }
 
@@ -151,7 +151,7 @@ function TouristSitesList({
       {isAdding && (
         <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-4 shadow-lg">
-            <p className="text-muted-700">Añadiendo sitio turístico...</p>
+            <p className="text-muted-700">Adding tourist site...</p>
           </div>
         </div>
       )}

@@ -64,38 +64,38 @@ interface FoodPreferencesSelectorProps {
 }
 
 const foodOptions: FoodOption[] = [
-  { value: 'all', label: 'Todos', category: 'General' },
-  { value: 'fine_dining', label: 'Alta cocina', category: 'Estilo' },
-  { value: 'casual', label: 'Casual', category: 'Estilo' },
-  { value: 'fast_food', label: 'Comida rápida', category: 'Estilo' },
-  { value: 'cafe', label: 'Café', category: 'Estilo' },
-  { value: 'bar', label: 'Bar', category: 'Estilo' },
-  { value: 'american', label: 'Americana', category: 'Cocina' },
-  { value: 'asian', label: 'Asiática', category: 'Cocina' },
-  { value: 'chinese', label: 'China', category: 'Cocina' },
-  { value: 'french', label: 'Francesa', category: 'Cocina' },
-  { value: 'greek', label: 'Griega', category: 'Cocina' },
-  { value: 'indian', label: 'India', category: 'Cocina' },
-  { value: 'indonesian', label: 'Indonesia', category: 'Cocina' },
-  { value: 'italian', label: 'Italiana', category: 'Cocina' },
-  { value: 'japanese', label: 'Japonesa', category: 'Cocina' },
-  { value: 'korean', label: 'Coreana', category: 'Cocina' },
-  { value: 'lebanese', label: 'Libanesa', category: 'Cocina' },
-  { value: 'mediterranean', label: 'Mediterránea', category: 'Cocina' },
-  { value: 'mexican', label: 'Mexicana', category: 'Cocina' },
-  { value: 'middle_eastern', label: 'Medio Oriente', category: 'Cocina' },
-  { value: 'spanish', label: 'Española', category: 'Cocina' },
-  { value: 'thai', label: 'Tailandesa', category: 'Cocina' },
-  { value: 'turkish', label: 'Turca', category: 'Cocina' },
-  { value: 'pizza', label: 'Pizza', category: 'Específico' },
-  { value: 'seafood', label: 'Mariscos', category: 'Específico' },
-  { value: 'steak_house', label: 'Parrilla', category: 'Específico' },
-  { value: 'sushi', label: 'Sushi', category: 'Específico' },
-  { value: 'ramen', label: 'Ramen', category: 'Específico' },
-  { value: 'hamburger', label: 'Hamburguesas', category: 'Específico' },
-  { value: 'bakery', label: 'Panadería', category: 'Específico' },
-  { value: 'ice_cream', label: 'Heladería', category: 'Específico' },
-  { value: 'sandwich', label: 'Sándwiches', category: 'Específico' },
+  { value: 'all', label: 'All', category: 'General' },
+  { value: 'fine_dining', label: 'Fine Dining', category: 'Style' },
+  { value: 'casual', label: 'Casual', category: 'Style' },
+  { value: 'fast_food', label: 'Fast Food', category: 'Style' },
+  { value: 'cafe', label: 'Cafe', category: 'Style' },
+  { value: 'bar', label: 'Bar', category: 'Style' },
+  { value: 'american', label: 'American', category: 'Cuisine' },
+  { value: 'asian', label: 'Asian', category: 'Cuisine' },
+  { value: 'chinese', label: 'Chinese', category: 'Cuisine' },
+  { value: 'french', label: 'French', category: 'Cuisine' },
+  { value: 'greek', label: 'Greek', category: 'Cuisine' },
+  { value: 'indian', label: 'Indian', category: 'Cuisine' },
+  { value: 'indonesian', label: 'Indonesian', category: 'Cuisine' },
+  { value: 'italian', label: 'Italian', category: 'Cuisine' },
+  { value: 'japanese', label: 'Japanese', category: 'Cuisine' },
+  { value: 'korean', label: 'Korean', category: 'Cuisine' },
+  { value: 'lebanese', label: 'Lebanese', category: 'Cuisine' },
+  { value: 'mediterranean', label: 'Mediterranean', category: 'Cuisine' },
+  { value: 'mexican', label: 'Mexican', category: 'Cuisine' },
+  { value: 'middle_eastern', label: 'Middle Eastern', category: 'Cuisine' },
+  { value: 'spanish', label: 'Spanish', category: 'Cuisine' },
+  { value: 'thai', label: 'Thai', category: 'Cuisine' },
+  { value: 'turkish', label: 'Turkish', category: 'Cuisine' },
+  { value: 'pizza', label: 'Pizza', category: 'Specific' },
+  { value: 'seafood', label: 'Seafood', category: 'Specific' },
+  { value: 'steak_house', label: 'Steakhouse', category: 'Specific' },
+  { value: 'sushi', label: 'Sushi', category: 'Specific' },
+  { value: 'ramen', label: 'Ramen', category: 'Specific' },
+  { value: 'hamburger', label: 'Burger', category: 'Specific' },
+  { value: 'bakery', label: 'Bakery', category: 'Specific' },
+  { value: 'ice_cream', label: 'Ice Cream', category: 'Specific' },
+  { value: 'sandwich', label: 'Sandwich', category: 'Specific' },
 ];
 
 function FoodPreferencesSelector({ value, onChange }: FoodPreferencesSelectorProps) {
@@ -140,12 +140,12 @@ function FoodPreferencesSelector({ value, onChange }: FoodPreferencesSelectorPro
 
   const getDisplayText = () => {
     if (value.includes('all')) {
-      return 'Todos';
+      return 'All';
     }
     if (value.length === 0) {
-      return 'Seleccionar preferencias';
+      return 'Select preferences';
     }
-    return `${value.length} seleccionado${value.length > 1 ? 's' : ''}`;
+    return `${value.length} selected`;
   };
 
   const categories = Array.from(new Set(foodOptions.map(option => option.category)));
@@ -153,7 +153,7 @@ function FoodPreferencesSelector({ value, onChange }: FoodPreferencesSelectorPro
   return (
     <div>
       <h3 className="text-lg font-medium text-muted-900 mb-4">
-        Preferencias de comida
+        Food preferences
       </h3>
       
       <Popover open={open} onOpenChange={setOpen}>
@@ -170,9 +170,9 @@ function FoodPreferencesSelector({ value, onChange }: FoodPreferencesSelectorPro
         </PopoverTrigger>
         <PopoverContent className="w-full p-0" align="start">
           <Command>
-            <CommandInput placeholder="Buscar tipo de comida..." />
+            <CommandInput placeholder="Search food type..." />
             <CommandList>
-              <CommandEmpty>No se encontraron resultados.</CommandEmpty>
+              <CommandEmpty>No results found.</CommandEmpty>
               {categories.map((category) => (
                 <CommandGroup key={category} heading={category}>
                   {foodOptions
@@ -217,7 +217,7 @@ function FoodPreferencesSelector({ value, onChange }: FoodPreferencesSelectorPro
                   onClick={() => removeItem(type)}
                   className="ml-1 rounded-full hover:bg-secondary-300 p-0.5"
                 >
-                  <span className="sr-only">Remover {option?.label}</span>
+                  <span className="sr-only">Remove {option?.label}</span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"

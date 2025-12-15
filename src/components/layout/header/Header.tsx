@@ -15,10 +15,10 @@ interface MenuButtonsProps {
 const MenuButtons = ({ onClose }: MenuButtonsProps) => (
   <>
     <Link href="/sign-up" className="w-full" onClick={onClose}>
-      <Button className="secondary-btn w-full">Crear cuenta</Button>
+      <Button className="secondary-btn w-full">Create account</Button>
     </Link>
     <Link href="/login" className="w-full" onClick={onClose}>
-      <Button className="primary-btn w-full">Iniciar sesión</Button>
+      <Button className="primary-btn w-full">Log in</Button>
     </Link>
   </>
 );
@@ -44,7 +44,7 @@ function Header() {
         <button
           className="md:hidden"
           onClick={toggleMenu}
-          aria-label="Abrir menú"
+          aria-label="Open menu"
         >
           <RiMenu3Fill className="text-3xl text-muted-900" />
         </button>
@@ -76,7 +76,7 @@ function Header() {
               <div className="py-4 custom-ph flex justify-end">
                 <button
                   onClick={closeMenu}
-                  aria-label="Cerrar menú"
+                  aria-label="Close menu"
                   className="w-9 h-9 flex items-center justify-center"
                 >
                   <IoClose className="text-3xl text-muted-900" />

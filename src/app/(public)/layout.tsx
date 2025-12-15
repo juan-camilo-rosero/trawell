@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Trawell | planea tu proximo viaje en segundos",
-  description: "Generamos al instante un itinerario detallado con información en tiempo real para tu próximo viaje basado en tus preferencias y presupuesto.",
+  title: "Trawell | Plan your next trip in seconds",
+  description: "Instantly generate a detailed itinerary with real-time information for your next trip based on your preferences and budget.",
 };
 
 export default function RootLayout({
@@ -12,7 +12,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    <html lang="en">
       <body
         className={`antialiased`}
       >

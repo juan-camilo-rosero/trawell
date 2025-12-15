@@ -30,7 +30,7 @@ function RestaurantsList({
       const restaurant = availableRestaurants[restaurantIndex];
       const day = itinerary.days.find((d) => d.dayNumber === dayNumber);
       if (!day) {
-        console.error("Día no encontrado");
+        console.error("Day not found");
         return;
       }
 
@@ -88,7 +88,7 @@ function RestaurantsList({
       }
 
       if (success) {
-        console.log("✅ Restaurante añadido exitosamente");
+        console.log("✅ Restaurant added successfully");
         if (onSuccess) {
           setTimeout(() => {
             onSuccess();
@@ -96,7 +96,7 @@ function RestaurantsList({
         }
       }
     } catch (error) {
-      console.error("Error añadiendo restaurante:", error);
+      console.error("Error adding restaurant:", error);
     } finally {
       setIsAdding(false);
     }
@@ -106,28 +106,28 @@ function RestaurantsList({
     return (
       <div className="text-center py-8">
         <p className="text-muted-500">
-          No hay restaurantes disponibles. Genera un itinerario primero.
+          No restaurants available. Generate an itinerary first.
         </p>
       </div>
     );
   }
 
   const getPriceLevelText = (level?: number) => {
-    if (!level) return "Precio moderado";
+    if (!level) return "Moderate Price";
     const levels = [
-      "Gratis",
-      "Económico",
-      "Moderado",
-      "Costoso",
-      "Muy costoso",
+      "Free",
+      "Inexpensive",
+      "Moderate",
+      "Expensive",
+      "Very Expensive",
     ];
-    return levels[level] || "Precio moderado";
+    return levels[level] || "Moderate Price";
   };
 
   return (
     <div className="space-y-3">
       <h3 className="text-lg font-semibold text-muted-900 mb-4">
-        Restaurantes disponibles ({availableRestaurants.length})
+        Available Restaurants ({availableRestaurants.length})
       </h3>
       <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
         {availableRestaurants.map((restaurant, index) => {
@@ -138,8 +138,8 @@ function RestaurantsList({
           if (restaurant.openingHours?.openNow !== undefined) {
             details.push(
               restaurant.openingHours.openNow
-                ? "🟢 Abierto ahora"
-                : "🔴 Cerrado"
+                ? "🟢 Open now"
+                : "🔴 Closed"
             );
           }
 
@@ -158,7 +158,7 @@ function RestaurantsList({
       {isAdding && (
         <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-4 shadow-lg">
-            <p className="text-muted-700">Añadiendo restaurante...</p>
+            <p className="text-muted-700">Adding restaurant...</p>
           </div>
         </div>
       )}

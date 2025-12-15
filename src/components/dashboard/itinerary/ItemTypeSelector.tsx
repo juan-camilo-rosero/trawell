@@ -25,12 +25,12 @@ const itemOptions: ItemOption[] = [
   },
   {
     value: "tourism",
-    label: "Sitio turístico",
+    label: "Tourist Site",
     icon: <FaMonument size={24} />,
   },
   {
     value: "restaurant",
-    label: "Restaurante",
+    label: "Restaurant",
     icon: <MdRestaurant size={24} />,
   },
 ];
@@ -39,7 +39,7 @@ function ItemTypeSelector({ value, onChange }: ItemTypeSelectorProps) {
   return (
     <div>
       <h3 className="text-lg font-medium text-muted-900 mb-4">
-        ¿Qué tipo de item deseas añadir?
+        What type of item would you like to add?
       </h3>
 
       <div className="grid grid-cols-1 gap-3">

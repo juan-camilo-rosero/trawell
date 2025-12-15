@@ -31,12 +31,12 @@ export default function Page() {
       <div className="container mx-auto py-4">
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-2xl font-semibold text-gray-900">
-            Tus últimos viajes
+            Your recent trips
           </h2>
           {!isLoading && !error && itineraries.length > 0 && (
             <Link href="/dashboard/my-trips">
               <Button variant="ghost" className="gap-2 text-muted">
-                Ver todos
+                View all
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>
@@ -56,7 +56,7 @@ export default function Page() {
             <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
             <div>
               <h3 className="text-lg font-semibold text-red-900 mb-1">
-                Error al cargar itinerarios
+                Error loading itineraries
               </h3>
               <p className="text-red-700">{error}</p>
               <Button
@@ -64,7 +64,7 @@ export default function Page() {
                 className="mt-4"
                 variant="outline"
               >
-                Intentar nuevamente
+                Try again
               </Button>
             </div>
           </div>
@@ -73,9 +73,9 @@ export default function Page() {
         {!isLoading && !error && itineraries.length === 0 && (
           <div className="bg-secondary-200 border border-gray-200 rounded-lg p-12 text-center">
             <p className="text-gray-600 mb-6">
-              Aún no tienes itinerarios. Comienza a planificar tu próxima aventura.
+              You don't have any itineraries yet. Start planning your next adventure.
             </p>
-            <Link className="primary-btn" href="/dashboard/new-trip">Crear itinerario</Link>
+            <Link className="primary-btn" href="/dashboard/new-trip">Create itinerary</Link>
           </div>
         )}
 

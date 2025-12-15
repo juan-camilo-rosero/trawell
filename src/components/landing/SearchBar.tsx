@@ -31,15 +31,15 @@ function SearchBar() {
       <CityAutocomplete
         value={city}
         onChange={(value) => setCity(value)}
-        placeholder="Buscar ciudad"
-        label="¿A dónde vas?"
+        placeholder="Search city"
+        label="Where are you going?"
         showMapIcon={true}
         showClearIcon={true}
       />
       <DateInput
         value={departureDate}
         onChange={handleDepartureDateChange}
-        label="Fecha de ida"
+        label="Departure date"
         icon={<FiCalendar size={20} />}
         showClearButton
         maxDate={new Date("2030-01-01")}
@@ -48,13 +48,13 @@ function SearchBar() {
       <DateInput
         value={returnDate}
         onChange={setReturnDate}
-        label="Fecha de vuelta"
+        label="Return date"
         icon={<FiCalendar size={20} />}
         showClearButton
         maxDate={new Date("2030-01-01")}
         minDate={departureDate ? new Date(departureDate.getTime() + 86400000) : new Date()} // Mínimo un día después de la fecha de ida
       />
-      <Button className="primary-btn w-full">Empezar</Button>
+      <Button className="primary-btn w-full">Start</Button>
     </div>
   );
 }

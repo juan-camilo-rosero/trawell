@@ -23,10 +23,10 @@ import { usePathname } from "next/navigation";
 import { AuthGuard } from "@/components/auth/auth-guard";
 
 const routeNames: Record<string, string> = {
-  dashboard: "Inicio",
-  "new-trip": "Nuevo viaje",
-  "my-trips": "Mis viajes",
-  settings: "Configuración",
+  dashboard: "Home",
+  "new-trip": "New trip",
+  "my-trips": "My trips",
+  settings: "Settings",
 };
 
 interface DashboardLayoutProps {

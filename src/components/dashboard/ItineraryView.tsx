@@ -34,7 +34,7 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
 
   const handleSaveItinerary = async () => {
     if (!userData?.firebaseUid) {
-      setSaveError("Debes iniciar sesión para guardar el itinerario");
+      setSaveError("You must log in to save the itinerary");
       return;
     }
 
@@ -44,7 +44,7 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
     if (success) {
       router.push("/dashboard/my-trips");
     } else {
-      setSaveError("Error al guardar el itinerario. Intenta nuevamente.");
+      setSaveError("Error saving itinerary. Try again.");
     }
   };
 
@@ -55,18 +55,18 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
     if (!start || !end) return "";
 
     const months = [
-      "ene",
-      "feb",
-      "mar",
-      "abr",
-      "may",
-      "jun",
-      "jul",
-      "ago",
-      "sep",
-      "oct",
-      "nov",
-      "dic",
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
     ];
 
     const startDate = new Date(start);
@@ -82,27 +82,27 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
 
   const formatDayDate = (date: Date | string): string => {
     const days = [
-      "Domingo",
-      "Lunes",
-      "Martes",
-      "Miércoles",
-      "Jueves",
-      "Viernes",
-      "Sábado",
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
     ];
     const months = [
-      "Enero",
-      "Febrero",
-      "Marzo",
-      "Abril",
-      "Mayo",
-      "Junio",
-      "Julio",
-      "Agosto",
-      "Septiembre",
-      "Octubre",
-      "Noviembre",
-      "Diciembre",
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
     ];
 
     const dayDate = new Date(date);
@@ -110,7 +110,7 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
     const day = dayDate.getDate();
     const month = months[dayDate.getMonth()];
 
-    return `${dayName}, ${day} de ${month}`;
+    return `${dayName}, ${month} ${day}`;
   };
 
   const renderItem = (
@@ -193,7 +193,7 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
       <div className="w-full h-full flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-          <p className="text-muted-500 text-lg">Cargando</p>
+          <p className="text-muted-500 text-lg">Loading</p>
         </div>
       </div>
     );
@@ -205,7 +205,7 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
         <div className="flex flex-col items-center gap-4 text-center max-w-md">
           <div className="text-4xl">❌</div>
           <p className="text-red-500 font-semibold">
-            Error al generar el itinerario
+            Error generating itinerary
           </p>
           <p className="text-muted-600 text-sm">{error}</p>
         </div>
@@ -222,9 +222,9 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
             alt="Trawell illustration"
             className="w-48 h-48 object-contain opacity-50"
           />
-          <p className="text-muted-500 text-lg">No hay itinerario disponible</p>
+          <p className="text-muted-500 text-lg">No itinerary available</p>
           <p className="text-muted-400 text-sm">
-            Completa el formulario para generar tu itinerario
+            Complete the form to generate your itinerary
           </p>
         </div>
       </div>
@@ -248,14 +248,14 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
             {itinerary.searchParams.travelers.adults +
               (itinerary.searchParams.travelers.children || 0) +
               (itinerary.searchParams.travelers.babies || 0)}{" "}
-            personas
+            people
           </span>
         </div>
 
         <div className="bg-primary-50 border border-primary-200 rounded-lg px-4 py-3">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-primary-700">
-              Precio Total
+              Total Price
             </span>
             <span className="text-lg font-bold text-primary-700">
               {itinerary.currency} {itinerary.totalPrice.toLocaleString()}
@@ -298,7 +298,7 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
           disabled={isSavingItinerary}
           className="w-full primary-btn py-3 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isSavingItinerary ? "Guardando..." : "Guardar itinerario"}
+          {isSavingItinerary ? "Saving..." : "Save itinerary"}
         </button>
       </div>
     </div>

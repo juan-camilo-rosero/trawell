@@ -81,6 +81,7 @@ interface ItineraryContextType {
     itemIdToReplace: string,
     newItem: IItineraryItem
   ) => Promise<boolean>;
+  refreshAvailableOptions: () => Promise<void>;
 }
 
 export interface GenerateItineraryParams {
@@ -158,14 +159,14 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
       const user = auth.currentUser;
 
       if (!user) {
-        console.error("No hay usuario autenticado");
+        console.error("No authenticated user");
         return null;
       }
 
       const token = await user.getIdToken();
       return token;
     } catch (err) {
-      console.error("Error obteniendo token de Firebase:", err);
+      console.error("Error getting Firebase token:", err);
       return null;
     }
   };
@@ -260,7 +261,7 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
       setError(
         err instanceof Error
           ? err.message
-          : "Error desconocido al generar itinerario"
+          : "Unknown error generating itinerary"
       );
       setItinerary(null);
     } finally {
@@ -273,7 +274,7 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
     newItem: IItineraryItem
   ): Promise<boolean> => {
     if (!itinerary) {
-      setError("No hay itinerario activo");
+      setError("No active itinerary");
       return false;
     }
 
@@ -328,9 +329,9 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
       console.log(`✅ Item añadido al día ${dayNumber} exitosamente`);
       return true;
     } catch (err) {
-      console.error("❌ Error añadiendo item:", err);
+      console.error("❌ Error adding item:", err);
       setError(
-        err instanceof Error ? err.message : "Error desconocido al añadir item"
+        err instanceof Error ? err.message : "Unknown error adding item"
       );
       return false;
     }
@@ -342,7 +343,7 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
     newItem: IItineraryItem
   ): Promise<boolean> => {
     if (!itinerary) {
-      setError("No hay itinerario activo");
+      setError("No active itinerary");
       return false;
     }
 
@@ -355,7 +356,7 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
           );
 
           if (replaceIndex === -1) {
-            throw new Error("Item a reemplazar no encontrado");
+            throw new Error("Item to replace not found");
           }
 
           const oldItem = items[replaceIndex];
@@ -410,11 +411,11 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
       console.log(`✅ Item reemplazado exitosamente`);
       return true;
     } catch (err) {
-      console.error("❌ Error reemplazando item:", err);
+      console.error("❌ Error replacing item:", err);
       setError(
         err instanceof Error
           ? err.message
-          : "Error desconocido al reemplazar item"
+          : "Unknown error replacing item"
       );
       return false;
     }
@@ -422,7 +423,7 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
 
   const saveItinerary = async (userId: string): Promise<boolean> => {
     if (!itinerary) {
-      setError("No hay itinerario para guardar");
+      setError("No itinerary to save");
       return false;
     }
 
@@ -434,7 +435,7 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
 
       const token = await getFirebaseToken();
       if (!token) {
-        setError("No se pudo obtener el token de autenticación");
+        setError("Could not get authentication token");
         return false;
       }
 
@@ -456,9 +457,9 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
       const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
         const text = await response.text();
-        console.error("Response no es JSON:", text);
+        console.error("Response is not JSON:", text);
         throw new Error(
-          `La respuesta del servidor no es JSON válida. Status: ${response.status}`
+          `Server response is not valid JSON. Status: ${response.status}`
         );
       }
 
@@ -483,11 +484,11 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
 
       return true;
     } catch (err) {
-      console.error("❌ Error guardando itinerario:", err);
+      console.error("❌ Error saving itinerary:", err);
       setError(
         err instanceof Error
           ? err.message
-          : "Error desconocido al guardar itinerario"
+          : "Unknown error saving itinerary"
       );
       return false;
     } finally {
@@ -507,7 +508,7 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
 
       const token = await getFirebaseToken();
       if (!token) {
-        setError("No se pudo obtener el token de autenticación");
+        setError("Could not get authentication token");
         return false;
       }
 
@@ -542,11 +543,11 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
       console.log("✅ Itinerario actualizado exitosamente");
       return true;
     } catch (err) {
-      console.error("❌ Error actualizando itinerario:", err);
+      console.error("❌ Error updating itinerary:", err);
       setError(
         err instanceof Error
           ? err.message
-          : "Error desconocido al actualizar itinerario"
+          : "Unknown error updating itinerary"
       );
       return false;
     } finally {
@@ -559,7 +560,7 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
     itemId: string
   ): Promise<boolean> => {
     if (!itinerary) {
-      setError("No hay itinerario activo");
+      setError("No active itinerary");
       return false;
     }
 
@@ -614,11 +615,11 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
       console.log(`✅ Item eliminado del día ${dayNumber} exitosamente`);
       return true;
     } catch (err) {
-      console.error("❌ Error eliminando item:", err);
+      console.error("❌ Error deleting item:", err);
       setError(
         err instanceof Error
           ? err.message
-          : "Error desconocido al eliminar item"
+          : "Unknown error deleting item"
       );
       return false;
     }
@@ -630,7 +631,7 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
     direction: "up" | "down"
   ): Promise<boolean> => {
     if (!itinerary) {
-      setError("No hay itinerario activo");
+      setError("No active itinerary");
       return false;
     }
 
@@ -643,14 +644,14 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
           );
 
           if (currentIndex === -1) {
-            throw new Error("Item no encontrado");
+            throw new Error("Item not found");
           }
 
           const targetIndex =
             direction === "up" ? currentIndex - 1 : currentIndex + 1;
 
           if (targetIndex < 0 || targetIndex >= items.length) {
-            throw new Error("Movimiento inválido");
+            throw new Error("Invalid move");
           }
 
           // Intercambiar items
@@ -702,9 +703,9 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
       );
       return true;
     } catch (err) {
-      console.error("❌ Error moviendo item:", err);
+      console.error("❌ Error moving item:", err);
       setError(
-        err instanceof Error ? err.message : "Error desconocido al mover item"
+        err instanceof Error ? err.message : "Unknown error moving item"
       );
       return false;
     }
@@ -717,7 +718,7 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
     relativeToItemId: string
   ): Promise<boolean> => {
     if (!itinerary) {
-      setError("No hay itinerario activo");
+      setError("No active itinerary");
       return false;
     }
 
@@ -730,7 +731,7 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
           );
 
           if (relativeIndex === -1) {
-            throw new Error("Item de referencia no encontrado");
+            throw new Error("Reference item not found");
           }
 
           const insertIndex =
@@ -795,11 +796,11 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
       );
       return true;
     } catch (err) {
-      console.error("❌ Error añadiendo item en posición:", err);
+      console.error("❌ Error adding item at position:", err);
       setError(
         err instanceof Error
           ? err.message
-          : "Error desconocido al añadir item en posición"
+          : "Unknown error adding item at position"
       );
       return false;
     }
@@ -814,7 +815,7 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
 
       const token = await getFirebaseToken();
       if (!token) {
-        setError("No se pudo obtener el token de autenticación");
+        setError("Could not get authentication token");
         return false;
       }
 
@@ -843,11 +844,11 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
       console.log("✅ Itinerario eliminado exitosamente");
       return true;
     } catch (err) {
-      console.error("❌ Error eliminando itinerario:", err);
+      console.error("❌ Error deleting itinerary:", err);
       setError(
         err instanceof Error
           ? err.message
-          : "Error desconocido al eliminar itinerario"
+          : "Unknown error deleting itinerary"
       );
       return false;
     } finally {
@@ -886,11 +887,11 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
       setItinerary(data.data.itinerary);
       console.log("✅ Itinerario cargado exitosamente");
     } catch (err) {
-      console.error("❌ Error cargando itinerario:", err);
+      console.error("❌ Error loading itinerary:", err);
       setError(
         err instanceof Error
           ? err.message
-          : "Error desconocido al cargar itinerario"
+          : "Unknown error loading itinerary"
       );
       setItinerary(null);
     } finally {
@@ -907,7 +908,7 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
 
       const token = await getFirebaseToken();
       if (!token) {
-        setError("No se pudo obtener el token de autenticación");
+        setError("Could not get authentication token");
         return;
       }
 
@@ -929,11 +930,11 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
         `✅ ${data.data.itineraries.length} itinerarios cargados exitosamente`
       );
     } catch (err) {
-      console.error("❌ Error cargando itinerarios:", err);
+      console.error("❌ Error loading itineraries:", err);
       setError(
         err instanceof Error
           ? err.message
-          : "Error desconocido al cargar itinerarios"
+          : "Unknown error loading itineraries"
       );
       setItineraries([]);
     } finally {
@@ -969,13 +970,53 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
         `✅ ${data.data.itineraries.length} itinerarios públicos cargados exitosamente`
       );
     } catch (err) {
-      console.error("❌ Error cargando itinerarios públicos:", err);
+      console.error("❌ Error loading public itineraries:", err);
       setError(
         err instanceof Error
           ? err.message
-          : "Error desconocido al cargar itinerarios públicos"
+          : "Unknown error loading public itineraries"
       );
       setItineraries([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const refreshAvailableOptions = async (): Promise<void> => {
+    if (!itinerary) return;
+
+    setIsLoading(true);
+    try {
+      console.log("🔄 Actualizando opciones disponibles...");
+      
+      const request: GenerateItineraryRequest = {
+        originCityName: itinerary.searchParams.originCity.name,
+        originCoordinates: itinerary.searchParams.originCity.coordinates,
+        originPlaceId: itinerary.searchParams.originCity.placeId,
+        destinationCityName: itinerary.searchParams.destinationCity.name,
+        destinationCoordinates: itinerary.searchParams.destinationCity.coordinates,
+        destinationPlaceId: itinerary.searchParams.destinationCity.placeId,
+        departureDate: new Date(itinerary.searchParams.departureDate),
+        returnDate: new Date(itinerary.searchParams.returnDate),
+        adults: itinerary.searchParams.travelers.adults,
+        children: itinerary.searchParams.travelers.children,
+        babies: itinerary.searchParams.travelers.babies,
+        travelType: itinerary.searchParams.travelType,
+        foodPreferences: ["local", "casual"], // Default if not saved
+        currency: itinerary.currency,
+      } as GenerateItineraryRequest;
+
+      const result = await itineraryGeneratorService.fetchAvailableResources(request);
+      
+      setAvailableHotels(result.availableHotels);
+      setAvailableRestaurants(result.availableRestaurants);
+      setAvailableTouristSites(result.availableTouristSites);
+      setAvailableFlights(result.availableFlights);
+      
+      console.log("✅ Opciones actualizadas exitosamente");
+    } catch (err) {
+      console.error("❌ Error actualizando opciones:", err);
+      // No seteamos error global para no interrumpir la experiencia si falla esto
     } finally {
       setIsLoading(false);
     }
@@ -1008,6 +1049,7 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
     loadItinerary,
     loadUserItineraries,
     loadPublicItineraries,
+    refreshAvailableOptions,
     clearItinerary,
     addItemToDay,
     deleteItemFromDay,

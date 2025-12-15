@@ -91,11 +91,11 @@ export class ItineraryGeneratorService {
     const selectedHotel = this.selectorService.selectBestHotel(hotels);
 
     if (!selectedFlight) {
-      throw new Error("No se encontraron vuelos disponibles");
+      throw new Error("No available flights found");
     }
 
     if (!selectedHotel) {
-      throw new Error("No se encontraron hoteles disponibles");
+      throw new Error("No available hotels found");
     }
 
     const organizedRestaurants =
@@ -152,6 +152,37 @@ export class ItineraryGeneratorService {
       totalPrice,
       currency: request.currency || "COP",
       days,
+      availableFlights: flights,
+      availableHotels: hotels,
+      availableRestaurants: restaurants,
+      availableTouristSites: touristSites,
+    };
+  }
+
+  async fetchAvailableResources(
+    request: GenerateItineraryRequest
+  ): Promise<{
+    availableFlights: FlightResponse[];
+    availableHotels: HotelResponse[];
+    availableRestaurants: RestaurantResponse[];
+    availableTouristSites: TouristSiteResponse[];
+  }> {
+    console.log("🔄 Recargando recursos disponibles...");
+    
+    const tripDays = this.calculateTripDays(
+      request.departureDate,
+      request.returnDate
+    );
+    const apiLimits: APILimits = calculateAPILimits(tripDays);
+
+    const [flights, hotels, restaurants, touristSites] = await Promise.all([
+      this.apiSearchService.searchFlights(request, apiLimits),
+      this.apiSearchService.searchHotels(request, apiLimits),
+      this.apiSearchService.searchRestaurants(request, apiLimits),
+      this.apiSearchService.searchTouristSites(request, apiLimits),
+    ]);
+
+    return {
       availableFlights: flights,
       availableHotels: hotels,
       availableRestaurants: restaurants,
@@ -556,15 +587,15 @@ export class ItineraryGeneratorService {
 
     const title =
       direction === "outbound"
-        ? `Vuelo ${flight.origin.cityName} - ${flight.destination.cityName}`
-        : `Vuelo ${flight.destination.cityName} - ${flight.origin.cityName}`;
+        ? `Flight ${flight.origin.cityName} - ${flight.destination.cityName}`
+        : `Flight ${flight.destination.cityName} - ${flight.origin.cityName}`;
 
     const description =
       direction === "outbound"
-        ? `Vuelo de ida operado por ${
+        ? `Outbound flight operated by ${
             segment.carrierName || segment.carrierCode
           }`
-        : `Vuelo de regreso operado por ${
+        : `Return flight operated by ${
             segment.carrierName || segment.carrierCode
           }`;
 
@@ -620,13 +651,13 @@ export class ItineraryGeneratorService {
       checkIn,
       checkOut,
       nights,
-      roomType: hotel.roomDetails?.type || "Habitación Estándar",
+      roomType: hotel.roomDetails?.type || "Standard Room",
     };
 
-    const title = `Noche ${dayNumber || ""} en ${hotel.name}`.trim();
+    const title = `Night ${dayNumber || ""} at ${hotel.name}`.trim();
     const description =
       hotel.roomDetails?.description?.text ||
-      "Hotel con excelentes comodidades";
+      "Hotel with excellent amenities";
 
     console.log(`[createAccommodationItem] Hotel: ${hotel.name}`);
     console.log(
@@ -679,9 +710,9 @@ export class ItineraryGeneratorService {
     };
 
     const mealTitles = {
-      desayuno: "Desayuno",
-      almuerzo: "Almuerzo",
-      cena: "Cena",
+      desayuno: "Breakfast",
+      almuerzo: "Lunch",
+      cena: "Dinner",
     };
 
     return {
@@ -690,7 +721,7 @@ export class ItineraryGeneratorService {
       type: "food",
       order,
       time,
-      title: `${mealTitles[mealType]} en ${restaurant.name}`,
+      title: `${mealTitles[mealType]} at ${restaurant.name}`,
       description:
         restaurant.editorialSummary ||
         `${foodDetails.cuisine} - ${restaurant.category}`,
@@ -725,7 +756,7 @@ export class ItineraryGeneratorService {
       hasFee: entryFee > 0,
       estimatedDuration: `${Math.floor(
         estimateVisitDuration(site.category) / 60
-      )} horas`,
+      )} hours`,
       openingHours: site.openingHours,
       photos: site.photos,
     };
@@ -771,16 +802,16 @@ export class ItineraryGeneratorService {
 
   private generateTitle(destinationCity: string, travelType: string): string {
     const titles: Record<string, string> = {
-      cultural: "Experiencia Cultural",
-      adventure: "Aventura",
-      relaxation: "Escapada de Relajación",
-      luxury: "Experiencia de Lujo",
-      gastronomic: "Tour Gastronómico",
-      spiritual: "Viaje Espiritual",
+      cultural: "Cultural Experience",
+      adventure: "Adventure",
+      relaxation: "Relaxation Getaway",
+      luxury: "Luxury Experience",
+      gastronomic: "Gastronomic Tour",
+      spiritual: "Spiritual Journey",
     };
 
-    const typeTitle = titles[travelType] || "Viaje";
-    return `${typeTitle} en ${destinationCity}`;
+    const typeTitle = titles[travelType] || "Trip";
+    return `${typeTitle} in ${destinationCity}`;
   }
 }
 

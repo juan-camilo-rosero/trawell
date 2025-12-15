@@ -44,9 +44,9 @@ const AddItem: React.FC<AddItemProps> = ({ dayNumber }) => {
         <DrawerTrigger asChild>{trigger}</DrawerTrigger>
         <DrawerContent className="bg-secondary-100 custom-ph pb-6 pt-4">
           <DrawerHeader className="hidden">
-            <DrawerTitle>Añadir item al día {dayNumber}</DrawerTitle>
+            <DrawerTitle>Add item to day {dayNumber}</DrawerTitle>
             <DrawerDescription>
-              Selecciona el tipo de item que deseas añadir
+              Select the type of item you want to add
             </DrawerDescription>
           </DrawerHeader>
           <CustomizeItinerary dayNumber={dayNumber} onClose={handleClose} />
@@ -60,9 +60,9 @@ const AddItem: React.FC<AddItemProps> = ({ dayNumber }) => {
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Añadir item al día {dayNumber}</DialogTitle>
+          <DialogTitle>Add item to day {dayNumber}</DialogTitle>
           <DialogDescription>
-            Selecciona el tipo de item que deseas añadir
+            Select the type of item you want to add
           </DialogDescription>
         </DialogHeader>
         <CustomizeItinerary dayNumber={dayNumber} onClose={handleClose} />

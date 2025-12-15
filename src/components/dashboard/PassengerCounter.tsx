@@ -37,7 +37,7 @@ function PassengerCounter({
               ? 'opacity-40'
               : 'hover:bg-muted-100 hover:border-muted-500'
           }`}
-          aria-label={`Disminuir ${label.toLowerCase()}`}
+          aria-label={`Decrease ${label.toLowerCase()}`}
         >
           <HiMinus size={18} className="text-muted-500" />
         </button>
@@ -53,7 +53,7 @@ function PassengerCounter({
               ? 'opacity-40'
               : 'hover:bg-muted-100 hover:border-muted-500'
           }`}
-          aria-label={`Aumentar ${label.toLowerCase()}`}
+          aria-label={`Increase ${label.toLowerCase()}`}
         >
           <HiPlus size={18} className="text-muted-500" />
         </button>

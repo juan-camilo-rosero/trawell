@@ -30,7 +30,7 @@ function HotelsList({
       const hotel = availableHotels[hotelIndex];
       const day = itinerary.days.find((d) => d.dayNumber === dayNumber);
       if (!day) {
-        console.error("Día no encontrado");
+        console.error("Day not found");
         return;
       }
 
@@ -85,7 +85,7 @@ function HotelsList({
       }
 
       if (success) {
-        console.log("✅ Hotel añadido exitosamente");
+        console.log("✅ Hotel added successfully");
         if (onSuccess) {
           setTimeout(() => {
             onSuccess();
@@ -93,7 +93,7 @@ function HotelsList({
         }
       }
     } catch (error) {
-      console.error("Error añadiendo hotel:", error);
+      console.error("Error adding hotel:", error);
     } finally {
       setIsAdding(false);
     }
@@ -103,7 +103,7 @@ function HotelsList({
     return (
       <div className="text-center py-8">
         <p className="text-muted-500">
-          No hay hoteles disponibles. Genera un itinerario primero.
+          No hotels available. Generate an itinerary first.
         </p>
       </div>
     );
@@ -112,7 +112,7 @@ function HotelsList({
   return (
     <div className="space-y-3">
       <h3 className="text-lg font-semibold text-muted-900 mb-4">
-        Hoteles disponibles ({availableHotels.length})
+        Available Hotels ({availableHotels.length})
       </h3>
       <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
         {availableHotels.map((hotel, index) => (
@@ -120,10 +120,10 @@ function HotelsList({
             key={hotel.hotelId}
             title={hotel.name}
             subtitle={hotel.address || "Hotel"}
-            price={`${hotel.price.currency} ${hotel.price.pricePerNight.toLocaleString()} / noche`}
+            price={`${hotel.price.currency} ${hotel.price.pricePerNight.toLocaleString()} / night`}
             rating={undefined}
             details={[
-              hotel.roomDetails?.type || "Habitación Estándar",
+              hotel.roomDetails?.type || "Standard Room",
               `Check-in: ${new Date(hotel.checkInDate).toLocaleDateString()}`,
               `Check-out: ${new Date(hotel.checkOutDate).toLocaleDateString()}`,
             ]}
@@ -134,7 +134,7 @@ function HotelsList({
       {isAdding && (
         <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-4 shadow-lg">
-            <p className="text-muted-700">Añadiendo hotel...</p>
+            <p className="text-muted-700">Adding hotel...</p>
           </div>
         </div>
       )}

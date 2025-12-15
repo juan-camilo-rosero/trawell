@@ -54,7 +54,7 @@ export function ItineraryCard({ itinerary, onDelete }: ItineraryCardProps) {
 
   const handleDelete = async () => {
     if (userData?.firebaseUid !== itinerary.userId) {
-      alert("No tienes permiso para eliminar este itinerario");
+      alert("You do not have permission to delete this itinerary");
       return;
     }
 
@@ -68,14 +68,15 @@ export function ItineraryCard({ itinerary, onDelete }: ItineraryCardProps) {
       );
 
       if (!response.ok) {
-        throw new Error("Error al eliminar el itinerario");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error deleting itinerary");
       }
 
       onDelete(itinerary._id.toString());
       setIsAlertOpen(false);
     } catch (error) {
       console.error("Error deleting itinerary:", error);
-      alert("Error al eliminar el itinerario. Por favor intenta nuevamente.");
+      alert("Error deleting itinerary. Please try again.");
     } finally {
       setIsDeleting(false);
     }
@@ -101,7 +102,7 @@ export function ItineraryCard({ itinerary, onDelete }: ItineraryCardProps) {
                   className="text-red-600 focus:text-red-600 cursor-pointer"
                 >
                   <FaTrash className="mr-2 h-4 w-4" />
-                  Eliminar
+                  Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -111,13 +112,13 @@ export function ItineraryCard({ itinerary, onDelete }: ItineraryCardProps) {
             <div className="flex items-center gap-2 text-gray-600">
               <Calendar className="w-4 h-4" />
               <span className="text-sm">
-                {durationInDays} {durationInDays === 1 ? "día" : "días"}
+                {durationInDays} {durationInDays === 1 ? "day" : "days"}
               </span>
             </div>
             <div className="flex items-center gap-2 text-gray-600">
               <Users className="w-4 h-4" />
               <span className="text-sm">
-                {totalTravelers} {totalTravelers === 1 ? "persona" : "personas"}
+                {totalTravelers} {totalTravelers === 1 ? "person" : "people"}
               </span>
             </div>
             <div className="flex items-center gap-2 text-gray-900">
@@ -131,17 +132,17 @@ export function ItineraryCard({ itinerary, onDelete }: ItineraryCardProps) {
           href={`/dashboard/itinerary/${itinerary._id}`}
           className="primary-btn block w-full text-center mt-4"
         >
-          Ver itinerario
+          View itinerary
         </Link>
       </div>
 
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. Esto eliminará permanentemente
-              el itinerario &quot;{itinerary.title}&quot;.
+              This action cannot be undone. This will permanently delete the
+              itinerary &quot;{itinerary.title}&quot;.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -149,14 +150,14 @@ export function ItineraryCard({ itinerary, onDelete }: ItineraryCardProps) {
               disabled={isDeleting}
               className="bg-secondary-200 hover:bg-secondary-300 transition-all"
             >
-              Cancelar
+              Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isDeleting}
               className="bg-primary hover:bg-primary-600 transition-all text-secondary-100"
             >
-              {isDeleting ? "Eliminando..." : "Eliminar"}
+              {isDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

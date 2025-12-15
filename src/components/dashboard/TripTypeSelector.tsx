@@ -24,12 +24,12 @@ interface TripTypeSelectorProps {
 const tripOptions: TripOption[] = [
   {
     value: 'relaxation',
-    label: 'Relajación',
+    label: 'Relaxation',
     icon: <GiPalmTree size={24} />
   },
   {
     value: 'luxury',
-    label: 'Lujo',
+    label: 'Luxury',
     icon: <GiDiamondRing size={24} />
   },
   {
@@ -39,17 +39,17 @@ const tripOptions: TripOption[] = [
   },
   {
     value: 'adventure',
-    label: 'Aventura',
+    label: 'Adventure',
     icon: <GiMountainClimbing size={24} />
   },
   {
     value: 'gastronomic',
-    label: 'Gastronómico',
+    label: 'Gastronomic',
     icon: <GiKnifeFork size={24} />
   },
   {
     value: 'spiritual',
-    label: 'Espiritual',
+    label: 'Spiritual',
     icon: <GiLotusFlower size={24} />
   }
 ];
@@ -58,7 +58,7 @@ function TripTypeSelector({ value, onChange }: TripTypeSelectorProps) {
   return (
     <div>
       <h3 className="text-lg font-medium text-muted-900 mb-4">
-        ¿Qué tipo de viaje deseas?
+        What type of trip do you want?
       </h3>
       <div className="grid grid-cols-2 gap-3">
         {tripOptions.map((option) => (

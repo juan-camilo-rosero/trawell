@@ -9,7 +9,7 @@ export default function Hero() {
       <div className="max-w-(--breakpoint-xl) w-full mx-auto grid lg:grid-cols-2 gap-12 custom-ph">
         <div>
           <h1 className="mt-6 max-w-[17ch] text-4xl md:text-5xl lg:text-[2.75rem] xl:text-[3.25rem] font-medium">
-            Planea tu próximo viaje en <b className="font-semibold">segundos</b>
+            Plan your next trip in <b className="font-semibold">seconds</b>
           </h1>
           <p className="mt-6 max-w-[60ch] sm:text-lg text-foreground/80">
             Explore a collection of Shadcn UI blocks and components, ready to
@@ -21,10 +21,10 @@ export default function Hero() {
               href="/sign-up"
               className="rounded-full text-base primary-btn flex items-center gap-2 justify-center !py-3"
             >
-              Empezar ahora <ArrowUpRight className="h-5! w-5!" />
+              Start now <ArrowUpRight className="h-5! w-5!" />
             </Link>
             <Link href="#" className="third-btn !py-3">
-              Ver más
+              Learn more
             </Link>
           </div>
         </div>

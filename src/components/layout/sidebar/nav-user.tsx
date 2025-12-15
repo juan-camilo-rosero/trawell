@@ -40,7 +40,7 @@ export function NavUser() {
       clearUserData()
       router.push('/login')
     } catch (error) {
-      console.error('Error al cerrar sesión:', error)
+      console.error('Error logging out:', error)
       router.push('/login')
     }
   }
@@ -118,7 +118,7 @@ export function NavUser() {
               className="cursor-pointer"
             >
               <LogOut />
-              Cerrar sesión
+              Log out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -110,13 +110,13 @@ function ItemMenu({
           {!isFirst && (
             <DropdownMenuItem onClick={onMoveUp} className="cursor-pointer">
               <ArrowUp className="w-4 h-4 mr-2" />
-              Subir item
+              Move item up
             </DropdownMenuItem>
           )}
           {!isLast && (
             <DropdownMenuItem onClick={onMoveDown} className="cursor-pointer">
               <ArrowDown className="w-4 h-4 mr-2" />
-              Bajar item
+              Move item down
             </DropdownMenuItem>
           )}
           <DropdownMenuSeparator />
@@ -125,7 +125,7 @@ function ItemMenu({
             className="cursor-pointer"
           >
             <RefreshCw className="w-4 h-4 mr-2" />
-            Reemplazar item
+            Replace item
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
@@ -133,14 +133,14 @@ function ItemMenu({
             className="cursor-pointer"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Añadir antes
+            Add before
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => setShowAddAfterDialog(true)}
             className="cursor-pointer"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Añadir después
+            Add after
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
@@ -148,7 +148,7 @@ function ItemMenu({
             className="cursor-pointer text-red-600 focus:text-red-600"
           >
             <Trash2 className="w-4 h-4 mr-2" />
-            Eliminar
+            Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -156,19 +156,18 @@ function ItemMenu({
       <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. El item será eliminado
-              permanentemente del itinerario.
+              This action cannot be undone. The item will be permanently removed from the itinerary.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-primary hover:bg-primary-600 text-secondary-100"
             >
-              Eliminar
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -181,9 +180,9 @@ function ItemMenu({
         >
           <DrawerContent className="bg-secondary-100 custom-ph pb-6 pt-4">
             <DrawerHeader className="hidden">
-              <DrawerTitle>Añadir item antes</DrawerTitle>
+              <DrawerTitle>Add item before</DrawerTitle>
               <DrawerDescription>
-                Selecciona el tipo de item que deseas añadir
+                Select the type of item you want to add
               </DrawerDescription>
             </DrawerHeader>
             <AddDialogContent type="before" />
@@ -196,9 +195,9 @@ function ItemMenu({
         >
           <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Añadir item antes</DialogTitle>
+              <DialogTitle>Add item before</DialogTitle>
               <DialogDescription>
-                Selecciona el tipo de item que deseas añadir
+                Select the type of item you want to add
               </DialogDescription>
             </DialogHeader>
             <AddDialogContent type="before" />
@@ -210,9 +209,9 @@ function ItemMenu({
         <Drawer open={showAddAfterDialog} onOpenChange={setShowAddAfterDialog}>
           <DrawerContent className="bg-secondary-100 custom-ph pb-6 pt-4">
             <DrawerHeader className="hidden">
-              <DrawerTitle>Añadir item después</DrawerTitle>
+              <DrawerTitle>Add item after</DrawerTitle>
               <DrawerDescription>
-                Selecciona el tipo de item que deseas añadir
+                Select the type of item you want to add
               </DrawerDescription>
             </DrawerHeader>
             <AddDialogContent type="after" />
@@ -222,9 +221,9 @@ function ItemMenu({
         <Dialog open={showAddAfterDialog} onOpenChange={setShowAddAfterDialog}>
           <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Añadir item después</DialogTitle>
+              <DialogTitle>Add item after</DialogTitle>
               <DialogDescription>
-                Selecciona el tipo de item que deseas añadir
+                Select the type of item you want to add
               </DialogDescription>
             </DialogHeader>
             <AddDialogContent type="after" />
@@ -236,9 +235,9 @@ function ItemMenu({
         <Drawer open={showReplaceDialog} onOpenChange={setShowReplaceDialog}>
           <DrawerContent className="bg-secondary-100 custom-ph pb-6 pt-4">
             <DrawerHeader className="hidden">
-              <DrawerTitle>Reemplazar item</DrawerTitle>
+              <DrawerTitle>Replace item</DrawerTitle>
               <DrawerDescription>
-                Selecciona el nuevo item que reemplazará al actual
+                Select the new item to replace the current one
               </DrawerDescription>
             </DrawerHeader>
             <ReplaceDialogContent />
@@ -248,9 +247,9 @@ function ItemMenu({
         <Dialog open={showReplaceDialog} onOpenChange={setShowReplaceDialog}>
           <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Reemplazar item</DialogTitle>
+              <DialogTitle>Replace item</DialogTitle>
               <DialogDescription>
-                Selecciona el nuevo item que reemplazará al actual
+                Select the new item to replace the current one
               </DialogDescription>
             </DialogHeader>
             <ReplaceDialogContent />

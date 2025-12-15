@@ -91,10 +91,10 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
       try {
         await loadItinerary(itineraryId);
       } catch (error) {
-        console.error("Error cargando itinerario:", error);
+        console.error("Error loading itinerary:", error);
         setErrors({
           destination:
-            "Error al cargar el itinerario. Por favor intenta nuevamente.",
+            "Error loading itinerary. Please try again.",
         });
       } finally {
         setIsLoadingItinerary(false);
@@ -154,7 +154,7 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
         (contextItinerary.searchParams.travelers.babies || 0)
     );
 
-    console.log("✅ Formulario pre-llenado exitosamente");
+    console.log("✅ Form pre-filled successfully");
   }, [contextItinerary, isUpdateMode]);
 
   useEffect(() => {
@@ -218,34 +218,34 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
     const validationErrors: ValidationErrors = {};
 
     if (adults === 0) {
-      validationErrors.passengers = "Debe haber al menos un adulto";
+      validationErrors.passengers = "There must be at least one adult";
     }
 
     if (!origin || !originData) {
-      validationErrors.origin = "Selecciona una ciudad de origen";
+      validationErrors.origin = "Select an origin city";
     }
 
     if (!destination || !destinationData) {
-      validationErrors.destination = "Selecciona una ciudad de destino";
+      validationErrors.destination = "Select a destination city";
     }
 
     if (origin && destination && originData && destinationData) {
       if (origin.toLowerCase() === destination.toLowerCase()) {
-        validationErrors.destination = "Debe ser diferente al origen";
+        validationErrors.destination = "Must be different from origin";
       }
     }
 
     if (!startDate || !endDate) {
-      validationErrors.dates = "Selecciona ambas fechas";
+      validationErrors.dates = "Select both dates";
     } else if (startDate >= endDate) {
       validationErrors.dates =
-        "La fecha de inicio debe ser anterior a la final";
+        "Start date must be before end date";
     } else {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
       if (startDate < today) {
-        validationErrors.dates = "La fecha de inicio no puede ser en el pasado";
+        validationErrors.dates = "Start date cannot be in the past";
       }
 
       const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
@@ -253,16 +253,16 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
 
       if (diffDays > 14) {
         validationErrors.dates =
-          "El viaje no puede superar 2 semanas de duración";
+          "Trip cannot exceed 2 weeks duration";
       }
     }
 
     if (!tripType) {
-      validationErrors.tripType = "Selecciona un tipo de viaje";
+      validationErrors.tripType = "Select a trip type";
     }
 
     if (!foodPreferences || foodPreferences.length === 0) {
-      validationErrors.foodPreferences = "Selecciona al menos una preferencia";
+      validationErrors.foodPreferences = "Select at least one preference";
     }
 
     return validationErrors;
@@ -318,13 +318,13 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
       }
     } catch (error) {
       console.error(
-        `❌ Error al ${isUpdateMode ? "actualizar" : "generar"} itinerario:`,
+        `❌ Error ${isUpdateMode ? "updating" : "generating"} itinerary:`,
         error
       );
       setErrors({
-        destination: `Error al ${
-          isUpdateMode ? "actualizar" : "generar"
-        } el itinerario. Por favor intenta nuevamente.`,
+        destination: `Error ${
+          isUpdateMode ? "updating" : "generating"
+        } the itinerary. Please try again.`,
       });
     } finally {
       setIsLoading(false);
@@ -367,7 +367,7 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
       <div className="w-full h-full flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-          <p className="text-muted-500 text-lg">Cargando itinerario...</p>
+          <p className="text-muted-500 text-lg">Loading itinerary...</p>
         </div>
       </div>
     );
@@ -392,8 +392,8 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
               <CityAutocomplete
                 value={origin}
                 onChange={handleOriginChange}
-                placeholder="¿Desde dónde viajas?"
-                label="Origen"
+                placeholder="Where are you traveling from?"
+                label="Origin"
                 showMapIcon={true}
                 showClearIcon={!isUpdateMode}
               />
@@ -410,8 +410,8 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
               <CityAutocomplete
                 value={destination}
                 onChange={handleDestinationChange}
-                placeholder="¿A dónde vas?"
-                label="Destino"
+                placeholder="Where are you going?"
+                label="Destination"
                 showMapIcon={true}
                 showClearIcon={!isUpdateMode}
               />
@@ -431,9 +431,9 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
                     setErrors((prev) => ({ ...prev, dates: undefined }));
                   }
                 }}
-                label="Fecha de inicio"
+                label="Start Date"
                 icon={<FiCalendar size={20} />}
-                placeholder="inicio"
+                placeholder="start"
                 showClearButton={true}
                 maxDate={endDate}
               />
@@ -445,9 +445,9 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
                     setErrors((prev) => ({ ...prev, dates: undefined }));
                   }
                 }}
-                label="Fecha de final"
+                label="End Date"
                 icon={<FiCalendar size={20} />}
-                placeholder="final"
+                placeholder="end"
                 showClearButton={true}
                 minDate={startDate}
               />
@@ -461,24 +461,24 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
 
           <div className="space-y-6">
             <PassengerCounter
-              label="Adultos"
-              description="Edad: 13 años o más"
+              label="Adults"
+              description="Age: 13+"
               value={adults}
               onIncrement={() => increment(setAdults, adults)}
               onDecrement={() => decrement(setAdults, adults)}
             />
 
             <PassengerCounter
-              label="Niños"
-              description="Edad: 2 - 12 años"
+              label="Children"
+              description="Age: 2 - 12"
               value={children}
               onIncrement={() => increment(setChildren, children)}
               onDecrement={() => decrement(setChildren, children)}
             />
 
             <PassengerCounter
-              label="Bebés"
-              description="Menos de 2 años"
+              label="Babies"
+              description="Under 2"
               value={babies}
               onIncrement={() => increment(setBabies, babies)}
               onDecrement={() => decrement(setBabies, babies)}
@@ -535,13 +535,13 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
           >
             {isLoading || contextLoading
               ? isUpdateMode
-                ? "Actualizando..."
-                : "Generando itinerario..."
+                ? "Updating..."
+                : "Generating itinerary..."
               : isUpdateMode
-              ? "Actualizar itinerario"
+              ? "Update itinerary"
               : itineraryGenerated
-              ? "Regenerar itinerario"
-              : "Crear itinerario"}
+              ? "Regenerate itinerary"
+              : "Create itinerary"}
           </button>
         </form>
       </div>
@@ -557,7 +557,7 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
             className="flex items-center gap-2 text-muted-500 mb-4"
           >
             <FiArrowLeft size={20} />
-            <span>Volver</span>
+            <span>Back</span>
           </button>
 
           <ItineraryView
@@ -581,10 +581,10 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
               />
               <p className="text-muted-500 text-2xl mt-6">
                 {isLoading || contextLoading
-                  ? "Buscando los mejores servicios para tu viaje..."
+                  ? "Looking for the best services for your trip..."
                   : isUpdateMode
-                  ? "Modifica los parámetros y actualiza tu itinerario"
-                  : "Ingresa los datos de tu próximo viaje"}
+                  ? "Modify parameters and update your itinerary"
+                  : "Enter your upcoming trip details"}
               </p>
             </div>
           </div>
@@ -616,13 +616,13 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
             onClick={handleViewItinerary}
             className="w-full py-3 primary-btn"
           >
-            Ver itinerario
+            Ver itinerary
           </button>
           <button
             onClick={handleNewItinerary}
             className="w-full py-3 secondary-btn"
           >
-            Crear nuevo itinerario
+            Create new itinerary
           </button>
         </div>
       )}
