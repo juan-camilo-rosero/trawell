@@ -44,7 +44,7 @@ function VariantDropdown({
         onClick={() => setOpen((v) => !v)}
         className="py-1 px-3 border rounded bg-white text-sm"
       >
-        Alternativas ▾
+        Alternatives ▾
       </button>
 
       {open && (
@@ -59,7 +59,7 @@ function VariantDropdown({
                   <div className="text-sm">
                     <div className="font-medium">{v.title}</div>
                     <div className="text-muted-500 text-xs">
-                      {v.days?.length || 0} días • {v.currency} {v.totalPrice}
+                      {v.days?.length || 0} days • {v.currency} {v.totalPrice}
                     </div>
                   </div>
                   <div>
@@ -70,7 +70,7 @@ function VariantDropdown({
                       }}
                       className="py-1 px-2 primary-btn"
                     >
-                      Seleccionar
+                      Select
                     </button>
                   </div>
                 </div>
@@ -85,7 +85,7 @@ function VariantDropdown({
                 }}
                 className="py-2 px-3 primary-btn"
               >
-                Generar 3 alternativas
+                Generate 3 alternatives
               </button>
             </div>
           )}
@@ -229,7 +229,7 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
               checkIn: new Date(),
               checkOut: new Date(),
               nights: 0,
-              roomType: "Estándar",
+              roomType: "Standard",
             }}
             location={item.location}
             price={item.price}

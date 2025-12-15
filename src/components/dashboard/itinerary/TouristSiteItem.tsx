@@ -40,7 +40,7 @@ const TouristSiteItem: React.FC<TouristSiteItemProps> = ({
   const { deleteItemFromDay, moveItemInDay } = useItinerary();
 
   const formatPrice = (price: number): string => {
-    if (price === 0) return "Entrada gratuita";
+    if (price === 0) return "Free entry";
     return `COP $${price.toLocaleString("es-CO")}`;
   };
 

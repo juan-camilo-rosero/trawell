@@ -38,27 +38,27 @@ export function ChangePassword({ email }: ChangePasswordProps) {
 
   const validatePasswords = () => {
     if (!currentPassword.trim()) {
-      setError('La contraseña actual es requerida');
+      setError('Current password is required');
       return false;
     }
 
     if (!newPassword.trim()) {
-      setError('La nueva contraseña es requerida');
+      setError('New password is required');
       return false;
     }
 
     if (newPassword.length < 6) {
-      setError('La nueva contraseña debe tener al menos 6 caracteres');
+      setError('New password must be at least 6 characters long');
       return false;
     }
 
     if (newPassword !== confirmPassword) {
-      setError('Las contraseñas no coinciden');
+      setError('Passwords do not match');
       return false;
     }
 
     if (currentPassword === newPassword) {
-      setError('La nueva contraseña debe ser diferente a la actual');
+      setError('New password must be different from the current one');
       return false;
     }
 
@@ -79,15 +79,15 @@ export function ChangePassword({ email }: ChangePasswordProps) {
       const user = auth.currentUser;
 
       if (!user || !email) {
-        setError('Usuario no encontrado');
+        setError('User not found');
         return;
       }
 
-      // Reautenticar con la contraseña actual
+      // Reauthenticate with current password
       const credential = EmailAuthProvider.credential(email, currentPassword);
       await reauthenticateWithCredential(user, credential);
 
-      // Cambiar la contraseña
+      // Change password
       await updatePassword(user, newPassword);
 
       setSuccess(true);
@@ -95,18 +95,18 @@ export function ChangePassword({ email }: ChangePasswordProps) {
       setNewPassword('');
       setConfirmPassword('');
 
-      // Limpiar mensaje de éxito después de 3 segundos
+      // Clear success message after 3 seconds
       setTimeout(() => {
         setSuccess(false);
         setIsOpen(false);
       }, 3000);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error al cambiar la contraseña';
+      const errorMessage = err instanceof Error ? err.message : 'Error changing password';
 
       if (errorMessage.includes('wrong-password')) {
-        setError('La contraseña actual es incorrecta');
+        setError('Incorrect current password');
       } else if (errorMessage.includes('auth/weak-password')) {
-        setError('La contraseña es muy débil');
+        setError('Password is too weak');
       } else {
         setError(errorMessage);
       }
@@ -121,14 +121,14 @@ export function ChangePassword({ email }: ChangePasswordProps) {
         onClick={() => setIsOpen(true)}
         className="bg-primary hover:bg-primary text-white"
       >
-        Cambiar contraseña
+        Change password
       </Button>
 
       {isOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Cambiar contraseña
+              Change password
             </h2>
 
             {/* Error Message */}
@@ -144,7 +144,7 @@ export function ChangePassword({ email }: ChangePasswordProps) {
               <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex gap-2">
                 <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-green-700">
-                  Contraseña cambiada exitosamente
+                  Password changed successfully
                 </p>
               </div>
             )}
@@ -153,14 +153,14 @@ export function ChangePassword({ email }: ChangePasswordProps) {
               {/* Current Password */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Contraseña actual
+                  Current password
                 </label>
                 <div className="relative">
                   <Input
                     type={showPasswords.current ? 'text' : 'password'}
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    placeholder="Ingresa tu contraseña actual"
+                    placeholder="Enter your current password"
                     disabled={isLoading}
                     className="pr-10"
                   />
@@ -181,14 +181,14 @@ export function ChangePassword({ email }: ChangePasswordProps) {
               {/* New Password */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nueva contraseña
+                  New password
                 </label>
                 <div className="relative">
                   <Input
                     type={showPasswords.new ? 'text' : 'password'}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Ingresa tu nueva contraseña"
+                    placeholder="Enter your new password"
                     disabled={isLoading}
                     className="pr-10"
                   />
@@ -205,21 +205,21 @@ export function ChangePassword({ email }: ChangePasswordProps) {
                   </button>
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
-                  Mínimo 6 caracteres
+                  Minimum 6 characters
                 </p>
               </div>
 
               {/* Confirm Password */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Confirmar nueva contraseña
+                  Confirm new password
                 </label>
                 <div className="relative">
                   <Input
                     type={showPasswords.confirm ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirma tu nueva contraseña"
+                    placeholder="Confirm your new password"
                     disabled={isLoading}
                     className="pr-10"
                   />
@@ -252,7 +252,7 @@ export function ChangePassword({ email }: ChangePasswordProps) {
                 disabled={isLoading}
                 className="flex-1"
               >
-                Cancelar
+                Cancel
               </Button>
               <Button
                 onClick={handleChangePassword}
@@ -260,7 +260,7 @@ export function ChangePassword({ email }: ChangePasswordProps) {
                 className="flex-1 bg-orange-500 hover:bg-orange-600 text-white gap-2"
               >
                 {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                {isLoading ? 'Guardando...' : 'Guardar cambios'}
+                {isLoading ? 'Saving...' : 'Save changes'}
               </Button>
             </div>
           </div>

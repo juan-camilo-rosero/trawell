@@ -84,7 +84,7 @@ const FlightItem: React.FC<FlightItemProps> = ({
           {flightDetails.departureAirport} - {flightDetails.arrivalAirport}
         </p>
         <p className="itinerary-item-price mt-1">
-          {formatPrice(price)} en total
+          {formatPrice(price)} total
         </p>
       </div>
     </div>

@@ -38,11 +38,11 @@ const RestaurantItem: React.FC<RestaurantItemProps> = ({
   const { deleteItemFromDay, moveItemInDay } = useItinerary();
 
   const getPriceLabel = (priceLevel: number): string => {
-    if (priceLevel <= 1) return "Precio bajo";
-    if (priceLevel <= 2) return "Precio medio";
-    if (priceLevel <= 3) return "Precio medio-alto";
-    if (priceLevel <= 4) return "Precio alto";
-    return "Precio muy alto";
+    if (priceLevel <= 1) return "Low price";
+    if (priceLevel <= 2) return "Medium price";
+    if (priceLevel <= 3) return "Medium-high price";
+    if (priceLevel <= 4) return "High price";
+    return "Very high price";
   };
 
   const renderStars = (rating: number) => {

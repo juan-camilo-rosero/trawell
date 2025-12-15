@@ -269,7 +269,7 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
     }
 
     if (budget !== undefined && budget <= 0) {
-      validationErrors.budget = "El presupuesto debe ser mayor a 0";
+      validationErrors.budget = "Budget must be greater than 0";
     }
 
     return validationErrors;
@@ -517,16 +517,16 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
           </div>
 <div className="w-full h-px bg-muted-300 my-6"></div>
 
-{/* Presupuesto opcional */}
+{/* Optional Budget */}
 <div className="mb-4">
   <label className="text-lg font-medium text-muted-900 mb-4">
-    Presupuesto (opcional)
+    Budget (optional)
   </label>
 
   <input
     type="number"
     min="0"
-    placeholder="Ej: 2000000"
+    placeholder="Ex: 2000000"
     value={budget ?? ""}
     onChange={(e) => setBudget(e.target.value ? Number(e.target.value) : undefined)}
     className="w-full px-4 py-2 border rounded-lg bg-white"
@@ -647,7 +647,7 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
             onClick={handleViewItinerary}
             className="w-full py-3 primary-btn"
           >
-            Ver itinerary
+            View itinerary
           </button>
           <button
             onClick={handleNewItinerary}
