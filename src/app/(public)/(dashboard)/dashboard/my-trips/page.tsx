@@ -74,7 +74,7 @@ function Page() {
         <div className="bg-secondary-200 border border-gray-200 rounded-lg p-12 text-center">
           <Plane className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            You don't have any itineraries yet
+            {"You don't have any itineraries yet"}
           </h3>
           <p className="text-gray-600 mb-6">
             Start planning your next adventure by creating your first itinerary
