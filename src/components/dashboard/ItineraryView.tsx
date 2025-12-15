@@ -1,6 +1,8 @@
 "use client";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useItinerary } from "@/contexts/ItineraryContext";
+import type { ItineraryData, GenerateItineraryParams } from "@/contexts/ItineraryContext";
+import type { RestaurantCategory } from "@/models/types";
 import FlightItem from "./itinerary/FlightItem";
 import HotelItem from "./itinerary/HotelItem";
 import RestaurantItem from "./itinerary/RestaurantItem";
@@ -24,8 +26,85 @@ interface ItineraryViewProps {
     | undefined;
 }
 
+function VariantDropdown({
+  variants,
+  onGenerate,
+  onSelect,
+}: {
+  variants: ItineraryData[];
+  onGenerate: () => void;
+  onSelect: (idx: number) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="relative text-right">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="py-1 px-3 border rounded bg-white text-sm"
+      >
+        Alternativas ▾
+      </button>
+
+      {open && (
+        <div className="absolute right-0 mt-2 w-64 bg-white border rounded shadow z-20 p-3">
+          {variants && variants.length > 0 ? (
+            <div className="space-y-2">
+              {variants.map((v, idx) => (
+                <div
+                  key={v._id || idx}
+                  className="flex items-center justify-between border-b pb-2"
+                >
+                  <div className="text-sm">
+                    <div className="font-medium">{v.title}</div>
+                    <div className="text-muted-500 text-xs">
+                      {v.days?.length || 0} días • {v.currency} {v.totalPrice}
+                    </div>
+                  </div>
+                  <div>
+                    <button
+                      onClick={() => {
+                        onSelect(idx);
+                        setOpen(false);
+                      }}
+                      className="py-1 px-2 primary-btn"
+                    >
+                      Seleccionar
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => {
+                  onGenerate();
+                  setOpen(false);
+                }}
+                className="py-2 px-3 primary-btn"
+              >
+                Generar 3 alternativas
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ItineraryView({ coordinates }: ItineraryViewProps) {
-  const { itinerary, isLoading, error, mapMarkers } = useItinerary();
+  const {
+    itinerary,
+    isLoading,
+    error,
+    mapMarkers,
+    generateItineraries,
+    itineraryVariants,
+    selectItineraryVariant,
+  } = useItinerary();
 
   const router = useRouter();
   const { userData } = useUser();
@@ -138,14 +217,20 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
           />
         );
       case "accommodation":
-        if (!item.accommodationDetails) return null;
         return (
           <HotelItem
             key={item.itemId}
             itemId={item.itemId}
             dayNumber={dayNumber}
             title={item.title}
-            accommodationDetails={item.accommodationDetails}
+            accommodationDetails={item.accommodationDetails || {
+              hotelId: "",
+              hotelName: item.title || "Hotel",
+              checkIn: new Date(),
+              checkOut: new Date(),
+              nights: 0,
+              roomType: "Estándar",
+            }}
             location={item.location}
             price={item.price}
             stars={4}
@@ -234,7 +319,41 @@ function ItineraryView({ coordinates }: ItineraryViewProps) {
   return (
     <div className="w-full h-full lg:h-[calc(100vh-6rem)] lg:overflow-y-auto flex flex-col gap-4">
       <div className="bg-white rounded-lg p-6 flex flex-col gap-4">
-        <h2 className="text-2xl font-semibold">{itinerary.title}</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-semibold">{itinerary.title}</h2>
+          <div className="relative">
+            <VariantDropdown
+              variants={itineraryVariants}
+              onGenerate={() => {
+                const params = {
+                  originCityName: itinerary.searchParams.originCity.name,
+                  originCoordinates: itinerary.searchParams.originCity.coordinates,
+                  originPlaceId: itinerary.searchParams.originCity.placeId,
+                  destinationCityName: itinerary.searchParams.destinationCity.name,
+                  destinationCoordinates: itinerary.searchParams.destinationCity.coordinates,
+                  destinationPlaceId: itinerary.searchParams.destinationCity.placeId,
+                  departureDate: new Date(itinerary.searchParams.departureDate),
+                  returnDate: new Date(itinerary.searchParams.returnDate),
+                  adults: itinerary.searchParams.travelers.adults,
+                  children: itinerary.searchParams.travelers.children || 0,
+                  babies: itinerary.searchParams.travelers.babies || 0,
+                  travelType: itinerary.searchParams.travelType as
+                    | "relaxation"
+                    | "luxury"
+                    | "cultural"
+                    | "adventure"
+                    | "gastronomic"
+                    | "spiritual",
+                  foodPreferences: ["all" as const] as RestaurantCategory[],
+                  currency: itinerary.currency,
+                };
+
+                generateItineraries(params as GenerateItineraryParams, 3);
+              }}
+              onSelect={(idx: number) => selectItineraryVariant(idx)}
+            />
+          </div>
+        </div>
 
         <div className="bg-secondary-100 rounded-lg px-4 py-3 flex items-center justify-between gap-4">
           <span className="text-sm text-muted-600">

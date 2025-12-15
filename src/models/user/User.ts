@@ -5,6 +5,7 @@ export interface IUser extends Document {
   firebaseUid: string;
   email: string;
   name: string;
+  profileImage?: string;
   originCity?: ILocation;
   hasCompletedOnboarding: boolean;
   createdAt: Date;
@@ -46,6 +47,11 @@ const UserSchema = new Schema<IUser>(
       type: String,
       required: true,
       trim: true,
+    },
+    profileImage: {
+      type: String,
+      required: false,
+      default: null,
     },
     originCity: {
       type: LocationSchema,

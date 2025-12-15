@@ -1,10 +1,13 @@
 import { convertToCOP } from "@/lib/helpers/currency.helpers";
 
 import {
+  ICoordinates,
+  RestaurantCategory,
   FlightResponse,
   HotelResponse,
   RestaurantResponse,
   TouristSiteResponse,
+  CabinClass,
 } from "@/models/types";
 import {
   IItineraryItem,
@@ -16,24 +19,52 @@ import {
   ITouristSiteDetails,
 } from "@/models/itinerary/interfaces";
 import {
+  parseDurationToMinutes,
   addMinutesToTime,
   timeToMinutes,
+  getTouristCategoriesForTripType,
   getActivitiesPerDayForTripType,
+  getRestaurantCategoriesForMeal,
   calculateAPILimits,
   estimateMealPrice,
   estimateVisitDuration,
   groupByProximity,
+  formatDateToYYYYMMDD,
 } from "@/lib/helpers/itinerary.helpers";
-import { Types } from "mongoose";
 
-import {
-  GenerateItineraryRequest,
-  APILimits,
-} from "./itinerary-generator/interfaces";
-import { APISearchService } from "./itinerary-generator/api.service";
 import { SelectorService } from "./itinerary-generator/selectors.service";
 
-export * from "./itinerary-generator/interfaces";
+import { Types } from "mongoose";
+
+export interface GenerateItineraryRequest {
+  originCityName: string;
+  originCoordinates: ICoordinates;
+  originPlaceId?: string;
+  destinationCityName: string;
+  destinationCoordinates: ICoordinates;
+  destinationPlaceId?: string;
+  departureDate: Date;
+  returnDate: Date;
+  adults: number;
+  children?: number;
+  babies?: number;
+  travelType:
+    | "relaxation"
+    | "luxury"
+    | "cultural"
+    | "adventure"
+    | "gastronomic"
+    | "spiritual";
+  foodPreferences: RestaurantCategory[];
+
+  // Parámetros opcionales
+  cabinClass?: CabinClass;
+  maxStops?: number;
+  budget?: number; // Presupuesto total en COP
+  hotelBudgetPerNight?: number;
+  preferredHotelChains?: string[];
+  currency?: string;
+}
 
 export interface GenerateItineraryResponse {
   searchParams: ISearchParams;
@@ -41,16 +72,14 @@ export interface GenerateItineraryResponse {
   totalPrice: number;
   currency: string;
   days: IDay[];
-  availableFlights?: FlightResponse[];
-  availableHotels?: HotelResponse[];
-  availableRestaurants?: RestaurantResponse[];
-  availableTouristSites?: TouristSiteResponse[];
 }
 
-export class ItineraryGeneratorService {
-  private apiSearchService = new APISearchService();
-  private selectorService = new SelectorService();
+class ItineraryGeneratorService {
+  private apiBaseUrl = "https://trawell-yuxn.vercel.app/api/external";
 
+  /**
+   * Genera un itinerario completo basado en los parámetros del usuario
+   */
   async generateItinerary(
     request: GenerateItineraryRequest
   ): Promise<GenerateItineraryResponse> {
@@ -58,6 +87,7 @@ export class ItineraryGeneratorService {
     console.log("Tipo de viaje:", request.travelType);
     console.log("Destino:", request.destinationCityName);
 
+    // Para evitar error de TypeScript con budget
     if (request.budget) {
       console.log("Presupuesto definido:", request.budget);
     }
@@ -68,27 +98,34 @@ export class ItineraryGeneratorService {
       request.departureDate,
       request.returnDate
     );
-    const apiLimits: APILimits = calculateAPILimits(tripDays);
+    const apiLimits = calculateAPILimits(tripDays);
 
-    const flights = await this.apiSearchService.searchFlights(
-      request,
-      apiLimits
-    );
+    console.log(`Duración del viaje: ${tripDays} días`);
+    console.log(`Total de viajeros: ${totalTravelers}`);
 
-    const hotels = await this.apiSearchService.searchHotels(request, apiLimits);
+    // 1. Buscar vuelos
+    console.log("\n✈️ Buscando vuelos...");
+    const flights = await this.searchFlights(request, apiLimits);
+    console.log(`Encontrados ${flights.length} vuelos`);
 
-    const restaurants = await this.apiSearchService.searchRestaurants(
-      request,
-      apiLimits
-    );
+    // 2. Buscar hoteles
+    console.log("\n🏨 Buscando hoteles...");
+    const hotels = await this.searchHotels(request, apiLimits);
+    console.log(`Encontrados ${hotels.length} hoteles`);
 
-    const touristSites = await this.apiSearchService.searchTouristSites(
-      request,
-      apiLimits
-    );
+    // 3. Buscar restaurantes
+    console.log("\n🍽️ Buscando restaurantes...");
+    const restaurants = await this.searchRestaurants(request, apiLimits);
+    console.log(`Encontrados ${restaurants.length} restaurantes`);
 
-    const selectedFlight = this.selectorService.selectBestFlight(flights);
-    const selectedHotel = this.selectorService.selectBestHotel(hotels);
+    // 4. Buscar sitios turísticos
+    console.log("\n🏛️ Buscando sitios turísticos...");
+    const touristSites = await this.searchTouristSites(request, apiLimits);
+    console.log(`Encontrados ${touristSites.length} sitios turísticos`);
+
+    // 5. Seleccionar el mejor vuelo y hotel
+    const selectedFlight = this.selectBestFlight(flights, request);
+    const selectedHotel = this.selectBestHotel(hotels);
 
     if (!selectedFlight) {
       throw new Error("No available flights found");
@@ -98,17 +135,23 @@ export class ItineraryGeneratorService {
       throw new Error("No available hotels found");
     }
 
-    const organizedRestaurants =
-      this.selectorService.organizeRestaurantsByMealType(
-        restaurants,
-        request.foodPreferences
-      );
+    console.log("\n✅ Vuelo seleccionado:", selectedFlight.id);
+    console.log("✅ Hotel seleccionado:", selectedHotel.name);
 
+    // 6. Organizar restaurantes por tipo de comida
+    const organizedRestaurants = this.organizeRestaurantsByMealType(
+      restaurants,
+      request.foodPreferences
+    );
+
+    // 7. Agrupar sitios turísticos por cercanía
     const groupedSites = groupByProximity(
       touristSites,
       request.destinationCoordinates
     );
 
+    // 8. Generar días del itinerario
+    console.log("\n📅 Generando itinerario día por día...");
     const days = this.generateDays(
       request,
       selectedFlight,
@@ -118,8 +161,20 @@ export class ItineraryGeneratorService {
       totalTravelers
     );
 
+    // 9. Calcular precio total
     const totalPrice = this.calculateTotalPrice(days);
 
+    // Si hay presupuesto, validarlo
+    if (request.budget !== undefined) {
+      if (totalPrice > request.budget) {
+        throw new Error(
+          `El costo estimado del viaje (${totalPrice.toLocaleString()} ${request.currency || "COP"}) ` +
+          `supera tu presupuesto (${request.budget.toLocaleString()} ${request.currency || "COP"}).`
+        );
+      }
+    }
+
+    // 10. Crear searchParams
     const searchParams: ISearchParams = {
       originCity: {
         name: request.originCityName,
@@ -146,16 +201,19 @@ export class ItineraryGeneratorService {
       request.travelType
     );
 
+    console.log("\n🎉 Itinerario generado exitosamente!");
+    console.log(
+      `Precio total: ${
+        request.currency || "COP"
+      } ${totalPrice.toLocaleString()}`
+    );
+
     return {
       searchParams,
       title,
       totalPrice,
       currency: request.currency || "COP",
       days,
-      availableFlights: flights,
-      availableHotels: hotels,
-      availableRestaurants: restaurants,
-      availableTouristSites: touristSites,
     };
   }
 
@@ -173,13 +231,13 @@ export class ItineraryGeneratorService {
       request.departureDate,
       request.returnDate
     );
-    const apiLimits: APILimits = calculateAPILimits(tripDays);
+    const apiLimits = calculateAPILimits(tripDays);
 
     const [flights, hotels, restaurants, touristSites] = await Promise.all([
-      this.apiSearchService.searchFlights(request, apiLimits),
-      this.apiSearchService.searchHotels(request, apiLimits),
-      this.apiSearchService.searchRestaurants(request, apiLimits),
-      this.apiSearchService.searchTouristSites(request, apiLimits),
+      this.searchFlights(request, apiLimits),
+      this.searchHotels(request, apiLimits),
+      this.searchRestaurants(request, apiLimits),
+      this.searchTouristSites(request, apiLimits),
     ]);
 
     return {
@@ -190,12 +248,339 @@ export class ItineraryGeneratorService {
     };
   }
 
-  private calculateTripDays(departureDate: Date, returnDate: Date): number {
-    const diffTime = Math.abs(returnDate.getTime() - departureDate.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays + 1;
+  /**
+   * Busca vuelos usando la API
+   */
+  private async searchFlights(
+    request: GenerateItineraryRequest,
+    limits: { restaurants: number; touristSites: number; hotels: number }
+  ): Promise<FlightResponse[]> {
+    try {
+      console.log(limits)
+      const response = await fetch(`${this.apiBaseUrl}/flights`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          originCityName: request.originCityName,
+          destinationCityName: request.destinationCityName,
+          originCoordinates: request.originCoordinates,
+          destinationCoordinates: request.destinationCoordinates,
+          departureDate: formatDateToYYYYMMDD(request.departureDate),
+          returnDate: formatDateToYYYYMMDD(request.returnDate),
+          adults: request.adults,
+          children: request.children,
+          infants: request.babies,
+          cabinClass: request.cabinClass || "ECONOMY",
+          maxStops: request.maxStops,
+          limit: 10,
+          currency: request.currency || "COP",
+        }),
+      });
+
+      const data = await response.json();
+      return data.success ? data.data.flights : [];
+    } catch (error) {
+      console.error("Error buscando vuelos:", error);
+      return [];
+    }
   }
 
+  /**
+   * Busca hoteles usando la API
+   */
+  private async searchHotels(
+    request: GenerateItineraryRequest,
+    limits: { restaurants: number; touristSites: number; hotels: number }
+  ): Promise<HotelResponse[]> {
+    try {
+      const response = await fetch(`${this.apiBaseUrl}/places/hotels`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cityName: request.destinationCityName,
+          coordinates: request.destinationCoordinates,
+          checkInDate: formatDateToYYYYMMDD(request.departureDate),
+          checkOutDate: formatDateToYYYYMMDD(request.returnDate),
+          adults: request.adults,
+          children: request.children,
+          rooms: 1,
+          limit: limits.hotels,
+          currency: request.currency || "COP",
+          chainCodes: request.preferredHotelChains,
+          priceRange: request.hotelBudgetPerNight
+            ? { max: request.hotelBudgetPerNight }
+            : undefined,
+        }),
+      });
+
+      const data = await response.json();
+      return data.success ? data.data.hotels : [];
+    } catch (error) {
+      console.error("Error buscando hoteles:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Busca restaurantes usando la API
+   */
+  private async searchRestaurants(
+    request: GenerateItineraryRequest,
+    _limits: { restaurants: number; touristSites: number; hotels: number } // Prefijo con _ para indicar que no se usa
+  ): Promise<RestaurantResponse[]> {
+    try {
+      // Aumentar el límite para asegurar suficientes restaurantes
+      const increasedLimit = Math.max(_limits.restaurants, 15);
+
+      console.log(
+        "[searchRestaurants] Buscando con preferencias:",
+        request.foodPreferences
+      );
+
+      // Si las preferencias son muy específicas, agregar 'all' como fallback
+      const categoriesToSearch = request.foodPreferences.includes("all")
+        ? ["all" as RestaurantCategory]
+        : [
+            ...request.foodPreferences,
+            "casual" as RestaurantCategory,
+            "italian" as RestaurantCategory,
+          ];
+
+      const response = await fetch(`${this.apiBaseUrl}/places/restaurants`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cityName: request.destinationCityName,
+          coordinates: request.destinationCoordinates,
+          placeId: request.destinationPlaceId,
+          categories: categoriesToSearch,
+          limit: increasedLimit,
+          minRating: 3.0, // Reducir rating mínimo para obtener más resultados
+        }),
+      });
+
+      const data = await response.json();
+      let restaurants = data.success ? data.data.restaurants : [];
+
+      console.log(
+        `[searchRestaurants] Total restaurantes encontrados: ${restaurants.length}`
+      );
+       if (request.budget) {
+             restaurants = restaurants.filter(
+               (r: RestaurantResponse) => (r.priceLevel ?? 2) <= 2
+             );
+             console.log(
+               `[searchRestaurants] Filtrados por presupuesto: ${restaurants.length}`
+             );
+           }
+      return restaurants;
+    } catch (error) {
+      console.error("Error buscando restaurantes:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Busca sitios turísticos usando la API
+   */
+  private async searchTouristSites(
+    request: GenerateItineraryRequest,
+    limits: { restaurants: number; touristSites: number; hotels: number }
+  ): Promise<TouristSiteResponse[]> {
+    try {
+      const categories = getTouristCategoriesForTripType(request.travelType);
+
+      const response = await fetch(`${this.apiBaseUrl}/places/tourist-sites`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cityName: request.destinationCityName,
+          coordinates: request.destinationCoordinates,
+          placeId: request.destinationPlaceId,
+          categories,
+          limit: limits.touristSites,
+          minRating: 3.5,
+        }),
+      });
+
+      const data = await response.json();
+      return data.success ? data.data.sites : [];
+    } catch (error) {
+      console.error("Error buscando sitios turísticos:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Selecciona el mejor vuelo basado en precio, duración y escalas
+   */
+  private selectBestFlight(
+    flights: FlightResponse[],
+    request: GenerateItineraryRequest
+  ): FlightResponse | null {
+    if (flights.length === 0) return null;
+
+    if (request.budget) {
+      const sorted = flights.sort((a, b) => a.price.grandTotal - b.price.grandTotal);
+      return sorted[0]; // vuelo más barato
+    }
+
+    // Ordenar por: menos escalas > menor precio > menor duración
+    const sorted = [...flights].sort((a, b) => {
+      const stopsA = a.outbound.segments.reduce((sum, s) => sum + s.numberOfStops, 0);
+      const stopsB = b.outbound.segments.reduce((sum, s) => sum + s.numberOfStops, 0);
+
+      if (stopsA !== stopsB) return stopsA - stopsB;
+      if (a.price.grandTotal !== b.price.grandTotal)
+        return a.price.grandTotal - b.price.grandTotal;
+
+      const durationA = parseDurationToMinutes(a.outbound.duration);
+      const durationB = parseDurationToMinutes(b.outbound.duration);
+      return durationA - durationB;
+    });
+
+    return sorted[0];
+  }
+
+  /**
+   * Selecciona el mejor hotel basado en rating y precio
+   */
+  private selectBestHotel(hotels: HotelResponse[]): HotelResponse | null {
+    if (hotels.length === 0) return null;
+
+    // Ordenar por disponibilidad, luego por mejor relación calidad-precio
+    const sorted = [...hotels]
+      .filter((h) => h.available)
+      .sort((a, b) => {
+        // Priorizar hoteles con mejor precio
+        return a.price.total - b.price.total;
+      });
+
+    return sorted[0];
+  }
+
+  /**
+   * Organiza restaurantes por tipo de comida
+   */
+  private organizeRestaurantsByMealType(
+    restaurants: RestaurantResponse[],
+    foodPreferences: RestaurantCategory[]
+  ): {
+    breakfast: RestaurantResponse[];
+    lunch: RestaurantResponse[];
+    dinner: RestaurantResponse[];
+  } {
+    console.log("[organizeRestaurantsByMealType] Organizando restaurantes...");
+    console.log(
+      "[organizeRestaurantsByMealType] Total disponibles:",
+      restaurants.length
+    );
+
+    const breakfastCategories = getRestaurantCategoriesForMeal(
+      "desayuno",
+      foodPreferences
+    );
+    const lunchCategories = getRestaurantCategoriesForMeal(
+      "almuerzo",
+      foodPreferences
+    );
+    const dinnerCategories = getRestaurantCategoriesForMeal(
+      "cena",
+      foodPreferences
+    );
+
+    console.log(
+      "[organizeRestaurantsByMealType] Categorías de desayuno:",
+      breakfastCategories
+    );
+    console.log(
+      "[organizeRestaurantsByMealType] Categorías de almuerzo:",
+      lunchCategories
+    );
+    console.log(
+      "[organizeRestaurantsByMealType] Categorías de cena:",
+      dinnerCategories
+    );
+
+    // Filtrar restaurantes por categorías
+    let breakfast = restaurants.filter((r) =>
+      breakfastCategories.includes(r.category)
+    );
+    let lunch = restaurants.filter((r) => lunchCategories.includes(r.category));
+    let dinner = restaurants.filter((r) =>
+      dinnerCategories.includes(r.category)
+    );
+
+    console.log(
+      "[organizeRestaurantsByMealType] Desayunos encontrados:",
+      breakfast.length
+    );
+    console.log(
+      "[organizeRestaurantsByMealType] Almuerzos encontrados:",
+      lunch.length
+    );
+    console.log(
+      "[organizeRestaurantsByMealType] Cenas encontradas:",
+      dinner.length
+    );
+
+    // Si alguna categoría está vacía, usar restaurantes de las otras categorías como fallback
+    if (breakfast.length === 0) {
+      console.log(
+        "[organizeRestaurantsByMealType] No hay desayunos, usando fallback"
+      );
+      breakfast = restaurants
+        .filter(
+          (r) =>
+            r.category === "cafe" ||
+            r.category === "bakery" ||
+            r.category === "casual"
+        )
+        .slice(0, 10);
+
+      // Si aún no hay, usar cualquier restaurante
+      if (breakfast.length === 0) {
+        breakfast = restaurants.slice(0, 5);
+      }
+    }
+
+    if (lunch.length === 0) {
+      console.log(
+        "[organizeRestaurantsByMealType] No hay almuerzos, usando fallback"
+      );
+      lunch = restaurants.filter((r) => r.category === "casual").slice(0, 10);
+
+      if (lunch.length === 0) {
+        lunch = restaurants.slice(0, 10);
+      }
+    }
+
+    if (dinner.length === 0) {
+      console.log(
+        "[organizeRestaurantsByMealType] No hay cenas, usando fallback"
+      );
+      dinner = restaurants.slice(0, 10);
+    }
+
+    console.log(
+      "[organizeRestaurantsByMealType] Final - Desayunos:",
+      breakfast.length
+    );
+    console.log(
+      "[organizeRestaurantsByMealType] Final - Almuerzos:",
+      lunch.length
+    );
+    console.log(
+      "[organizeRestaurantsByMealType] Final - Cenas:",
+      dinner.length
+    );
+
+    return { breakfast, lunch, dinner };
+  }
+
+  /**
+   * Genera los días del itinerario
+   */
   private generateDays(
     request: GenerateItineraryRequest,
     flight: FlightResponse,
@@ -213,9 +598,15 @@ export class ItineraryGeneratorService {
       request.departureDate,
       request.returnDate
     );
-    const activitiesPerDay = getActivitiesPerDayForTripType(request.travelType);
-
+    let activitiesPerDay = getActivitiesPerDayForTripType(request.travelType);
+    // Ajustar actividades según presupuesto (opcional)
+    if (request.budget && request.budget < 1500000) {
+      activitiesPerDay = 1; // muy bajo presupuesto → pocas actividades
+    } else if (request.budget && request.budget < 3000000) {
+      activitiesPerDay = Math.max(activitiesPerDay - 1, 1); // reduce 1 actividad
+    }
     const restaurantIndexes = {
+      // Cambiado a const
       breakfast: 0,
       lunch: 0,
       dinner: 0,
@@ -223,9 +614,9 @@ export class ItineraryGeneratorService {
     let siteIndex = 0;
 
     console.log("\n[generateDays] Restaurantes disponibles:");
-    console.log("  - Desayunos:", restaurants.breakfast.length);
-    console.log("  - Almuerzos:", restaurants.lunch.length);
-    console.log("  - Cenas:", restaurants.dinner.length);
+    console.log("  - Desayunos:", restaurants.breakfast.length);
+    console.log("  - Almuerzos:", restaurants.lunch.length);
+    console.log("  - Cenas:", restaurants.dinner.length);
 
     for (let dayNum = 1; dayNum <= tripDays; dayNum++) {
       const currentDate = new Date(request.departureDate);
@@ -239,6 +630,7 @@ export class ItineraryGeneratorService {
         `\n📅 Generando día ${dayNum} - ${currentDate.toLocaleDateString()}`
       );
 
+      // Día 1: Vuelo de ida
       if (dayNum === 1) {
         const outboundSegment = flight.outbound.segments[0];
         const arrivalTime = new Date(outboundSegment.arrival.at);
@@ -249,6 +641,7 @@ export class ItineraryGeneratorService {
           "0"
         )}:${String(arrivalMinute).padStart(2, "0")}`;
 
+        // Vuelo de ida
         items.push(
           this.createFlightItem(
             flight,
@@ -259,10 +652,25 @@ export class ItineraryGeneratorService {
           )
         );
 
+        // Tiempo estimado de llegada y traslado al hotel
         currentTime = arrivalTimeStr;
+        currentTime = addMinutesToTime(currentTime, 30); // 30 minutos para traslado/check-in inicial
+
+        // Añadir llegada al hotel como evento explícito (check-in)
+        items.push(
+          this.createHotelArrivalItem(
+            hotel,
+            orderCounter++,
+            currentTime
+          )
+        );
+
+        // Añadir un tiempo para realizar el check-in y prepararse antes de otras actividades
         currentTime = addMinutesToTime(currentTime, 60);
 
+        // Si llega temprano (antes de las 18:00), agregar actividades después del check-in
         if (timeToMinutes(currentTime) < 18 * 60) {
+          // Almuerzo si llega antes de las 15:00
           if (
             timeToMinutes(currentTime) < 15 * 60 &&
             restaurants.lunch.length > 0
@@ -272,7 +680,7 @@ export class ItineraryGeneratorService {
               restaurants.lunch[
                 restaurantIndexes.lunch++ % restaurants.lunch.length
               ];
-            console.log(`  🍽️ Agregando almuerzo: ${restaurant.name}`);
+            console.log(`  🍽️ Agregando almuerzo: ${restaurant.name}`);
             items.push(
               this.createFoodItem(
                 restaurant,
@@ -285,6 +693,7 @@ export class ItineraryGeneratorService {
             currentTime = addMinutesToTime(currentTime, 90);
           }
 
+          // Actividad turística si es un viaje activo
           if (
             ["adventure", "cultural"].includes(request.travelType) &&
             siteIndex < touristSites.length
@@ -306,13 +715,14 @@ export class ItineraryGeneratorService {
           }
         }
 
+        // Cena
         if (restaurants.dinner.length > 0) {
           currentTime = this.ensureTimeIsAtLeast(currentTime, "19:00");
           const dinnerRestaurant =
             restaurants.dinner[
               restaurantIndexes.dinner++ % restaurants.dinner.length
             ];
-          console.log(`  🍽️ Agregando cena: ${dinnerRestaurant.name}`);
+          console.log(`  🍽️ Agregando cena: ${dinnerRestaurant.name}`);
           items.push(
             this.createFoodItem(
               dinnerRestaurant,
@@ -325,6 +735,7 @@ export class ItineraryGeneratorService {
           currentTime = addMinutesToTime(currentTime, 120);
         }
 
+        // Antes de terminar el primer día, marcar la noche en el hotel
         currentTime = this.ensureTimeIsAtLeast(currentTime, "22:00");
         items.push(
           this.createAccommodationItem(
@@ -338,7 +749,9 @@ export class ItineraryGeneratorService {
             1
           )
         );
-      } else if (dayNum === tripDays) {
+      }
+      // Último día: Vuelo de vuelta
+      else if (dayNum === tripDays) {
         const inboundSegment = flight.inbound.segments[0];
         const departureTime = new Date(inboundSegment.departure.at);
         const departureHour = departureTime.getHours();
@@ -348,12 +761,13 @@ export class ItineraryGeneratorService {
           "0"
         )}:${String(departureMinute).padStart(2, "0")}`;
 
+        // Desayuno
         if (restaurants.breakfast.length > 0) {
           const breakfastRestaurant =
             restaurants.breakfast[
               restaurantIndexes.breakfast++ % restaurants.breakfast.length
             ];
-          console.log(`  🍽️ Agregando desayuno: ${breakfastRestaurant.name}`);
+          console.log(`  🍽️ Agregando desayuno: ${breakfastRestaurant.name}`);
           items.push(
             this.createFoodItem(
               breakfastRestaurant,
@@ -366,7 +780,9 @@ export class ItineraryGeneratorService {
           currentTime = addMinutesToTime(currentTime, 60);
         }
 
+        // Si el vuelo sale después de las 14:00, agregar actividades
         if (timeToMinutes(departureTimeStr) > 14 * 60) {
+          // Actividad turística matutina
           if (siteIndex < touristSites.length) {
             const site = touristSites[siteIndex++];
             currentTime = addMinutesToTime(currentTime, 30);
@@ -378,19 +794,19 @@ export class ItineraryGeneratorService {
                 totalTravelers
               )
             );
-            currentTime = addMinutesToTime(
-              currentTime,
-              estimateVisitDuration(site.category)
-            );
+
+            const visitDuration = estimateVisitDuration(site.category);
+            currentTime = addMinutesToTime(currentTime, visitDuration);
           }
 
+          // Almuerzo
           if (restaurants.lunch.length > 0) {
             const lunchRestaurant =
               restaurants.lunch[
                 restaurantIndexes.lunch++ % restaurants.lunch.length
               ];
             currentTime = this.ensureTimeIsAtLeast(currentTime, "12:00");
-            console.log(`  🍽️ Agregando almuerzo: ${lunchRestaurant.name}`);
+            console.log(`  🍽️ Agregando almuerzo: ${lunchRestaurant.name}`);
             items.push(
               this.createFoodItem(
                 lunchRestaurant,
@@ -404,6 +820,25 @@ export class ItineraryGeneratorService {
           }
         }
 
+        // Vuelo de vuelta
+        currentTime = this.ensureTimeIsAtLeast(currentTime, "15:00"); // ejemplo
+
+        items.push({
+          _id: new Types.ObjectId(),
+          itemId: `hotel-pickup-${orderCounter}`,
+          type: "accommodation",
+          order: orderCounter++,
+          time: currentTime,
+          title: `Recoger equipaje en ${hotel.name}`,
+          description: `Regreso al hotel para recoger tus pertenencias antes del vuelo`,
+          price: 0,
+          location: {
+            name: hotel.name,
+            address: hotel.address || hotel.name,
+            coordinates: hotel.coordinates,
+            placeId: undefined,
+          },
+        });
         items.push(
           this.createFlightItem(
             flight,
@@ -413,13 +848,16 @@ export class ItineraryGeneratorService {
             totalTravelers
           )
         );
-      } else {
+      }
+      // Días intermedios: día completo de actividades
+      else {
+        // Desayuno
         if (restaurants.breakfast.length > 0) {
           const breakfastRestaurant =
             restaurants.breakfast[
               restaurantIndexes.breakfast++ % restaurants.breakfast.length
             ];
-          console.log(`  🍽️ Agregando desayuno: ${breakfastRestaurant.name}`);
+          console.log(`  🍽️ Agregando desayuno: ${breakfastRestaurant.name}`);
           items.push(
             this.createFoodItem(
               breakfastRestaurant,
@@ -432,6 +870,7 @@ export class ItineraryGeneratorService {
           currentTime = addMinutesToTime(currentTime, 60);
         }
 
+        // Actividades turísticas matutinas
         const morningActivities = Math.floor(activitiesPerDay / 2);
         for (
           let i = 0;
@@ -453,13 +892,14 @@ export class ItineraryGeneratorService {
           currentTime = addMinutesToTime(currentTime, visitDuration);
         }
 
+        // Almuerzo
         if (restaurants.lunch.length > 0) {
           currentTime = this.ensureTimeIsAtLeast(currentTime, "12:30");
           const lunchRestaurant =
             restaurants.lunch[
               restaurantIndexes.lunch++ % restaurants.lunch.length
             ];
-          console.log(`  🍽️ Agregando almuerzo: ${lunchRestaurant.name}`);
+          console.log(`  🍽️ Agregando almuerzo: ${lunchRestaurant.name}`);
           items.push(
             this.createFoodItem(
               lunchRestaurant,
@@ -472,6 +912,7 @@ export class ItineraryGeneratorService {
           currentTime = addMinutesToTime(currentTime, 90);
         }
 
+        // Actividades turísticas de la tarde
         const afternoonActivities = activitiesPerDay - morningActivities;
         for (
           let i = 0;
@@ -493,13 +934,14 @@ export class ItineraryGeneratorService {
           currentTime = addMinutesToTime(currentTime, visitDuration);
         }
 
+        // Cena
         if (restaurants.dinner.length > 0) {
           currentTime = this.ensureTimeIsAtLeast(currentTime, "19:00");
           const dinnerRestaurant =
             restaurants.dinner[
               restaurantIndexes.dinner++ % restaurants.dinner.length
             ];
-          console.log(`  🍽️ Agregando cena: ${dinnerRestaurant.name}`);
+          console.log(`  🍽️ Agregando cena: ${dinnerRestaurant.name}`);
           items.push(
             this.createFoodItem(
               dinnerRestaurant,
@@ -512,6 +954,7 @@ export class ItineraryGeneratorService {
           currentTime = addMinutesToTime(currentTime, 120);
         }
 
+        // Hotel - noche
         currentTime = this.ensureTimeIsAtLeast(currentTime, "22:00");
         items.push(
           this.createAccommodationItem(
@@ -528,7 +971,7 @@ export class ItineraryGeneratorService {
       }
 
       days.push({
-        _id: new Types.ObjectId().toString(),
+        _id: new Types.ObjectId(), // Usar Types.ObjectId() en lugar de undefined as any
         dayNumber: dayNum,
         date: currentDate,
         items,
@@ -542,6 +985,9 @@ export class ItineraryGeneratorService {
     return days;
   }
 
+  /**
+   * Crea un item de vuelo
+   */
   private createFlightItem(
     flight: FlightResponse,
     direction: "outbound" | "inbound",
@@ -557,6 +1003,7 @@ export class ItineraryGeneratorService {
     const departureTime = new Date(segment.departure.at);
     const arrivalTime = new Date(lastSegment.arrival.at);
 
+    // Dividir el precio total entre ida y vuelta
     const halfPrice = flight.price.grandTotal / 2;
 
     const flightDetails: IFlightDetails = {
@@ -600,7 +1047,7 @@ export class ItineraryGeneratorService {
           }`;
 
     return {
-      _id: new Types.ObjectId().toString(),
+      _id: new Types.ObjectId(), // Usar Types.ObjectId()
       itemId: `flight-${direction}-${order}`,
       type: "flight",
       order,
@@ -627,6 +1074,9 @@ export class ItineraryGeneratorService {
     };
   }
 
+  /**
+   * Crea un item de hotel
+   */
   private createAccommodationItem(
     hotel: HotelResponse,
     action: "night",
@@ -639,10 +1089,7 @@ export class ItineraryGeneratorService {
   ): IItineraryItem {
     const nights = this.calculateTripDays(checkIn, checkOut) - 1;
 
-    const totalPriceInCOP = convertToCOP(
-      hotel.price.total,
-      hotel.price.currency
-    );
+    const totalPriceInCOP = convertToCOP(hotel.price.total, hotel.price.currency);
     const pricePerNight = totalPriceInCOP / nights;
 
     const accommodationDetails: IAccommodationDetails = {
@@ -661,15 +1108,15 @@ export class ItineraryGeneratorService {
 
     console.log(`[createAccommodationItem] Hotel: ${hotel.name}`);
     console.log(
-      `  Precio original: ${hotel.price.currency} ${hotel.price.total}`
+      `  Precio original: ${hotel.price.currency} ${hotel.price.total}`
     );
     console.log(
-      `  Precio en COP (total): COP ${totalPriceInCOP.toLocaleString()}`
+      `  Precio en COP (total): COP ${totalPriceInCOP.toLocaleString()}`
     );
-    console.log(`  Precio por noche: COP ${pricePerNight.toLocaleString()}`);
+    console.log(`  Precio por noche: COP ${pricePerNight.toLocaleString()}`);
 
     return {
-      _id: new Types.ObjectId().toString(),
+      _id: new Types.ObjectId(), // Usar Types.ObjectId()
       itemId: `accommodation-night-${order}`,
       type: "accommodation",
       order,
@@ -687,6 +1134,41 @@ export class ItineraryGeneratorService {
     };
   }
 
+  /**
+   * Crea un item que representa la llegada/check-in al hotel (sin costo)
+   */
+  private createHotelArrivalItem(
+    hotel: HotelResponse,
+    order: number,
+    time: string
+  ): IItineraryItem {
+    // Arrival/check-in marker: do NOT include accommodationDetails because
+    // the DB schema requires `nights >= 1` when accommodationDetails is present.
+    // This item represents an arrival event (no cost) and should not trigger
+    // schema validation for accommodation details.
+    return {
+      _id: new Types.ObjectId(),
+      itemId: `accommodation-arrival-${order}`,
+      type: "accommodation",
+      order,
+      time,
+      title: `Llegada al hotel: ${hotel.name}`,
+      description: `Check-in y llegada al hotel ${hotel.name}`,
+      price: 0,
+      location: {
+        name: hotel.name,
+        address: hotel.address || hotel.name,
+        coordinates: hotel.coordinates,
+        placeId: undefined,
+      },
+    };
+  }
+
+  
+
+  /**
+   * Crea un item de comida
+   */
   private createFoodItem(
     restaurant: RestaurantResponse,
     mealType: "desayuno" | "almuerzo" | "cena",
@@ -716,7 +1198,7 @@ export class ItineraryGeneratorService {
     };
 
     return {
-      _id: new Types.ObjectId().toString(),
+      _id: new Types.ObjectId(), // Usar Types.ObjectId()
       itemId: `food-${mealType}-${order}`,
       type: "food",
       order,
@@ -736,6 +1218,9 @@ export class ItineraryGeneratorService {
     };
   }
 
+  /**
+   * Crea un item de sitio turístico
+   */
   private createTouristSiteItem(
     site: TouristSiteResponse,
     order: number,
@@ -762,7 +1247,7 @@ export class ItineraryGeneratorService {
     };
 
     return {
-      _id: new Types.ObjectId().toString(),
+      _id: new Types.ObjectId(), // Usar Types.ObjectId()
       itemId: `tourist-${site.placeId}-${order}`,
       type: "tourist_site",
       order,
@@ -781,6 +1266,18 @@ export class ItineraryGeneratorService {
     };
   }
 
+  /**
+   * Calcula el número de días del viaje
+   */
+  private calculateTripDays(departureDate: Date, returnDate: Date): number {
+    const diffTime = Math.abs(returnDate.getTime() - departureDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays + 1; // Incluir ambos días
+  }
+
+  /**
+   * Asegura que una hora sea al menos la hora mínima especificada
+   */
   private ensureTimeIsAtLeast(currentTime: string, minTime: string): string {
     if (timeToMinutes(currentTime) < timeToMinutes(minTime)) {
       return minTime;
@@ -788,6 +1285,9 @@ export class ItineraryGeneratorService {
     return currentTime;
   }
 
+  /**
+   * Calcula el precio total del itinerario
+   */
   private calculateTotalPrice(days: IDay[]): number {
     let total = 0;
 
@@ -800,6 +1300,9 @@ export class ItineraryGeneratorService {
     return Math.round(total);
   }
 
+  /**
+   * Genera un título para el itinerario
+   */
   private generateTitle(destinationCity: string, travelType: string): string {
     const titles: Record<string, string> = {
       cultural: "Cultural Experience",
@@ -813,6 +1316,137 @@ export class ItineraryGeneratorService {
     const typeTitle = titles[travelType] || "Trip";
     return `${typeTitle} in ${destinationCity}`;
   }
+
+  /**
+   * Ordena vuelos aplicando la misma lógica del selector
+   */
+  private sortFlights(flights: FlightResponse[]): FlightResponse[] {
+    return [...flights].sort((a, b) => {
+      const stopsA =
+        a.outbound.segments.reduce((sum, s) => sum + s.numberOfStops, 0) +
+        (a.inbound
+          ? a.inbound.segments.reduce((sum, s) => sum + s.numberOfStops, 0)
+          : 0);
+      const stopsB =
+        b.outbound.segments.reduce((sum, s) => sum + s.numberOfStops, 0) +
+        (b.inbound
+          ? b.inbound.segments.reduce((sum, s) => sum + s.numberOfStops, 0)
+          : 0);
+
+      if (stopsA !== stopsB) return stopsA - stopsB;
+      if (a.price.grandTotal !== b.price.grandTotal) {
+        return a.price.grandTotal - b.price.grandTotal;
+      }
+
+      const durationA = parseDurationToMinutes(a.outbound.duration);
+      const durationB = parseDurationToMinutes(b.outbound.duration);
+      return durationA - durationB;
+    });
+  }
+
+  /**
+   * Ordena hoteles aplicando la misma lógica del selector
+   */
+  private sortHotels(hotels: HotelResponse[]): HotelResponse[] {
+    return [...hotels]
+      .filter((h) => h.available)
+      .sort((a, b) => a.price.total - b.price.total);
+  }
+
+  /**
+   * Genera N variantes de itinerario (por defecto 3). Realiza las búsquedas una sola vez
+   * y luego construye variantes usando las mejores opciones por índice.
+   */
+  async generateItineraries(
+    request: GenerateItineraryRequest,
+    variants = 3
+  ): Promise<GenerateItineraryResponse[]> {
+    const totalTravelers =
+      request.adults + (request.children || 0) + (request.babies || 0);
+    const tripDays = this.calculateTripDays(
+      request.departureDate,
+      request.returnDate
+    );
+    const apiLimits = calculateAPILimits(tripDays);
+
+    // Realizar búsquedas una sola vez
+    const flights = await this.searchFlights(request, apiLimits);
+    const hotels = await this.searchHotels(request, apiLimits);
+    const restaurants = await this.searchRestaurants(request, apiLimits);
+    const touristSites = await this.searchTouristSites(request, apiLimits);
+
+    const sortedFlights = this.sortFlights(flights);
+    const sortedHotels = this.sortHotels(hotels);
+
+    const organized = new SelectorService().organizeRestaurantsByMealType(
+      restaurants,
+      request.foodPreferences
+    );
+
+    const results: GenerateItineraryResponse[] = [];
+
+    for (let i = 0; i < variants; i++) {
+      const selectedFlight = sortedFlights[i] || sortedFlights[0];
+      const selectedHotel = sortedHotels[i] || sortedHotels[0];
+
+      const rotate = (arr: unknown[]) =>
+        arr.length === 0 ? arr : arr.slice(i).concat(arr.slice(0, i));
+
+      const restaurantsVariant = {
+        breakfast: rotate(organized.breakfast) as RestaurantResponse[],
+        lunch: rotate(organized.lunch) as RestaurantResponse[],
+        dinner: rotate(organized.dinner) as RestaurantResponse[],
+      };
+
+      const touristSitesVariant = rotate(touristSites) as TouristSiteResponse[];
+
+      const days = this.generateDays(
+        request,
+        selectedFlight,
+        selectedHotel,
+        restaurantsVariant,
+        touristSitesVariant,
+        totalTravelers
+      );
+
+      const totalPrice = this.calculateTotalPrice(days);
+      const title = this.generateTitle(
+        request.destinationCityName,
+        request.travelType
+      );
+
+      results.push({
+        searchParams: {
+          originCity: {
+            name: request.originCityName,
+            coordinates: request.originCoordinates,
+            placeId: request.originPlaceId,
+          },
+          destinationCity: {
+            name: request.destinationCityName,
+            coordinates: request.destinationCoordinates,
+            placeId: request.destinationPlaceId,
+          },
+          departureDate: request.departureDate,
+          returnDate: request.returnDate,
+          travelers: {
+            adults: request.adults,
+            children: request.children || 0,
+            babies: request.babies || 0,
+          },
+          travelType: request.travelType,
+        },
+        title,
+        totalPrice,
+        currency: request.currency || "COP",
+        days,
+      });
+    }
+
+    return results;
+  }
+
+  
 }
 
 export const itineraryGeneratorService = new ItineraryGeneratorService();

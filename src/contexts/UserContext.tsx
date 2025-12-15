@@ -22,6 +22,7 @@ export interface UserData {
   firebaseUid: string
   email: string
   name: string
+  profileImage?: string
   hasCompletedOnboarding: boolean
   originCity?: OriginCity
   createdAt: string
@@ -35,6 +36,7 @@ interface UserContextType {
   error: string | null
   refreshUserData: () => Promise<void>
   updateUserData: (updates: Partial<UserData>) => void
+  setUserData: (data: UserData | null) => void
   clearUserData: () => void
 }
 
@@ -128,6 +130,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     error,
     refreshUserData,
     updateUserData,
+    setUserData,
     clearUserData,
   }
 

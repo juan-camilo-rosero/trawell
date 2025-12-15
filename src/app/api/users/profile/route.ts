@@ -1,0 +1,98 @@
+import { NextRequest, NextResponse } from 'next/server';
+import connectDB from '@/lib/db/db';
+import User from '@/models/user/User';
+
+// Mark the route as dynamic
+export const dynamic = 'force-dynamic';
+
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json();
+
+    const { firebaseUid, name, profileImage, originCity } = body;
+
+    // Validaciones básicas
+    if (!firebaseUid) {
+      return NextResponse.json(
+        { message: 'firebaseUid es requerido' },
+        { status: 400 }
+      );
+    }
+
+    if (!name || !name.trim()) {
+      return NextResponse.json(
+        { message: 'El nombre es requerido' },
+        { status: 400 }
+      );
+    }
+
+    await connectDB();
+
+    // Construir el objeto con los campos actualizables
+    const updateData: Record<string, unknown> = {};
+
+    if (name) updateData.name = name.trim();
+
+    if (profileImage !== undefined)
+      updateData.profileImage = profileImage || null;
+
+    if (originCity !== undefined)
+      updateData.originCity = originCity || null;
+
+    // Actualizar usuario
+    const updatedUser   = await User.findOneAndUpdate(
+      { firebaseUid },
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedUser) {
+      return NextResponse.json(
+        { message: 'Usuario no encontrado' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(updatedUser, { status: 200 });
+
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+    return NextResponse.json(
+      { message: 'Error al actualizar el perfil del usuario'},
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const firebaseUid = request.nextUrl.searchParams.get('firebaseUid');
+
+    if (!firebaseUid) {
+      return NextResponse.json(
+        { message: 'firebaseUid es requerido' },
+        { status: 400 }
+      );
+    }
+
+    await connectDB();
+
+    const user = await User.findOne({ firebaseUid });
+
+    if (!user) {
+      return NextResponse.json(
+        { message: 'Usuario no encontrado' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(user, { status: 200 });
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+
+    return NextResponse.json(
+      { message: 'Error al obtener el perfil del usuario' },
+      { status: 500 }
+    );
+  }
+}
