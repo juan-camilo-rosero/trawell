@@ -12,24 +12,24 @@ import {
   resendVerificationEmail,
 } from "@/lib/auth_functions";
 
-// Constantes
+// Constants
 const ERROR_MESSAGES: Record<string, string> = {
-  "auth/popup-closed-by-user": "Ventana de inicio de sesión cerrada",
-  "auth/cancelled-popup-request": "Inicio de sesión cancelado",
-  "auth/popup-blocked": "Ventana emergente bloqueada por el navegador",
-  "auth/network-request-failed": "Error de conexión. Verifica tu internet",
-  "auth/internal-error": "Error interno. Intenta nuevamente",
-  "auth/unauthorized-domain": "Dominio no autorizado",
-  "auth/invalid-email": "Email inválido",
-  "auth/user-disabled": "Esta cuenta ha sido deshabilitada",
-  "auth/user-not-found": "No existe una cuenta con este email",
-  "auth/wrong-password": "Contraseña incorrecta",
-  "auth/invalid-credential": "Credenciales inválidas",
-  "auth/too-many-requests": "Demasiados intentos. Intenta más tarde",
-  "auth/missing-credentials": "Email y contraseña son requeridos",
+  "auth/popup-closed-by-user": "Login popup closed",
+  "auth/cancelled-popup-request": "Login cancelled",
+  "auth/popup-blocked": "Popup blocked by browser",
+  "auth/network-request-failed": "Connection error. Please check your internet",
+  "auth/internal-error": "Internal error. Please try again",
+  "auth/unauthorized-domain": "Unauthorized domain",
+  "auth/invalid-email": "Invalid email",
+  "auth/user-disabled": "This account has been disabled",
+  "auth/user-not-found": "No account found with this email",
+  "auth/wrong-password": "Incorrect password",
+  "auth/invalid-credential": "Invalid credentials",
+  "auth/too-many-requests": "Too many attempts. Please try again later",
+  "auth/missing-credentials": "Email and password are required",
   "auth/email-not-verified":
-    "Por favor verifica tu email antes de iniciar sesión",
-  default: "Error al iniciar sesión",
+    "Please verify your email before logging in",
+  default: "Error logging in",
 };
 
 function Page() {
@@ -70,7 +70,7 @@ function Page() {
 
   const handleEmailSignIn = async (): Promise<void> => {
     if (!email.trim() || !password.trim()) {
-      setError("Por favor completa todos los campos");
+      setError("Please fill in all fields");
       return;
     }
 
@@ -86,7 +86,7 @@ function Page() {
       const authError = error as { code?: string };
       if (authError.code === "auth/email-not-verified") {
         setShowUnverifiedMessage(true);
-        setError("Tu email aún no ha sido verificado");
+        setError("Your email relies not verified yet");
       } else {
         const errorMessage = getErrorMessage(error);
         setError(errorMessage);
@@ -127,7 +127,7 @@ function Page() {
         <div className="w-full hidden lg:flex bg-secondary-200 justify-center items-center">
           <img
             src="static/trawell_ilustracion2.png"
-            alt="Ilustración crear cuenta"
+            alt="Create account illustration"
             className="h-[100vh]"
           />
         </div>
@@ -136,15 +136,15 @@ function Page() {
             <Link href="/" className="flex justify-center">
               <img
                 src="static/logo.png"
-                alt="Logo Trawell"
+                alt="Trawell Logo"
                 className="h-16 w-auto hidden md:flex cursor-pointer"
               />
             </Link>
             <h1 className="text-muted-900 font-semibold text-3xl text-center lg:mt-4">
-              Bienvenido de vuelta
+              Welcome back
             </h1>
             <h2 className="text-muted-500 mt-4 font-medium text-base text-center">
-              Ingresa tus credenciales
+              Enter your credentials
             </h2>
           </div>
           <div className="w-full flex flex-col gap-6 mt-12 lg:mt-4">
@@ -158,32 +158,31 @@ function Page() {
             <div>
               <CustomInput
                 type="password"
-                placeholder="Contraseña"
+                placeholder="Password"
                 value={password}
                 setValue={setPassword}
                 onKeyPress={handleKeyPress}
               />
               <div className="text-muted-500 font-medium text-right mt-4 underline md:text-base lg:text-sm">
                 <Link href="/reset-password" className="w-auto">
-                  ¿Olvidaste tu contraseña?
+                  Forgot your password?
                 </Link>
               </div>
             </div>
           </div>
 
-          {/* Mensaje de email no verificado */}
+          {/* Unverified email message */}
           {showUnverifiedMessage && (
             <div className="w-full mt-6 bg-secondary-100 border border-secondary-300 rounded-lg p-4">
               <p className="text-sm text-primary mb-3 text-center font-semibold">
-                Debes verificar tu email antes de iniciar sesión
+                You must verify your email before logging in
               </p>
               <p className="text-xs text-muted-500 mb-3 text-center">
-                Revisa tu bandeja de entrada y haz clic en el enlace de
-                verificación
+                Check your inbox and click the verification link
               </p>
               {resendSuccess ? (
                 <p className="text-sm text-muted-900 text-center font-semibold">
-                  Email reenviado correctamente
+                  Email resent successfully
                 </p>
               ) : (
                 <Button
@@ -192,8 +191,8 @@ function Page() {
                   disabled={isResendingEmail}
                 >
                   {isResendingEmail
-                    ? "Reenviando..."
-                    : "Reenviar email de verificación"}
+                    ? "Resending..."
+                    : "Resend verification email"}
                 </Button>
               )}
             </div>
@@ -205,7 +204,7 @@ function Page() {
               onClick={handleEmailSignIn}
               disabled={isLoading}
             >
-              {isLoading ? "Iniciando sesión..." : "Iniciar sesión"}
+              {isLoading ? "Logging in..." : "Login"}
             </Button>
             <Button
               className="third-btn text-xl !h-auto !py-3 md:text-base gap-4 flex items-center justify-center"
@@ -213,7 +212,7 @@ function Page() {
               disabled={isLoading}
             >
               <FcGoogle size={24} />
-              Continuar con Google
+              Continue with Google
             </Button>
           </div>
 
@@ -225,7 +224,7 @@ function Page() {
             href="/sign-up"
             className="underline text-muted-500 mt-12 md:mt-8"
           >
-            ¿No tienes una cuenta?
+            Don&apos;t have an account?
           </Link>
         </div>
       </div>

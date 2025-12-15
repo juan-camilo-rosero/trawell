@@ -39,7 +39,7 @@ export function SettingsMenu() {
   const [tripUpdatesLocal, setTripUpdatesLocal] = useState(settings.tripUpdates);
   const [hasChanges, setHasChanges] = useState(false);
 
-  // Sincronizar con el contexto
+  // Sync with context
   useEffect(() => {
     setTripUpdatesLocal(settings.tripUpdates);
     setHasChanges(false);
@@ -56,32 +56,32 @@ export function SettingsMenu() {
     setHasChanges(false);
     showNotification(
       'success',
-      'Configuración guardada',
-      'Tus preferencias de notificaciones han sido actualizadas.'
+      'Settings saved',
+      'Your notification preferences have been updated.'
     );
   };
 
   return (
     <div className="space-y-6">
-      {/* Notificaciones */}
+      {/* Notifications */}
       <SettingsSection
-        title="Notificaciones"
-        description="Controla cómo y cuándo deseas recibir notificaciones"
+        title="Notifications"
+        description="Control how and when you want to receive notifications"
         icon={<Bell className="w-6 h-6" />}
       >
         <div className="space-y-4">
-          {/* Banner de advertencia cuando las notificaciones están desactivadas */}
+          {/* Warning banner when notifications are disabled */}
           {!settings.tripUpdates && (
             <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
               <Info className="w-4 h-4" />
-              <span>Has desactivado las notificaciones emergentes. No recibirás alertas en la app.</span>
+              <span>You have disabled push notifications. You will not receive alerts in the app.</span>
             </div>
           )}
 
           <div className="flex items-center justify-between">
             <label htmlFor="trip-updates" className="text-sm text-gray-700">
-              <div>Actualizaciones de viajes</div>
-              <div className="text-xs text-gray-500 mt-1">Controla las notificaciones emergentes en la app</div>
+              <div>Trip Updates</div>
+              <div className="text-xs text-gray-500 mt-1">Control in-app pop-up notifications</div>
             </label>
             <input
               type="checkbox"
@@ -99,37 +99,37 @@ export function SettingsMenu() {
             onClick={handleSave}
             disabled={!hasChanges}
           >
-            {hasChanges ? 'Guardar cambios' : 'Guardado'}
+            {hasChanges ? 'Save changes' : 'Saved'}
           </Button>
         </div>
       </SettingsSection>
 
-      {/* Cuenta */}
+      {/* Account */}
       <SettingsSection
-        title="Cuenta"
-        description="Opciones avanzadas de la cuenta"
+        title="Account"
+        description="Advanced account options"
         icon={<Settings className="w-6 h-6" />}
       >
         <div className="space-y-4">
           <div className="p-4 bg-secondary-100 rounded-lg">
             <p className="text-sm text-primary">
-              Para cambiar tu contraseña, ingresa tu contraseña actual y la nueva contraseña que deseas utilizar.
+              To change your password, enter your current password and the new password you wish to use.
             </p>
           </div>
           <ChangePassword email={userData?.email} />
         </div>
       </SettingsSection>
 
-      {/* Eliminar cuenta */}
+      {/* Delete Account */}
       <SettingsSection
-        title="Eliminar cuenta"
-        description="Esta acción es permanente y no puede revertirse"
+        title="Delete Account"
+        description="This action is permanent and cannot be undone"
         icon={<Trash2 className="w-6 h-6 text-primary" />}
       >
         <div className="space-y-4">
           <div className="p-4 bg-secondary-100 rounded-lg">
             <p className="text-sm text-primary">
-              Al eliminar tu cuenta, se borrarán permanentemente todos tus datos, viajes y preferencias.
+              Deleting your account will permanently erase all your data, trips, and preferences.
             </p>
           </div>
           <DeleteAccount email={userData?.email} />

@@ -49,7 +49,7 @@ export default function ProfileSettings({ onSaved }: ProfileSettingsProps) {
       const base64 = await imageToBase64(file);
       setProfileImage(base64);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error al procesar la imagen';
+      const errorMessage = err instanceof Error ? err.message : 'Error processing image';
       setError(errorMessage);
     }
 
@@ -61,12 +61,12 @@ export default function ProfileSettings({ onSaved }: ProfileSettingsProps) {
 
   const handleSaveProfile = async () => {
     if (!userData?.firebaseUid) {
-      setError('No se encontró el usuario');
+      setError('User not found');
       return;
     }
 
     if (!name.trim()) {
-      setError('El nombre es requerido');
+      setError('Name is required');
       return;
     }
 
@@ -81,7 +81,7 @@ export default function ProfileSettings({ onSaved }: ProfileSettingsProps) {
        originCity,
      });
 
-      // Actualizar el contexto con los nuevos datos
+      // Update context with new data
       if (setUserData) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setUserData(updatedUser as any);
@@ -92,10 +92,10 @@ export default function ProfileSettings({ onSaved }: ProfileSettingsProps) {
         onSaved();
       }
 
-      // Limpiar el mensaje de éxito después de 3 segundos
+      // Clear success message after 3 seconds
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error al guardar el perfil';
+      const errorMessage = err instanceof Error ? err.message : 'Error saving profile';
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -109,13 +109,13 @@ export default function ProfileSettings({ onSaved }: ProfileSettingsProps) {
     <div className="space-y-6">
       <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
         <h2 className="text-xl font-semibold text-gray-900 mb-6">
-          Configuración de Perfil
+          Profile Settings
         </h2>
 
         {/* Avatar Section */}
         <div className="mb-8">
           <label className="block text-sm font-medium text-gray-700 mb-4">
-            Foto de Perfil
+            Profile Picture
           </label>
           <div className="flex items-center gap-4">
             <Avatar className="w-20 h-20">
@@ -140,10 +140,10 @@ export default function ProfileSettings({ onSaved }: ProfileSettingsProps) {
                 className="gap-2"
               >
                 <Upload className="w-4 h-4" />
-                Subir Imagen
+                Upload Image
               </Button>
               <p className="text-xs text-gray-500">
-                JPG, PNG o WebP. Máximo 5MB
+                JPG, PNG or WebP. Max 5MB
               </p>
             </div>
           </div>
@@ -152,14 +152,14 @@ export default function ProfileSettings({ onSaved }: ProfileSettingsProps) {
         {/* Name Section */}
         <div className="mb-6">
           <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-            Nombre
+            Name
           </label>
           <Input
             id="name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Tu nombre"
+            placeholder="Your name"
             className="w-full"
             disabled={isLoading || contextLoading}
           />
@@ -168,7 +168,7 @@ export default function ProfileSettings({ onSaved }: ProfileSettingsProps) {
         {/* Email (Read-only) */}
         <div className="mb-6">
           <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-            Email (No se puede cambiar)
+            Email (Cannot be changed)
           </label>
           <Input
             id="email"
@@ -181,7 +181,7 @@ export default function ProfileSettings({ onSaved }: ProfileSettingsProps) {
         {/* Origin city*/}
        <div className="mb-6">
          <label className="block text-sm font-medium text-gray-700 mb-2">
-           Ciudad de Origen
+           Origin City
          </label>
          <CityAutocomplete
            value={originCityInput}
@@ -210,7 +210,7 @@ export default function ProfileSettings({ onSaved }: ProfileSettingsProps) {
         {success && (
           <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex gap-3">
             <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-green-700">Perfil actualizado correctamente</p>
+            <p className="text-sm text-green-700">Profile updated successfully</p>
           </div>
         )}
 
@@ -227,7 +227,7 @@ export default function ProfileSettings({ onSaved }: ProfileSettingsProps) {
             }}
             disabled={!isChanged || isLoading}
           >
-            Cancelar
+            Cancel
           </Button>
           <Button
             onClick={handleSaveProfile}
@@ -236,7 +236,7 @@ export default function ProfileSettings({ onSaved }: ProfileSettingsProps) {
             variant="outline"
           >
             {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-            {isLoading ? 'Guardando...' : 'Guardar Cambios'}
+            {isLoading ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
       </div>

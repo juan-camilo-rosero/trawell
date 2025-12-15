@@ -8,21 +8,21 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { continueWithGoogle, signUpWithEmail } from "@/lib/auth_functions";
 
-// Constantes
+// Constants
 const ERROR_MESSAGES: Record<string, string> = {
-  "auth/popup-closed-by-user": "Ventana de inicio de sesión cerrada",
-  "auth/cancelled-popup-request": "Inicio de sesión cancelado",
-  "auth/popup-blocked": "Ventana emergente bloqueada por el navegador",
-  "auth/network-request-failed": "Error de conexión. Verifica tu internet",
-  "auth/internal-error": "Error interno. Intenta nuevamente",
-  "auth/unauthorized-domain": "Dominio no autorizado",
-  "auth/invalid-email": "Email inválido",
-  "auth/email-already-in-use": "Ya existe una cuenta con este email",
-  "auth/weak-password": "La contraseña debe tener al menos 6 caracteres",
-  "auth/operation-not-allowed": "Operación no permitida",
-  "auth/missing-credentials": "Email y contraseña son requeridos",
-  "auth/too-many-requests": "Demasiados intentos. Intenta más tarde",
-  default: "Error al crear cuenta",
+  "auth/popup-closed-by-user": "Login popup closed",
+  "auth/cancelled-popup-request": "Login cancelled",
+  "auth/popup-blocked": "Popup blocked by browser",
+  "auth/network-request-failed": "Connection error. Please check your internet",
+  "auth/internal-error": "Internal error. Please try again",
+  "auth/unauthorized-domain": "Unauthorized domain",
+  "auth/invalid-email": "Invalid email",
+  "auth/email-already-in-use": "An account already exists with this email",
+  "auth/weak-password": "Password must be at least 6 characters long",
+  "auth/operation-not-allowed": "Operation not allowed",
+  "auth/missing-credentials": "Email and password are required",
+  "auth/too-many-requests": "Too many attempts. Please try again later",
+  default: "Error creating account",
 };
 
 function Page() {
@@ -47,17 +47,17 @@ function Page() {
 
   const validateForm = (): boolean => {
     if (!email.trim() || !password.trim() || !confirmPassword.trim()) {
-      setError("Por favor completa todos los campos");
+      setError("Please fill in all fields");
       return false;
     }
 
     if (password !== confirmPassword) {
-      setError("Las contraseñas no coinciden");
+      setError("Passwords do not match");
       return false;
     }
 
     if (password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres");
+      setError("Password must be at least 6 characters long");
       return false;
     }
 
@@ -91,7 +91,7 @@ function Page() {
     try {
       const result = await signUpWithEmail(email, password);
 
-      // Siempre mostramos el mensaje de verificación ya que needsVerification siempre es true
+      // Always show verification message since needsVerification is always true
       if (result.needsVerification) {
         setShowVerificationMessage(true);
         setIsLoading(false);
@@ -119,7 +119,7 @@ function Page() {
           <div className="w-full hidden lg:flex items-center justify-center bg-secondary-200">
             <img
               src="static/trawell_ilustracion2.png"
-              alt="Ilustración crear cuenta"
+              alt="Create account illustration"
               className="w-40 h-auto"
             />
           </div>
@@ -129,23 +129,23 @@ function Page() {
                 <div className="text-center mb-4">
                   <img
                     src="static/logo.png"
-                    alt="Logo Trawell"
+                    alt="Trawell Logo"
                     className="h-16 mb-8 w-auto mx-auto"
                   />
                   <h2 className="text-2xl font-semibold text-muted-900 mb-2">
-                    ¡Cuenta creada!
+                    Account created!
                   </h2>
                   <p className="text-muted-500 mb-4">
-                    Hemos enviado un correo de verificación a:
+                    We have sent a verification email to:
                   </p>
                   <p className="font-semibold text-muted-900 mb-4 text-lg">
                     {email}
                   </p>
                   <p className="text-sm text-muted-500">
-                    Por favor revisa tu bandeja de entrada y haz clic en el
-                    enlace de verificación para activar tu cuenta.{" "}
+                    Please check your inbox and click the verification link
+                    to activate your account.{" "}
                     <span className="text-muted-900 font-semibold">
-                      Posiblemente llegue a spam jajan&apos;t :(
+                      Check your spam folder just in case! 
                     </span>
                   </p>
                 </div>
@@ -153,7 +153,7 @@ function Page() {
               <div className="mt-6">
                 <Link href="/login">
                   <Button className="primary-btn text-xl !h-auto !py-3 md:text-base w-full">
-                    Ir a inicio de sesión
+                    Go to Login
                   </Button>
                 </Link>
               </div>
@@ -173,7 +173,7 @@ function Page() {
         <div className="w-full hidden lg:flex items-center justify-center bg-secondary-200">
           <img
               src="static/trawell_ilustracion4.png"
-              alt="Ilustración crear cuenta"
+              alt="Create account illustration"
               className="h-[100vh]"
             />
         </div>
@@ -182,15 +182,15 @@ function Page() {
             <Link href="/" className="flex justify-center">
               <img
                 src="static/logo.png"
-                alt="Logo Trawell"
+                alt="Trawell Logo"
                 className="h-16 w-auto hidden md:flex cursor-pointer"
               />
             </Link>
             <h1 className="text-muted-900 font-semibold text-3xl text-center lg:mt-4">
-              Crea tu cuenta
+              Create your account
             </h1>
             <h2 className="text-muted-500 mt-4 font-medium text-base text-center">
-              Completa tus datos para comenzar
+              Complete your details to start
             </h2>
           </div>
           <div className="w-full flex flex-col gap-6 mt-12 lg:mt-4">
@@ -203,14 +203,14 @@ function Page() {
             />
             <CustomInput
               type="password"
-              placeholder="Contraseña"
+              placeholder="Password"
               value={password}
               setValue={setPassword}
               onKeyPress={handleKeyPress}
             />
             <CustomInput
               type="password"
-              placeholder="Confirmar contraseña"
+              placeholder="Confirm password"
               value={confirmPassword}
               setValue={setConfirmPassword}
               onKeyPress={handleKeyPress}
@@ -222,7 +222,7 @@ function Page() {
               onClick={handleEmailSignUp}
               disabled={isLoading}
             >
-              {isLoading ? "Creando cuenta..." : "Crear cuenta"}
+              {isLoading ? "Creating account..." : "Create account"}
             </Button>
             <Button
               className="third-btn text-xl !h-auto !py-3 md:text-base gap-4 flex items-center justify-center"
@@ -230,7 +230,7 @@ function Page() {
               disabled={isLoading}
             >
               <FcGoogle size={24} />
-              Continuar con Google
+              Continue with Google
             </Button>
           </div>
 
@@ -242,7 +242,7 @@ function Page() {
             href="/login"
             className="underline text-muted-500 mt-12 md:mt-8"
           >
-            ¿Ya tienes una cuenta?
+            Already have an account?
           </Link>
         </div>
       </div>

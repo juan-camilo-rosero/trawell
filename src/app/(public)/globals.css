@@ -32,7 +32,7 @@
 }
 
 .third-btn {
-  @apply bg-secondary-200 text-muted-900 font-semibold py-2 px-8 rounded-lg transition hover:bg-secondary-300;
+  @apply bg-secondary-200 text-muted-900 font-semibold py-2 px-8 rounded-lg transition hover:!bg-secondary-300;
 }
 
 /* --- Landing --- */
