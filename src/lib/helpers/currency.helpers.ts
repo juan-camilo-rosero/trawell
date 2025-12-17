@@ -32,3 +32,10 @@ export function convertFromUSD(amount: number, toCurrency: string): number {
 
   return Math.round(amount / rate);
 }
+
+// Función faltante
+export function convertToCOP(amount: number, fromCurrency: string): number {
+  // Primero convertir a USD, luego a COP
+  const amountInUSD = convertToUSD(amount, fromCurrency);
+  return convertFromUSD(amountInUSD, 'COP');
+}
