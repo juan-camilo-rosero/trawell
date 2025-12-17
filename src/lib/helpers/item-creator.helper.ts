@@ -138,7 +138,7 @@ export function createHotelItemFromResponse(
 
 export function createRestaurantItemFromResponse(
   restaurant: RestaurantResponse,
-  mealType: "desayuno" | "almuerzo" | "cena",
+  mealType: "breakfast" | "lunch" | "dinner" | "snack",
   order: number,
   time: string,
   totalTravelers: number
@@ -159,9 +159,10 @@ export function createRestaurantItemFromResponse(
   };
 
   const mealTitles = {
-    desayuno: "Desayuno",
-    almuerzo: "Almuerzo",
-    cena: "Cena",
+    breakfast: "Desayuno",
+    lunch: "Almuerzo",
+    dinner: "Cena",
+    snack: "Snack",
   };
 
   return {
