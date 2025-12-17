@@ -208,6 +208,12 @@ export const ItinerarySchema = new Schema(
       default: false,
     },
     days: [DaySchema],
+    availableResources: {
+      flights: [{ type: Schema.Types.Mixed }],
+      hotels: [{ type: Schema.Types.Mixed }],
+      restaurants: [{ type: Schema.Types.Mixed }],
+      touristSites: [{ type: Schema.Types.Mixed }],
+    },
     lastViewedAt: {
       type: Date,
     },

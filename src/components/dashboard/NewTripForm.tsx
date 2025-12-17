@@ -309,7 +309,7 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
           | "gastronomic"
           | "spiritual",
         foodPreferences,
-        currency: "COP",
+        currency: "USD",
          ...(budget ? { budget } : {}),
       });
 
@@ -526,7 +526,7 @@ function NewTripForm({ itineraryId }: NewTripFormProps) {
   <input
     type="number"
     min="0"
-    placeholder="Ex: 2000000"
+    placeholder="Ex: 1000"
     value={budget ?? ""}
     onChange={(e) => setBudget(e.target.value ? Number(e.target.value) : undefined)}
     className="w-full px-4 py-2 border rounded-lg bg-white"

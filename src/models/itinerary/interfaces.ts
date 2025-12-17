@@ -6,6 +6,10 @@ import {
   IOpeningHours,
   IPhoto,
   ItemType,
+  FlightResponse,
+  HotelResponse,
+  RestaurantResponse,
+  TouristSiteResponse,
 } from '../types';
 
 export interface ISearchParams {
@@ -45,7 +49,7 @@ export interface IAccommodationDetails {
 export interface IFoodDetails {
   restaurantName: string;
   cuisine: string;
-  mealType: 'desayuno' | 'almuerzo' | 'cena' | 'snack';
+  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
   priceLevel: number;
   rating: number;
   userRatingsTotal: number;
@@ -88,6 +92,13 @@ export interface IDay {
   items: IItineraryItem[];
 }
 
+export interface IAvailableResources {
+  flights: FlightResponse[];
+  hotels: HotelResponse[];
+  restaurants: RestaurantResponse[];
+  touristSites: TouristSiteResponse[];
+}
+
 export interface IItinerary extends Document {
   userId: string;
   searchParams: ISearchParams;
@@ -96,6 +107,7 @@ export interface IItinerary extends Document {
   currency: string;
   isPublic: boolean;
   days: IDay[];
+  availableResources?: IAvailableResources;
   lastViewedAt?: Date;
   createdAt: Date;
   updatedAt: Date;

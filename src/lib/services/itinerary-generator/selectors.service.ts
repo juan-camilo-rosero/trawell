@@ -53,15 +53,15 @@ export class SelectorService {
     dinner: RestaurantResponse[];
   } {
     const breakfastCategories = getRestaurantCategoriesForMeal(
-      "desayuno",
+      "breakfast",
       foodPreferences
     );
     const lunchCategories = getRestaurantCategoriesForMeal(
-      "almuerzo",
+      "lunch",
       foodPreferences
     );
     const dinnerCategories = getRestaurantCategoriesForMeal(
-      "cena",
+      "dinner",
       foodPreferences
     );
 

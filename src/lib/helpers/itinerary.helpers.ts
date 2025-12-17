@@ -127,7 +127,7 @@ export function getActivitiesPerDayForTripType(tripType: string): number {
  * Obtiene las categorías de restaurantes para comidas según preferencias
  */
 export function getRestaurantCategoriesForMeal(
-  mealType: "desayuno" | "almuerzo" | "cena",
+  mealType: "breakfast" | "lunch" | "dinner",
   foodPreferences: RestaurantCategory[]
 ): RestaurantCategory[] {
   // Si el usuario seleccionó 'all' o no hay preferencias, usar categorías amplias
@@ -137,9 +137,9 @@ export function getRestaurantCategoriesForMeal(
     foodPreferences.includes("all")
   ) {
     switch (mealType) {
-      case "desayuno":
+      case "breakfast":
         return ["cafe", "bakery", "casual", "american"];
-      case "almuerzo":
+      case "lunch":
         return [
           "casual",
           "italian",
@@ -150,7 +150,7 @@ export function getRestaurantCategoriesForMeal(
           "chinese",
           "japanese",
         ];
-      case "cena":
+      case "dinner":
         return [
           "fine_dining",
           "casual",
@@ -192,7 +192,7 @@ export function getRestaurantCategoriesForMeal(
   ];
 
   switch (mealType) {
-    case "desayuno":
+    case "breakfast":
       // Para desayuno, priorizar cafés y panaderías, o usar las preferencias del usuario
       const breakfastPrefs = foodPreferences.filter(
         (p) => breakfastSuitable.includes(p) || anytimeSuitable.includes(p)
@@ -201,7 +201,7 @@ export function getRestaurantCategoriesForMeal(
         ? breakfastPrefs
         : ["cafe", "bakery", "casual"];
 
-    case "almuerzo":
+    case "lunch":
       // Para almuerzo, usar todas las preferencias excepto fine dining
       const lunchPrefs = foodPreferences.filter(
         (p) => p !== "fine_dining" && p !== "all"
@@ -210,7 +210,7 @@ export function getRestaurantCategoriesForMeal(
         ? lunchPrefs
         : ["casual", "italian", "mexican", "asian"];
 
-    case "cena":
+    case "dinner":
       // Para cena, usar todas las preferencias
       const dinnerPrefs = foodPreferences.filter((p) => p !== "all");
       return dinnerPrefs.length > 0
@@ -263,14 +263,14 @@ export function estimateMealPrice(
   numberOfPeople: number
 ): number {
   const basePrices: Record<number, number> = {
-    0: 15000,
-    1: 25000,
-    2: 45000,
-    3: 80000,
-    4: 150000,
+    0: 5,   // ~$5
+    1: 10,  // ~$10
+    2: 25,  // ~$25
+    3: 50,  // ~$50
+    4: 100, // ~$100
   };
 
-  const basePrice = basePrices[priceLevel] || 50000;
+  const basePrice = basePrices[priceLevel] || 20;
   return basePrice * numberOfPeople;
 }
 
@@ -343,7 +343,7 @@ export function formatDateToYYYYMMDD(date: Date): string {
  */
 export function getCurrencyForCountry(countryCode?: string): string {
   const currencies: Record<string, string> = {
-    CO: "COP",
+    CO: "USD", // Forcing global USD usage
     US: "USD",
     MX: "MXN",
     FR: "EUR",

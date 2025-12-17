@@ -153,7 +153,14 @@ function MapView({ markers, center, zoom = 13, showSaveButton = false }: MapView
     if (!map || markers.length === 0 || boundsSet.current) return
 
     const bounds = new google.maps.LatLngBounds()
-    markers.forEach((marker) => {
+    
+    // Filter out flight markers for bounds calculation to keep focus on destination
+    const markersForBounds = markers.filter(m => m.type !== 'flight')
+    
+    // If no non-flight markers (e.g. only flights), fall back to all markers
+    const markersToUse = markersForBounds.length > 0 ? markersForBounds : markers;
+
+    markersToUse.forEach((marker) => {
       bounds.extend(
         new google.maps.LatLng(marker.coordinates.lat, marker.coordinates.lng)
       )

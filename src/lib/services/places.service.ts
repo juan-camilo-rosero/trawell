@@ -219,7 +219,7 @@ export class PlacesService {
         },
       },
       rankPreference: "POPULARITY",
-      languageCode: "es",
+      languageCode: "en",
     };
 
     console.log(`[nearbySearch] Request URL: ${url}`);

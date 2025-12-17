@@ -116,6 +116,8 @@ const DateInput = React.forwardRef<HTMLDivElement, DateInputProps>(
                 if (maxDate && date > maxDate) return true
                 return false
               }}
+              fromYear={1900}
+              toYear={new Date().getFullYear() + 5}
             />
           </PopoverContent>
         </Popover>

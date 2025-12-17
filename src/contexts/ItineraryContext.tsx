@@ -258,10 +258,17 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
 
       setItinerary(itineraryData);
 
-      setAvailableHotels([]);
-      setAvailableRestaurants([]);
-      setAvailableTouristSites([]);
-      setAvailableFlights([]);
+      if (result.availableResources) {
+        setAvailableFlights(result.availableResources.flights || []);
+        setAvailableHotels(result.availableResources.hotels || []);
+        setAvailableRestaurants(result.availableResources.restaurants || []);
+        setAvailableTouristSites(result.availableResources.touristSites || []);
+      } else {
+        setAvailableHotels([]);
+        setAvailableRestaurants([]);
+        setAvailableTouristSites([]);
+        setAvailableFlights([]);
+      }
 
       if (itinerary?._id) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -316,10 +323,18 @@ export function ItineraryProvider({ children }: { children: ReactNode }) {
       const first = mappedVariants[0] || null;
       setItinerary(first);
 
-      setAvailableHotels([]);
-      setAvailableRestaurants([]);
-      setAvailableTouristSites([]);
-      setAvailableFlights([]);
+      if (results.length > 0 && results[0].availableResources) {
+        const resources = results[0].availableResources;
+        setAvailableFlights(resources.flights || []);
+        setAvailableHotels(resources.hotels || []);
+        setAvailableRestaurants(resources.restaurants || []);
+        setAvailableTouristSites(resources.touristSites || []);
+      } else {
+        setAvailableHotels([]);
+        setAvailableRestaurants([]);
+        setAvailableTouristSites([]);
+        setAvailableFlights([]);
+      }
     } catch (err) {
       console.error("❌ Error generando variantes:", err);
       setError(err instanceof Error ? err.message : "Error desconocido");

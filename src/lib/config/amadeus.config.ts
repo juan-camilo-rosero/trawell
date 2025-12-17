@@ -20,7 +20,7 @@ export const AMADEUS_CONFIG = {
   DEFAULT_RADIUS_KM: 15,
   DEFAULT_LIMIT: 10,
   MAX_LIMIT: 50,
-  DEFAULT_CURRENCY: 'COP',
+  DEFAULT_CURRENCY: 'USD',
   
   // Flight specific defaults
   DEFAULT_AIRPORT_RADIUS_KM: 500, // Máximo 500km según documentación

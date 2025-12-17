@@ -28,7 +28,7 @@ export default function RootLayout({
         </UserProvider>
         {mapsApiKey && (
           <Script
-            src={`https://maps.googleapis.com/maps/api/js?key=${mapsApiKey}&libraries=places`}
+            src={`https://maps.googleapis.com/maps/api/js?key=${mapsApiKey}&libraries=places&language=en`}
             strategy="afterInteractive"
             async
             defer

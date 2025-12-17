@@ -1,32 +1,32 @@
 const EXCHANGE_RATES: Record<string, number> = {
-  USD_TO_COP: 3800,
-  EUR_TO_COP: 4450,
+  COP_TO_USD: 0.00025, // 1 USD approx 4000 COP
+  EUR_TO_USD: 1.05,
 };
 
-export function convertToCOP(amount: number, fromCurrency: string): number {
-  if (fromCurrency === 'COP') {
+export function convertToUSD(amount: number, fromCurrency: string): number {
+  if (fromCurrency === 'USD') {
     return amount;
   }
 
-  const rate = EXCHANGE_RATES[`${fromCurrency}_TO_COP`];
+  const rate = EXCHANGE_RATES[`${fromCurrency}_TO_USD`];
   
   if (!rate) {
-    console.warn(`No se encontró tasa de cambio para ${fromCurrency}, usando valor original`);
+    console.warn(`No exchange rate found for ${fromCurrency}, using original value`);
     return amount;
   }
 
   return Math.round(amount * rate);
 }
 
-export function convertFromCOP(amount: number, toCurrency: string): number {
-  if (toCurrency === 'COP') {
+export function convertFromUSD(amount: number, toCurrency: string): number {
+  if (toCurrency === 'USD') {
     return amount;
   }
 
-  const rate = EXCHANGE_RATES[`${toCurrency}_TO_COP`];
+  const rate = EXCHANGE_RATES[`${toCurrency}_TO_USD`];
   
   if (!rate) {
-    console.warn(`No se encontró tasa de cambio para ${toCurrency}, usando valor original`);
+    console.warn(`No exchange rate found for ${toCurrency}, using original value`);
     return amount;
   }
 
