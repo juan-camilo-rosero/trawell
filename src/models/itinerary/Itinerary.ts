@@ -110,7 +110,7 @@ const FoodDetailsSchema = new Schema(
     mealType: {
       type: String,
       required: true,
-      enum: ['desayuno', 'almuerzo', 'cena', 'snack'],
+      enum: ['breakfast', 'lunch', 'dinner', 'snack'],
     },
     priceLevel: { type: Number, required: true, min: 0, max: 4 },
     rating: { type: Number, required: true, min: 0, max: 5 },
