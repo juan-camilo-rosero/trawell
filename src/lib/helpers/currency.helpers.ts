@@ -1,5 +1,5 @@
 const EXCHANGE_RATES: Record<string, number> = {
-  COP_TO_USD: 0.00025, // 1 USD approx 4000 COP
+  COP_TO_USD: 0.00025,
   EUR_TO_USD: 1.05,
 };
 
@@ -33,9 +33,7 @@ export function convertFromUSD(amount: number, toCurrency: string): number {
   return Math.round(amount / rate);
 }
 
-// Función faltante
 export function convertToCOP(amount: number, fromCurrency: string): number {
-  // Primero convertir a USD, luego a COP
   const amountInUSD = convertToUSD(amount, fromCurrency);
   return convertFromUSD(amountInUSD, 'COP');
 }
