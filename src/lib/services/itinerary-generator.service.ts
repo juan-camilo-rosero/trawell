@@ -645,6 +645,11 @@ class ItineraryGeneratorService {
       // Day 1: Outbound Flight
       if (dayNum === 1) {
         const outboundSegment = flight.outbound.segments[0];
+        const departureTime = new Date(outboundSegment.departure.at);
+        const departureHour = departureTime.getHours();
+        const departureMinute = departureTime.getMinutes();
+        const departureTimeStr = `${String(departureHour).padStart(2, "0")}:${String(departureMinute).padStart(2, "0")}`;
+        
         const arrivalTime = new Date(outboundSegment.arrival.at);
         const arrivalHour = arrivalTime.getHours();
         const arrivalMinute = arrivalTime.getMinutes();
@@ -655,7 +660,7 @@ class ItineraryGeneratorService {
             flight,
             "outbound",
             orderCounter++,
-            outboundSegment.departure.at,
+            departureTimeStr,
             totalTravelers
           )
         );
@@ -794,7 +799,7 @@ class ItineraryGeneratorService {
             flight,
             "inbound",
             orderCounter++,
-            inboundSegment.departure.at,
+            departureTimeStr,
             totalTravelers
           )
         );
