@@ -141,9 +141,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       (t) => (
         <div className="flex items-start gap-3">
           <div className="flex-1">
-            <p className="font-semibold text-sm">¡Itinerario guardado exitosamente!</p>
+            <p className="font-semibold text-sm">Itinerary saved successfully!</p>
             <p className="text-xs text-gray-600 mt-1">
-              Tu viaje a {destinationCity} ha sido guardado y está listo para explorar.
+              Your trip to {destinationCity} has been saved and is ready to explore.
             </p>
             <button
               onClick={() => {
@@ -152,7 +152,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
               }}
               className="mt-2 text-xs font-medium text-primary hover:text-primary/80 underline"
             >
-              Ver itinerarios →
+              View itineraries →
             </button>
           </div>
         </div>
@@ -161,12 +161,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         duration: 6000,
         icon: <CheckCircle2 className="w-5 h-5 text-green-600" />,
         style: {
-          background: '#fef3e2',
+          background: '#F4F4F4',
           color: '#374151',
           padding: '16px',
           borderRadius: '8px',
           boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-          border: '1px solid #f59e0b',
         },
       }
     );
