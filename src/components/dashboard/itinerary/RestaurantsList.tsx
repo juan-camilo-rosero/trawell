@@ -60,9 +60,9 @@ function RestaurantsList({
         (itinerary.searchParams.travelers.babies || 0);
 
       const hour = parseInt(newTime.split(":")[0]);
-      let mealType: "desayuno" | "almuerzo" | "cena" = "almuerzo";
-      if (hour < 11) mealType = "desayuno";
-      else if (hour >= 18) mealType = "cena";
+      let mealType: "breakfast" | "lunch" | "dinner" | "snack" = "snack";
+      if (hour < 11) mealType = "breakfast";
+      else if (hour >= 18) mealType = "dinner";
 
       const newItem = createRestaurantItemFromResponse(
         restaurant,
